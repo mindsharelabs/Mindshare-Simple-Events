@@ -3,15 +3,15 @@
   	font-family: monospace;
   	width: 100%;
     thead {
-      border: 1px solid $sassy-accent-color;
+      border: 1px solid $secondary;
     }
   	th {
-  		background: $sassy-background-color;
-  		color: $sassy-accent-color;
+  		background: $light;
+  		color: $secondary;
   		font-size: 1.3em;
   		padding: 5px;
-      border-color: $sassy-accent-color;
-  		border-bottom: 1px solid $sassy-accent-color;
+      border-color: $secondary;
+  		border-bottom: 1px solid $secondary;
   	}
 
   	tbody {
@@ -32,10 +32,10 @@
           text-align: center;
           padding: 20px 5px;
           &.selected {
-            background: $selected;
+            background: lighten($success, 50%);
           }
           &:hover {
-            background: $selected;
+            background: lighten($success, 50%); 
           }
   			}
 

@@ -1,15 +1,5 @@
-$input-border: rgba(200,200,200,.3);
-$sassy-base-color: rgb(249, 228, 208) !default;
-$sassy-accent-color: rgb(141, 130, 118) !default;
-$sassy-background-color: $sassy-base-color !default;
-$sassy-disabled-color: #eee !default;
-$selected: rgb(229, 249, 208);
-$success: rgb(81, 155, 76);
-$error: rga(192, 53, 31);
- 
 @import "helpers/px-to-rem";
 @import "helpers/appearance";
-
 @import "inputs/text";
 @import "inputs/button";
 @import "inputs/radio";

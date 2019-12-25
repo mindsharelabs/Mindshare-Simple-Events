@@ -9,18 +9,18 @@
   font-size: rem(14);
   vertical-align: middle;
 
-  border: rem(1) solid $input-border;
+  border: rem(1) solid $primary;
   border-radius: rem(3);
   outline: none;
 
   background-color: #fff;
 
   &:focus {
-    border-color: $sassy-accent-color;
+    border-color: $secondary;
   }
 
   &:disabled {
-    background-color: $sassy-disabled-color;
+    background-color: $info;
     cursor: not-allowed;
   }
 }
