@@ -1,0 +1,72 @@
+#eventsCalendar {
+  table.SimpleCalendar {
+  	font-family: monospace;
+  	width: 100%;
+    thead {
+      border: 1px solid $sassy-accent-color;
+    }
+  	th {
+  		background: $sassy-background-color;
+  		color: $sassy-accent-color;
+  		font-size: 1.3em;
+  		padding: 5px;
+      border-color: $sassy-accent-color;
+  		border-bottom: 1px solid $sassy-accent-color;
+  	}
+
+  	tbody {
+      tr {
+        border: none;
+      }
+  		td {
+        width: (100% / 7) !important;
+        vertical-align: top;
+  			border: 1px solid rgba(200, 200, 200, .3);
+  			background: rgb(250, 250, 250);
+        position: relative;
+  			time {
+          font-size: 1.2em;
+          display: block;
+          background: #fff;
+          font-weight: bold;
+          text-align: center;
+          padding: 20px 5px;
+          &.selected {
+            background: $selected;
+          }
+          &:hover {
+            background: $selected;
+          }
+  			}
+
+  			&.SCsuffix, &.SCprefix {
+  				background: rgba(1, 1, 1, .1);
+  			}
+
+  			div.event {
+          position: relative;;
+          span {
+            font-size: .65em;
+            padding: 5px;
+            line-height: 1em;
+            border-bottom: 1px solid #bbb;
+            background: rgb(133, 133, 133);
+            color: white;
+            white-space: normal;
+            display: block;
+            &.new {
+              background: $success;
+            }
+          }
+  			}
+
+  		}
+
+  		td.today {
+  			background: rgb(210, 210, 210);
+  		}
+
+  	}
+
+  }
+}

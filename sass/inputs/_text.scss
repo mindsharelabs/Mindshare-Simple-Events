@@ -1,0 +1,40 @@
+@mixin sassy-text {
+  box-sizing: border-box;
+
+  min-height: rem(25);
+  width: 100%;
+  padding: rem(3);
+  margin-bottom: rem(5);
+  font-family: inherit;
+  font-size: rem(14);
+  vertical-align: middle;
+
+  border: rem(1) solid $input-border;
+  border-radius: rem(3);
+  outline: none;
+
+  background-color: #fff;
+
+  &:focus {
+    border-color: $sassy-accent-color;
+  }
+
+  &:disabled {
+    background-color: $sassy-disabled-color;
+    cursor: not-allowed;
+  }
+}
+
+@mixin sassy-search {
+  @include sassy-text;
+  @include appearance-none;
+
+  padding: 0 rem(4);
+}
+
+@mixin sassy-textarea {
+  @include sassy-text;
+
+  display: block;
+  overflow: auto;
+}
