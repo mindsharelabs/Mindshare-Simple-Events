@@ -1,5 +1,5 @@
-$primary:       rgb(152, 156, 145);
-$secondary:     rgb(82, 129, 196);
+$primary:       rgb(82, 129, 196);
+$secondary:     rgb(152, 156, 145);
 $success:       rgba(75,175,7, 1);
 $info:          rgb(225, 233, 214);
 $warning:       rgb(255, 205, 23);
@@ -18,48 +18,75 @@ $dark:          rgb(35, 31, 32);
   -o-transition: all $speed ease;
   transition: all $speed ease;
 }
-
-#errorBox {
-  opacity: 0;
-
-  span {
-    border: $danger;
-    background-color: lighten($danger, 35%);
-    margin: 5px 0;
-    display: block;
-    padding: 2px 5px;
-    font-size: 1em;
-    color: $danger;
-  }
-  &.show {
-    opacity: 1;
-    @include transition(200ms);
-  }
-}
-.event-times {
-  margin-bottom: 20px;
-  .time-block {
-    display: flex;
-    flex-direction: row;
-    .form-section {
-      flex-basis: 49%;
-      padding: 0 1%;
-      &:first-child{
-        padding-left: 0;
-      }
-      &:last-child{
-        padding-right: 0;
-      }
-      p {
-        margin: 3px;
-      }
+#mindevents_meta_box {
+  button{
+    cursor: pointer;
+    border: 1px solid darken($primary, 10%);
+    padding: 5px 7px;
+    border-radius: 0;
+    color: #fff;
+    background: $primary;
+    &:hover {
+      background: darken($primary, 10%);
+    }
+    &.clear-occurances {
+      margin-top: 5px;
+    }
+    &.button-danger {
+      background: $danger;
+      border: darken($danger, 10%);
+    }
+    &.add-event-occurrence {
+      background: $secondary;
+      border: darken($secondary, 10%);
     }
   }
 
-}
+  #errorBox {
+    opacity: 0;
 
-.calendar-day {
-  button.calnav {
-    background: $light;
+    span {
+      border: $danger;
+      background-color: lighten($danger, 35%);
+      margin: 5px 0;
+      display: block;
+      padding: 2px 5px;
+      font-size: 1em;
+      color: $danger;
+    }
+    &.show {
+      opacity: 1;
+      @include transition(200ms);
+    }
+  }
+  .event-times {
+    margin-bottom: 20px;
+    .time-block {
+      display: flex;
+      flex-direction: row;
+      .form-section {
+        flex-basis: 49%;
+        padding: 0 1%;
+        &:first-child{
+          padding-left: 0;
+        }
+        &:last-child{
+          padding-right: 0;
+        }
+        p {
+          margin: 3px;
+        }
+      }
+    }
+
+  }
+
+  .calendar-nav {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    button.calnav {
+
+    }
   }
 }

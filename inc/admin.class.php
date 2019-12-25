@@ -33,8 +33,8 @@ class mindeventsDisplay {
     echo '<div id="mindevents_meta_box">';
       $this->get_time_form();
       echo '<div class="calendar-nav">';
-        echo '<button class="calnav prev">PREV</button>';
-        echo '<button class="calnav next">PREV</button>';
+        echo '<button data-dir="prev" class="calnav prev">PREV</button>';
+        echo '<button data-dir="next" class="calnav next">PREV</button>';
       echo '</div>';
 
       echo '<div id="eventsCalendar">';
@@ -46,8 +46,8 @@ class mindeventsDisplay {
   }
 
 
-  public function get_calendar($post) {
-    $calendar = new SimpleCalendar();
+  public function get_calendar($post, $calDate = '') {
+    $calendar = new SimpleCalendar($calDate);
     $event = new mindEvent($post->ID);
     $eventDates = $event->get_sub_events();
     if($eventDates) :
@@ -55,7 +55,7 @@ class mindeventsDisplay {
         $starttime = get_post_meta($event->ID, 'event_start', true);
         $endtime = get_post_meta($event->ID, 'event_end', true);
         $date = get_post_meta($event->ID, 'event_date', true);
-        $html = $calendar->get_daily_event_html('<span>' . $starttime . '-' . $endtime . '</span>');
+        $html = $calendar->get_daily_event_html('<span data-subid = ' . $event->ID . '>' . $starttime . '-' . $endtime . '</span>');
         $eventDates = $calendar->addDailyHtml($html, $date);
       endforeach;
     endif;

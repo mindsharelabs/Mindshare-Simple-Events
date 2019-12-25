@@ -1,4 +1,13 @@
 #eventsCalendar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  flex-direction: column;
+  .la-ball-fall {
+    position: inherit;
+  }
+
   table.SimpleCalendar {
   	font-family: monospace;
   	width: 100%;
@@ -24,6 +33,7 @@
   			border: 1px solid rgba(200, 200, 200, .3);
   			background: rgb(250, 250, 250);
         position: relative;
+
   			time {
           font-size: 1.2em;
           display: block;
@@ -31,11 +41,14 @@
           font-weight: bold;
           text-align: center;
           padding: 20px 5px;
+          .la-ball-fall {
+            position: absolute;
+          }
           &.selected {
             background: lighten($success, 50%);
           }
           &:hover {
-            background: lighten($success, 50%); 
+            background: lighten($success, 50%);
           }
   			}
 
@@ -56,6 +69,11 @@
             display: block;
             &.new {
               background: $success;
+            }
+            &:hover {
+              background: $danger;
+              border: darken($danger, 10%);
+              cursor: pointer;
             }
           }
   			}

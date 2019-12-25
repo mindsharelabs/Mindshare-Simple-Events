@@ -12,6 +12,7 @@ class SimpleCalendar {
 	private $now;
 	private $today;
 
+
 	private $classes = [
 		'calendar'     => 'SimpleCalendar',
 		'leading_day'  => 'SCprefix',
@@ -217,7 +218,9 @@ class SimpleCalendar {
 		$weekDayIndex = date('N', mktime(0, 0, 1, $now['mon'], 1, $now['year'])) - $this->offset;
 		$daysInMonth  = cal_days_in_month(CAL_GREGORIAN, $now['mon'], $now['year']);
 
-		$out = '<table cellpadding="0" cellspacing="0" class="' . $this->classes['calendar'] . '"><thead><tr>';
+		$out = '<h3>' . $now['month'] . ' ' . $now['year'] . '</h3>';
+
+		$out .= '<table id="mindClalendar" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" cellpadding="0" cellspacing="0" class="' . $this->classes['calendar'] . '"><thead><tr>';
   		foreach( $daysOfWeek as $dayName ) {
   			$out .= '<th>' . $dayName . '</th>';
   		}

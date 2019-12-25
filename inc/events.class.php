@@ -79,13 +79,8 @@ class mindEvent {
     }
     return false;
   }
-  //
-  // public function add_date_to_sub_event($date, $times) {
-  //   update_post_meta($this->eventID, 'event_date', $date);
-  //   update_post_meta($this->eventID, 'event_start', $times['starttime']);
-  //   update_post_meta($this->eventID, 'event_end', $times['endtime']);
-  //   update_post_meta($this->eventID, 'event_times', $times);
-  // }
+
+
 
   public function get_sub_events($args = array()) {
     $defaults = array(

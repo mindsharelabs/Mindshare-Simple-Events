@@ -32,8 +32,69 @@
 		});
 
 
-		$(document).on('click', 'td .event', function (event) {
-			console.log('cli');
+		$(document).on('click', '.calendar-nav .calnav', function (event) {
+			event.preventDefault();
+			var eventsCalendar = $('#eventsCalendar');
+			var calendarTable = $('#mindClalendar');
+			var month = calendarTable.data('month');
+			var year = calendarTable.data('year');
+			var direction = $(this).data('dir');
+
+
+			var height = eventsCalendar.height();
+			var width = eventsCalendar.width();
+			eventsCalendar.height(height).width(width);
+			eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+
+			console.log(month);
+
+			$.ajax({
+				url : mindeventsSettings.ajax_url,
+				type : 'post',
+				data : {
+					action : 'mindevents_movecalendar',
+					direction : direction,
+					month : month,
+					year : year,
+					eventid : mindeventsSettings.post_id
+				},
+				success: function(response) {
+					eventsCalendar.html(response.html);
+					console.log(response);
+				},
+				error: function (response) {
+					console.log('An error occurred.');
+					console.log(response);
+				},
+			});
+
+		})
+
+
+		$(document).on('click', 'td .event span', function (event) {
+			event.preventDefault();
+			var thisEvent = $(this).parent('.event');
+			var eventid = $(this).data('subid');
+			var errorBox = $('#errorBox');
+
+			$.ajax({
+  			url : mindeventsSettings.ajax_url,
+  			type : 'post',
+  			data : {
+  				action : 'mindevents_deleteevent',
+  				eventid : eventid,
+  			},
+  			success: function(response) {
+					thisEvent.fadeOut();
+					errorBox.append('<span>Event deleted</span>').addClass('show');
+  			},
+  			error: function (response) {
+  				console.log('An error occurred.');
+  				console.log(response);
+  			},
+  		});
+
+
 		});
 
 
@@ -89,9 +150,12 @@
   		event.preventDefault();
 
 
-      if(confirm("This will remove ALL occurances of this event. Continue?")) {
+      if(confirm("This will remove ALL occurances of this event in every month. Are you REALY sure?")) {
 
 					var eventsCalendar = $('#eventsCalendar');
+					var height = eventsCalendar.height();
+					var width = eventsCalendar.width();
+					eventsCalendar.height(height).width(width);
 					eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 
 		  		$.ajax({
@@ -102,8 +166,10 @@
 		  				eventid : mindeventsSettings.post_id,
 		  			},
 		  			success: function(response) {
+							$('#errorBox').removeClass('show').html('');
 							eventsCalendar.html(response.html);
-		          console.log(response);
+							eventsCalendar.attr('style', false);
+
 		  			},
 		  			error: function (response) {
 		  				console.log('An error occurred.');
