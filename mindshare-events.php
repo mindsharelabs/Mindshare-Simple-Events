@@ -63,13 +63,7 @@ class mindEvents {
     wp_register_style('mindevents-css', plugins_url('style.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
 		wp_enqueue_style('mindevents-css');
 
-    wp_register_style('ggpopover-css', plugins_url('css/ggpopover.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
-		wp_enqueue_style('ggpopover-css');
-
-    wp_register_script('ggpopover-js', plugins_url('js/ggpopover.js', MINDEVENTS_PLUGIN_FILE), array('jquery'), MINDEVENTS_PLUGIN_VERSION, true);
-		wp_enqueue_script('ggpopover-js');
-
-    wp_register_script('mindevents-js', plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE), array('jquery', 'ggpopover-js'), MINDEVENTS_PLUGIN_VERSION, true);
+    wp_register_script('mindevents-js', plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE), array('jquery'), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('mindevents-js');
     wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),

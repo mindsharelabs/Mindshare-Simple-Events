@@ -33,6 +33,7 @@ class mindeventsAdmin {
   }
   static function display_event_metabox($post) {
     echo '<div id="mindevents_meta_box">';
+      echo '<div id="errorBox"></div>';
       $this->get_time_form();
       $events = new mindEvent($post->ID);
 
@@ -44,7 +45,7 @@ class mindeventsAdmin {
         echo $events->get_calendar();
       echo '</div>';
 
-      echo '<div id="errorBox"></div>';
+
       echo '<button class="clear-occurances button button-danger">Clear All Occurances</button>';
     echo '</div>';
   }
@@ -63,10 +64,29 @@ class mindeventsAdmin {
           echo '<p class="label"><label for="endtime_">Event Occurence End</label></p>';
           echo '<input type="text" class="timepicker required" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
         echo '</div>';
+        echo '<div class="form-section">';
+          echo '<p class="label"><label for="eventLink_">Event Link</label></p>';
+          echo '<input type="text" name="eventLink_" id="eventLink_" value="" placeholder="">';
+        echo '</div>';
+
+        echo '<div class="form-section">';
+          echo '<p class="label"><label for="eventLinkLabel_">Link Label</label></p>';
+          echo '<input type="text" name="eventLinkLabel_" id="eventLinkLabel_" value="" placeholder="">';
+        echo '</div>';
+
+        echo '<div class="form-section">';
+          echo '<p class="label"><label for="eventCost_">Event Cost</label></p>';
+          echo '<input type="text" name="eventCost_" id="eventCost_" value="" placeholder="">';
+        echo '</div>';
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventColor_">Occurence Color</label></p>';
-          echo '<input type="text" class=" required" name="eventColor_" id="eventColor_" value="' . $this->default_event_color . '" placeholder="">';
+          echo '<input type="text" name="eventColor_" id="eventColor_" value="' . $this->default_event_color . '" placeholder="">';
+        echo '</div>';
+
+        echo '<div class="form-section full">';
+          echo '<p class="label"><label for="eventDescription_">Short Description</label></p>';
+          echo '<textarea type="text" name="eventDescription_" id="eventDescription_" value="" placeholder=""></textarea>';
         echo '</div>';
 
       echo '</div>';

@@ -3,14 +3,15 @@
   display: flex;
   justify-content: space-between;
   button.calnav{
-    font-size: .8em;
-    line-height: 1em;
+    font-size: 14px;
+    line-height: 24px;
     cursor: pointer;
     border: 1px solid darken($primary, 10%);
     padding: 5px 7px;
     border-radius: 0;
     color: #fff;
     background: $primary;
+    margin-bottom: -10px;
     &:hover {
       background: darken($primary, 10%);
     }
@@ -74,7 +75,7 @@
           }
   			}
         &.today {
-          background: $primary;
+          border: 1px solid $primary;
         }
   			&.SCsuffix, &.SCprefix {
   				background: rgba(1, 1, 1, .1);
@@ -85,18 +86,18 @@
           span {
             font-size: .65em;
             padding: 5px;
+            margin: 2px 1px;
             line-height: 1em;
             border-bottom: 1px solid #bbb;
-            background: rgb(133, 133, 133);
-            color: white;
-            white-space: normal;
+            background: #858585;
+            color: #fff;
+            white-space: nowrap;
             display: block;
             &.new {
               background: $success;
             }
             &:hover {
-              background: $danger;
-              border: darken($danger, 10%);
+              border-top: 4px solid darken($danger, 10%);
               cursor: pointer;
             }
           }
@@ -135,7 +136,7 @@
 
   	tbody {
       tr {
-        border: none;
+
       }
   		td {
         width: (100% / 7) !important;
@@ -160,7 +161,7 @@
           }
         }
   			&.SCsuffix, &.SCprefix {
-  				background: rgba(1, 1, 1, .1);
+          background: rgba(200, 200, 200, .1);
   			}
         .events {
           display: flex;
@@ -174,14 +175,15 @@
             margin: 2px;
             span {
               cursor: pointer;
-              font-size: .65em;
+              font-size: 13px;
               padding: 4px;
               line-height: 1em;
               border-bottom: 1px solid #bbb;
-              background: rgb(133, 133, 133);
-              color: white;
+              background: #858585;
+              color: #fff;
               white-space: nowrap;
               display: block;
+              height: 23px;
               &:hover {
                 @include transition(100ms);
                 transform: scale(1.05);
@@ -189,8 +191,74 @@
             }
     			}
         }
+        &.meta-container {
+          height: 0;
+          overflow: hidden;
+          @include transition(300ms);
+          &.show {
+            @include transition(300ms);
+
+          }
+
+        }
+        &.eventMeta {
+          // border-style: hidden;
+          .la-ball-fall {
+            text-align: center;
+          }
+
+          .meta_inner_container {
+            display: flex;
+            flex-direction: row;
+            padding: 25px;
+            justify-content: space-between;
+            a.button{
+              &.button-link {
+                border: 1px solid #fff;
+                border-left: 5px solid #fff;;
+                padding: 14px 25px;
+                font-size: 1.3em;
+                font-weight: bold;
+                color: #fff;
+                @include transition(300ms);
+                &:hover {
+                  border-left-width: 10px;
+                  background-color: rgba(255,255,255,.3);
+                  @include transition(100ms);
+                }
+              }
+            }
+            .left-content, .right-content {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-around;
+            }
+            .meta-item {
+              span {
+                display: block;
+                &.label {
+                  text-transform: uppercase;
+                  font-weight: bold;
+                  font-size: .7em;
+                  opacity: .9;
+                }
+                &.value {
+                  margin-bottom: 20px;
+                  &.eventlink {
+                    text-align: right;
+                  }
+                  &.eventdescription {
+                    font-size: .9em;
+                    line-height: 1.4em;
+                  }
+                }
+              }
+            }
+          }
 
 
+
+        }
   		}
   	}
 

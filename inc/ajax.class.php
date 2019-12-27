@@ -17,11 +17,15 @@ class mindeventsAjax {
 
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'deleteevent', array( $this, 'deleteevent' ) );
 
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
+
+
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
 
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
+    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
 
   }
   private function define( $name, $value ) {
@@ -30,7 +34,74 @@ class mindeventsAjax {
     }
   }
 
+  static function get_event_meta_html() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
+      $id = $_POST['eventid'];
+      $meta = get_post_meta($id);
+      mapi_write_log($meta);
+      if($meta) :
+        $style_str = array();
+        if($meta['eventColor']) :
+          $style_str['background'] = 'background:' . $meta['eventColor'][0] . ';';
+          $style_str['color'] = 'color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
+        endif;
 
+        $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
+          $html .= '<div class="left-content">';
+            if($meta['event_date'][0]) :
+              $date = new DateTime($meta['event_date'][0]);
+              $html .= '<div class="meta-item">';
+                $html .= '<span class="label">Event Date</span>';
+                $html .= '<span class="value eventdate">' . $date->format('l, F j, Y') . '</span>';
+              $html .= '</div>';
+            endif;
+
+            if($meta['starttime'][0]) :
+              $html .= '<div class="meta-item">';
+                $html .= '<span class="label">Event Time</span>';
+                $html .= '<span class="value starttime">' . $meta['starttime'][0] . ($meta['endtime'][0] ? ' - ' . $meta['endtime'][0] : '') . '</span>';
+              $html .= '</div>';
+            endif;
+            if($meta['eventCost'][0]) :
+              $html .= '<div class="meta-item">';
+                $html .= '<span class="label">Cost</span>';
+                $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
+              $html .= '</div>';
+            endif;
+
+            if($meta['eventDescription'][0]) :
+              $html .= '<div class="meta-item">';
+                $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
+              $html .= '</div>';
+            endif;
+
+
+
+          $html .= '</div>';
+
+
+
+          if($meta['eventLink'][0] && $meta['eventLinkLabel'][0]) :
+            $html .= '<div class="right-content">';
+              unset($style_str['background']);
+              $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
+              $html .= '<div class="meta-item">';
+                $html .= '<span class="value eventlink"><a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $meta['eventLink'][0] . '" target="_blank">' . $meta['eventLinkLabel'][0] . '</a></span>';
+              $html .= '</div>';
+            $html .= '</div>';
+          endif;
+
+
+
+        $html .= '</div>';
+      endif;
+      $return = array(
+        'success' => (bool)$meta,
+        'html' => $html
+      );
+      wp_send_json_success($return);
+    }
+  }
 
 
   static function deleteevent() {
@@ -41,8 +112,15 @@ class mindeventsAjax {
     wp_send_json_success();
   }
 
-  static function selectday() {
+  private function getContrastColor($hexcolor) {
+      $r = hexdec(substr($hexcolor, 1, 2));
+      $g = hexdec(substr($hexcolor, 3, 2));
+      $b = hexdec(substr($hexcolor, 5, 2));
+      $yiq = (($r * 299) + ($g * 587) + ($b * 114)) / 1000;
+      return ($yiq >= 150) ? '#333' : '#fff';
+  }
 
+  static function selectday() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'selectday'){
 
       $date = $_POST['date'];
@@ -96,7 +174,6 @@ class mindeventsAjax {
 
   static function move_pub_calendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'move_pub_calendar'){
-      mapi_write_log('public');
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];

@@ -9,7 +9,7 @@ class mindEventsOptions {
 
 
   static function mindevents_support_settings_page() {
-
+    
       add_options_page(
         'Mindshare Events Plugin Settings',
         'Mindshare Events Plugin Settings',

@@ -40,22 +40,14 @@ class mindEvent {
     if($eventDates) :
       $html = '<div class="events">';
       foreach ($eventDates as $key => $event) :
-        $starttime = get_post_meta($event->ID, 'event_start', true);
-        $endtime = get_post_meta($event->ID, 'event_end', true);
+        $starttime = get_post_meta($event->ID, 'starttime', true);
+        $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
-        $color = get_post_meta($event->ID, 'event_color', true);
+        $color = get_post_meta($event->ID, 'eventColor', true);
         if(!$color){
           $color = '#858585';
         }
-        $inside = '<span
-          data-title-backcolor="' . $color . '"
-          data-title-textcolor="' . $this->getContrastColor($color) . '"
-          style="background:' . $color .'"
-          data-toggle="popover"
-          data-placement="auto"
-          title=""
-          data-content="' . $starttime . ' - ' . $endtime . '"
-          data-original-title="' . get_the_title(get_the_id()) . '">' . $starttime . '</span>';
+        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="background:' . $color .'" >' . $starttime . '</span>';
         $html = $calendar->get_daily_event_html($inside);
         $eventDates = $calendar->addDailyHtml($html, $date);
       endforeach;
@@ -87,10 +79,11 @@ class mindEvent {
     $eventDates = $this->get_sub_events();
     if($eventDates) :
       foreach ($eventDates as $key => $event) :
-        $starttime = get_post_meta($event->ID, 'event_start', true);
-        $endtime = get_post_meta($event->ID, 'event_end', true);
+        $starttime = get_post_meta($event->ID, 'starttime', true);
+        $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
-        $html = $calendar->get_daily_event_html('<span data-subid= ' . $event->ID . '>' . $starttime . ' - ' . $endtime . '</span>');
+          $color = get_post_meta($event->ID, 'eventColor', true);
+        $html = $calendar->get_daily_event_html('<span style="background:' . $color .'" data-subid= ' . $event->ID . '>' . $starttime . ' - ' . $endtime . '</span>');
         $eventDates = $calendar->addDailyHtml($html, $date);
       endforeach;
     endif;
@@ -110,8 +103,10 @@ class mindEvent {
         )
       )
     );
-    $my_query = new WP_Query( $args );
-    if( empty($my_query->have_posts()) ) :
+    $meta['unique_event_key'] = $unique;
+    $meta['event_date'] = $date;
+    $check_query = new WP_Query( $args );
+    if( empty($check_query->have_posts()) ) :
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',
@@ -121,14 +116,15 @@ class mindEvent {
         'post_type'             => 'sub_event',
         'post_parent'           => $this->eventID,
         'context'               => '',
-        'meta_input' => array(
-          'event_date' => $date,
-          'event_start' => $meta['starttime'],
-          'event_end' => $meta['endtime'],
-          'event_color' => $meta['eventColor'],
-          'event_meta' => $meta,
-          'unique_event_key' => $unique
-        )
+        'meta_input'            => $meta,
+        // 'meta_input' => array(
+        //   'event_date' => $date,
+        //   'starttime' => $meta['starttime'],
+        //   'endtime' => $meta['endtime'],
+        //   'eventColor' => $meta['eventColor'],
+        //   'event_meta' => $meta,
+        //   'unique_event_key' => $unique
+        // )
       );
       $args = wp_parse_args($args, $defaults);
       $return = wp_insert_post($args);
@@ -167,7 +163,7 @@ class mindEvent {
         'meta_query' => array(
           // 'relation' => 'AND',
           'start_clause' => array(
-            'key' => 'event_start',
+            'key' => 'starttime',
             'compare' => 'EXISTS',
           ),
           'date_clause' => array(

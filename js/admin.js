@@ -19,7 +19,6 @@
 		initTimePicker();
 
 		$(document).on('change', 'input', function() {
-			console.log($(this));
 			$(this).removeClass('validate');
 		})
 
@@ -38,9 +37,78 @@
 	        return attrVal + i;  // change the name
 	    }).val('').removeAttr('checked').end().find('label').attr('for', function(idx, attrVal) {
 	        return attrVal + i; // change the for
-	    }).end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
+	    }).end().find('textarea').attr('id', function(idx, attrVal) {
+					return attrVal + i; //change id
+			}).attr('name', function(idx, attrVal) {
+					return attrVal + i; //change the name
+			}).val('').removeAttr('checked').end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
 			initTimePicker();
 		});
+
+
+
+
+    $(document).on('click', '.calendar-day', function (event) {
+
+			var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
+				return $(this).val() == "";
+			});
+	    if (emptyInputs.length) {
+        emptyInputs.each(function() {
+					$(this).addClass('validate');
+				});
+	    } else {
+				event.preventDefault();
+				var thisDay = $(this);
+				var occurrence = thisDay.siblings('.event');
+				var errorBox = $('#errorBox'); 
+
+
+				var meta = {};
+				$("#defaultEventMeta .form-section > input, #defaultEventMeta .form-section > textarea").each(function() {
+					console.log($(this).val());
+					meta[$(this).attr("name")] = $(this).val();
+				});
+
+
+				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+				var date = $(this).attr('datetime');
+	  		$.ajax({
+	  			url : mindeventsSettings.ajax_url,
+	  			type : 'post',
+	  			data : {
+	  				action : 'mindevents_selectday',
+	  				eventid : mindeventsSettings.post_id,
+						date : date,
+						meta : meta,
+						occurrence : occurrence.length
+	  			},
+	  			success: function(response) {
+						thisDay.removeClass('loading');
+						thisDay.find('.la-ball-fall').remove();
+	          if(response.html) {
+							thisDay.addClass('selected');
+							thisDay.attr('event', 'true');
+							thisDay.after(response.html);
+	          }
+						if(response.errors.length > 0) {
+							$.each(response.errors, function( index, value ) {
+							  errorBox.append('<span>' + value + '</span>').addClass('show');
+							});
+	          }
+	  			},
+	  			error: function (response) {
+	  				console.log('An error occurred.');
+	  				console.log(response);
+	  			},
+	  		});
+			}
+  	})
+
+
+
+
+
 
 
 		$(document).on('click', '.calendar-nav .calnav', function (event) {
@@ -109,77 +177,11 @@
 		});
 
 
-    $(document).on('click', '.calendar-day', function (event) {
-
-			var emptyInputs = $("#defaultEventMeta").find('input[type="text"]').filter(function() {
-				return $(this).val() == "";
-			});
-			console.log(emptyInputs.length);
-	    if (emptyInputs.length) {
-        emptyInputs.each(function() {
-					$(this).addClass('validate');
-				});
-	    } else {
-				event.preventDefault();
-				var thisDay = $(this);
-				var occurrence = thisDay.siblings('.event');
-				var errorBox = $('#errorBox');
-
-
-				var meta = {};
-				$("#defaultEventMeta .form-section > input").each(function() {
-					if($(this).val() == '') {
-						$(this).addClass('validate');
-						return false;
-					}
-					meta[$(this).attr("name")] = $(this).val();
-				});
-
-				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-				var date = $(this).attr('datetime');
-	  		$.ajax({
-	  			url : mindeventsSettings.ajax_url,
-	  			type : 'post',
-	  			data : {
-	  				action : 'mindevents_selectday',
-	  				eventid : mindeventsSettings.post_id,
-						date : date,
-						meta : meta,
-						occurrence : occurrence.length
-	  			},
-	  			success: function(response) {
-						thisDay.removeClass('loading');
-						thisDay.find('.la-ball-fall').remove();
-	          if(response.html) {
-							thisDay.addClass('selected');
-							thisDay.attr('event', 'true');
-							thisDay.after(response.html);
-	          }
-						if(response.errors.length > 0) {
-							$.each(response.errors, function( index, value ) {
-							  errorBox.append('<span>' + value + '</span>').addClass('show');
-							});
-	          }
-	  			},
-	  			error: function (response) {
-	  				console.log('An error occurred.');
-	  				console.log(response);
-	  			},
-	  		});
-			}
-
-
-
-
-  	})
-
-
-
 		$(document).on('click', '.clear-occurances', function (event) {
   		event.preventDefault();
 
 
-      if(confirm("This will remove ALL occurances of this event in every month. Are you REALY sure?")) {
+      if(confirm("Wait a tic! This will remove ALL occurances of this event in every month. You cannot undo this. Are you REALY sure?")) {
 
 					var eventsCalendar = $('#eventsCalendar');
 					var height = eventsCalendar.height();

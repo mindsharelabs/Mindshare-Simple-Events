@@ -265,7 +265,7 @@ class SimpleCalendar {
 				$out .= '</td>';
 
 				if( $count > 6 ) {
-					$out   .= "</tr>\n" . ($i < $daysInMonth ? '<tr>' : '');
+					$out   .= '</tr><tr class="meta-container"><td class="eventMeta" colspan="7"></td></tr>' . ($i < $daysInMonth ? '<tr>' : '');
 					$count = 0;
 				}
 				$count++;
@@ -275,7 +275,7 @@ class SimpleCalendar {
 				$out .= str_repeat('<td class="' . $this->classes['trailing_day'] . '">&nbsp;</td>', 8 - $count) . '</tr>';
 			}
 
-			$out .= "\n</tbody></table>\n";
+			$out .= '<tr class="meta-container"><td class="eventMeta" colspan="7"></tbody></table>';
 
 		return $out;
 	}
