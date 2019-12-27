@@ -41,7 +41,7 @@ class mindEventsCPTS {
     		'items_list_navigation' => __( 'Events list navigation', 'text_domain' ),
     		'filter_items_list'     => __( 'Filter items list', 'text_domain' ),
     	),
-  		'supports'              => array( 'title', 'editor' ),
+  		'supports'              => array( 'title', 'editor', 'thumbnail'),
   		'hierarchical'          => false,
   		'public'                => true,
   		'show_ui'               => true,

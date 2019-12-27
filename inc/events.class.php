@@ -3,14 +3,20 @@
 
 class mindEvent {
 
-  private $eventID = '';
-  private $wp_post = '';
+  private $eventID;
+  private $wp_post;
 
-  private $displayType = '';
+  private $displayType;
+  private $calendar_start_day;
+  private $options;
 
   function __construct($id) {
+    $this->options = get_option( 'mindevents_support_settings' );
     $this->eventID = $id;
     $this->wp_post = get_post($id);
+    // mapi_write_log($)
+    $this->calendar_start_day = (isset($this->options['mindevents_start_day']) ? $this->options['mindevents_start_day'] : 'Monday');
+
   }
 
 
@@ -29,13 +35,9 @@ class mindEvent {
   }
 
 
-
-
-
-
-
   public function get_front_calendar($calDate = '') {
     $calendar = new SimpleCalendar($calDate);
+    $calendar->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
     if($eventDates) :
       $html = '<div class="events">';
@@ -76,6 +78,7 @@ class mindEvent {
 
   public function get_calendar($calDate = '') {
     $calendar = new SimpleCalendar($calDate);
+    $calendar->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
     if($eventDates) :
       foreach ($eventDates as $key => $event) :

@@ -35,13 +35,13 @@
 	        return attrVal + i;  // change the id
 	    }).attr('name', function(idx, attrVal) {
 	        return attrVal + i;  // change the name
-	    }).val('').removeAttr('checked').end().find('label').attr('for', function(idx, attrVal) {
+	    }).removeAttr('checked').end().find('label').attr('for', function(idx, attrVal) {
 	        return attrVal + i; // change the for
 	    }).end().find('textarea').attr('id', function(idx, attrVal) {
 					return attrVal + i; //change id
 			}).attr('name', function(idx, attrVal) {
 					return attrVal + i; //change the name
-			}).val('').removeAttr('checked').end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
+			}).removeAttr('checked').end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
 			initTimePicker();
 		});
 
@@ -61,7 +61,7 @@
 				event.preventDefault();
 				var thisDay = $(this);
 				var occurrence = thisDay.siblings('.event');
-				var errorBox = $('#errorBox'); 
+				var errorBox = $('#errorBox');
 
 
 				var meta = {};
@@ -88,12 +88,27 @@
 						thisDay.find('.la-ball-fall').remove();
 	          if(response.html) {
 							thisDay.addClass('selected');
+							setTimeout(function() {
+								thisDay.removeClass('selected');
+							}, 400);
 							thisDay.attr('event', 'true');
 							thisDay.after(response.html);
 	          }
 						if(response.errors.length > 0) {
+							thisDay.addClass('whoops');
+							setTimeout(function() {
+								thisDay.removeClass('whoops');
+							}, 400);
+
+							var items = $("#errorBox > span").length;
 							$.each(response.errors, function( index, value ) {
-							  errorBox.append('<span>' + value + '</span>').addClass('show');
+								var i = items + 1;
+								errorBox.prepend('<span class="error-item-'+ i +'">' + value + '</span>').addClass('show');
+								setTimeout(function() {
+								  $('.error-item-'+ i +'').fadeOut(400, function() {
+										$(this).remove();
+									});
+								}, 3000);
 							});
 	          }
 	  			},

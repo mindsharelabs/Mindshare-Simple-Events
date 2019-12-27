@@ -11,7 +11,7 @@ class SimpleCalendar {
 	private $weekDayNames;
 	private $now;
 	private $today;
-
+	private $calendar_start_day;
 
 	private $classes = [
 		'calendar'     => 'SimpleCalendar',

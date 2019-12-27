@@ -62,13 +62,17 @@
           font-weight: bold;
           text-align: center;
           padding: 20px 5px;
+          @include transition(200ms);
           .la-ball-fall {
             position: absolute;
             position: absolute;
             width: 100%;
           }
           &.selected {
-            background: lighten($success, 50%);
+            background: lighten($success, 40%);
+          }
+          &.whoops {
+            background: lighten($danger, 40%);
           }
           &:hover {
             background: lighten($success, 50%);

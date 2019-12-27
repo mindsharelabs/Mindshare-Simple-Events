@@ -6,15 +6,17 @@ class mindeventsAdmin {
   private $default_end_time = '';
   private $default_event_color = '';
 
+
   protected static $instance = NULL;
 
   public function __construct() {
     $this->options = get_option( 'mindevents_support_settings' );
     $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
 
-    $this->default_start_time = (isset($this->options['mindevents_start_time']) ? $this->options['mindevents_start_time'] : '7:00 PM');
-    $this->default_end_time = (isset($this->options['mindevents_end_time']) ? $this->options['mindevents_end_time'] : '10:00 PM');
+    $this->default_start_time = (isset($this->options['mindevents_start_time']) ? $this->options['mindevents_start_time'] : '2:00 PM');
+    $this->default_end_time = (isset($this->options['mindevents_end_time']) ? $this->options['mindevents_end_time'] : '6:00 PM');
     $this->default_event_color = (isset($this->options['mindevents_event_color']) ? $this->options['mindevents_event_color'] : '#43A0D9');
+    $this->default_event_cost = (isset($this->options['mindevents_event_cost']) ? $this->options['mindevents_event_cost'] : '$25');
 
     add_action( 'add_meta_boxes', array($this, 'add_events_metaboxes' ));
 
@@ -33,7 +35,8 @@ class mindeventsAdmin {
   }
   static function display_event_metabox($post) {
     echo '<div id="mindevents_meta_box">';
-      echo '<div id="errorBox"></div>';
+      echo '<h3>Select Occurance Options</h3>';
+      echo '<small>These fields do not save, they simply set the information for occurances added to the calendar.</small>';
       $this->get_time_form();
       $events = new mindEvent($post->ID);
 
@@ -44,7 +47,7 @@ class mindeventsAdmin {
   		echo '<div id="eventsCalendar">';
         echo $events->get_calendar();
       echo '</div>';
-
+      echo '<div id="errorBox"></div>';
 
       echo '<button class="clear-occurances button button-danger">Clear All Occurances</button>';
     echo '</div>';
@@ -76,7 +79,7 @@ class mindeventsAdmin {
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventCost_">Event Cost</label></p>';
-          echo '<input type="text" name="eventCost_" id="eventCost_" value="" placeholder="">';
+          echo '<input type="text" name="eventCost_" id="eventCost_" value="' . $this->default_event_cost . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
