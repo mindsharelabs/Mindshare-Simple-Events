@@ -6,7 +6,6 @@ class mindeventsAjax {
   private $token = '';
 
   function __construct() {
-    $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
 
     $this->options = get_option( 'mindevents_support_settings' );
     $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
@@ -17,6 +16,10 @@ class mindeventsAjax {
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'clearevents', array( $this, 'clearevents' ) );
 
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'deleteevent', array( $this, 'deleteevent' ) );
+
+    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
+
 
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
 
@@ -44,8 +47,8 @@ class mindeventsAjax {
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
-      $times = $_POST['times'];
-      $times = $this->make_time_array($times);
+      $metas = $_POST['meta'];
+      $metas = $this->make_meta_array($metas);
       $event = new mindEvent($eventID);
       $calendar = new SimpleCalendar();
 
@@ -54,15 +57,15 @@ class mindeventsAjax {
       $errors = array();
       $html = '';
 
-      foreach ($times as $time) {
-        $added_event_id = $event->add_sub_event('', $date, $time);
+      foreach ($metas as $meta) {
+        $added_event_id = $event->add_sub_event('', $date, $meta);
         if($added_event_id == false) :
           $errors[] = 'An event at that time already exists';
         elseif(is_wp_error($added_event_id)) :
           $errors[] = $added_event_id->get_error_message();
         else :
           $added_events[] = $added_event_id;
-          $html .= $calendar->get_daily_event_html('<span  data-subid = ' . $added_event_id . ' class="new">' . $time['starttime'] . '-' . $time['endtime'] . '</span>');
+          $html .= $calendar->get_daily_event_html('<span style="background:' . $meta['eventColor'] . '" data-subid = ' . $added_event_id . ' class="new">' . $meta['starttime'] . '-' . $meta['endtime'] . '</span>');
         endif;
       }
 
@@ -80,15 +83,46 @@ class mindeventsAjax {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'clearevents'){
       $eventID = $_POST['eventid'];
       $event = new mindEvent($eventID);
-      $display = new mindeventsDisplay();
       $return = $event->delete_sub_events();
       $return = array(
-        'html' => $display->get_calendar($eventID),
+        'html' => $event->get_calendar(),
         'success' => $return
       );
       wp_send_json($return);
     }
   }
+
+
+
+  static function move_pub_calendar() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'move_pub_calendar'){
+      mapi_write_log('public');
+      $direction = $_POST['direction'];
+      $month = $_POST['month'];
+      $year = $_POST['year'];
+      $eventID = $_POST['eventid'];
+      $event = get_post($eventID);
+      $date = new DateTime();
+      $date->setDate($year, $month, 1);
+
+      if($direction == 'prev') {
+        $date->modify('first day of last month');
+      } else {
+        $date->modify('first day of next month');
+      }
+      $new_date = $date->format('Y-m-d');
+      $event = new mindEvent($eventID);
+      $return = array(
+        'new_date' => $new_date,
+        'html' => $event->get_front_calendar($new_date),
+      );
+
+      wp_send_json($return);
+    }
+
+  }
+
+
 
   static function movecalendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'movecalendar'){
@@ -106,10 +140,10 @@ class mindeventsAjax {
         $date->modify('first day of next month');
       }
       $new_date = $date->format('Y-m-d');
-      $display = new mindeventsDisplay();
+      $event = new mindEvent($eventID);
       $return = array(
         'new_date' => $new_date,
-        'html' => $display->get_calendar($event, $new_date),
+        'html' => $event->get_calendar($new_date),
       );
 
       wp_send_json($return);
@@ -117,15 +151,19 @@ class mindeventsAjax {
 
   }
 
-  private function make_time_array($times) {
+
+
+
+  private function make_meta_array($times) {
     $return = array();
     foreach($times as $key => $time) {
       $occuranceNum = explode ('_', $key);
-      $start_or_end = $occuranceNum[0]; //this is either 'starttime' or 'endtime'
+      $meta_item = $occuranceNum[0]; //this is 'starttime' or 'endtime' or eventColor
       $occurance_number = $occuranceNum[1]; //this is null or a number
       if($occurance_number == ''){$occurance_number = 1;}
-      $return[$occurance_number][$start_or_end] = $time;
+      $return[$occurance_number][$meta_item] = $time;
     }
+
     return $return;
   }
 

@@ -1,3 +1,22 @@
+.calendar-nav {
+  margin: 5px 0;
+  display: flex;
+  justify-content: space-between;
+  button.calnav{
+    font-size: .8em;
+    line-height: 1em;
+    cursor: pointer;
+    border: 1px solid darken($primary, 10%);
+    padding: 5px 7px;
+    border-radius: 0;
+    color: #fff;
+    background: $primary;
+    &:hover {
+      background: darken($primary, 10%);
+    }
+  }
+}
+
 #eventsCalendar {
   display: flex;
   justify-content: center;
@@ -8,6 +27,7 @@
     position: inherit;
   }
 
+
   table.SimpleCalendar {
   	font-family: monospace;
   	width: 100%;
@@ -16,7 +36,7 @@
     }
   	th {
   		background: $light;
-  		color: $secondary;
+  		color: $dark;
   		font-size: 1.3em;
   		padding: 5px;
       border-color: $secondary;
@@ -43,6 +63,8 @@
           padding: 20px 5px;
           .la-ball-fall {
             position: absolute;
+            position: absolute;
+            width: 100%;
           }
           &.selected {
             background: lighten($success, 50%);
@@ -51,7 +73,9 @@
             background: lighten($success, 50%);
           }
   			}
-
+        &.today {
+          background: $primary;
+        }
   			&.SCsuffix, &.SCprefix {
   				background: rgba(1, 1, 1, .1);
   			}
@@ -79,11 +103,95 @@
   			}
 
   		}
+  	}
 
-  		td.today {
-  			background: rgb(210, 210, 210);
+  }
+}
+
+#publicCalendar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  flex-direction: column;
+  .calendar-nav {
+    margin: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    h3.month-display {
+      margin: 0;
+    }
+  }
+  table.SimpleCalendar {
+  	width: 100%;
+  	th {
+  		background: #fff;
+  		color: $dark;
+      text-align: center;
+  		font-size: 1.1em;
+  		padding: 5px;
+      border: none;
+  	}
+
+  	tbody {
+      tr {
+        border: none;
+      }
+  		td {
+        width: (100% / 7) !important;
+        vertical-align: top;
+  			border: 1px solid rgba(200, 200, 200, .3);
+  			background: #fff;
+        position: relative;
+
+  			time {
+          font-size: 1.1em;
+          display: block;
+          background: #fff;
+          font-weight: bold;
+          text-align: center;
+          padding: 20px 5px;
+
+  			}
+        &.today {
+          background: lighten($primary, 40%);
+          time {
+            background: lighten($primary, 40%);
+          }
+        }
+  			&.SCsuffix, &.SCprefix {
+  				background: rgba(1, 1, 1, .1);
+  			}
+        .events {
+          display: flex;
+          width: 100%;
+          flex-direction: column;
+          div.event {
+            font-family: monospace;
+            position: relative;
+            text-align: center;
+            flex-grow: 1;
+            margin: 2px;
+            span {
+              cursor: pointer;
+              font-size: .65em;
+              padding: 4px;
+              line-height: 1em;
+              border-bottom: 1px solid #bbb;
+              background: rgb(133, 133, 133);
+              color: white;
+              white-space: nowrap;
+              display: block;
+              &:hover {
+                @include transition(100ms);
+                transform: scale(1.05);
+              }
+            }
+    			}
+        }
+
+
   		}
-
   	}
 
   }

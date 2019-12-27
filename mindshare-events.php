@@ -8,6 +8,7 @@
  * Author URI: https://mind.sh/are
  */
 
+
 class mindEvents {
   private $options = '';
 
@@ -22,8 +23,12 @@ class mindEvents {
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
     $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.0.0');
+    $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
 
     add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
+
+    add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
+
 
     $this->includes();
 
@@ -50,28 +55,51 @@ class mindEvents {
     include_once MINDEVENTS_ABSPATH . 'inc/posttypes.php';
     include_once MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/events.class.php';
+
+    include_once MINDEVENTS_ABSPATH . 'templates/front-end.php';
   }
 
-  public function enque_scripts_and_styles() {
+  public function enque_front_scripts_and_styles() {
+    wp_register_style('mindevents-css', plugins_url('style.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
+		wp_enqueue_style('mindevents-css');
 
-		wp_register_script('mindevents-js', plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE), array('jquery'), MINDEVENTS_PLUGIN_VERSION, true);
+    wp_register_style('ggpopover-css', plugins_url('css/ggpopover.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
+		wp_enqueue_style('ggpopover-css');
+
+    wp_register_script('ggpopover-js', plugins_url('js/ggpopover.js', MINDEVENTS_PLUGIN_FILE), array('jquery'), MINDEVENTS_PLUGIN_VERSION, true);
+		wp_enqueue_script('ggpopover-js');
+
+    wp_register_script('mindevents-js', plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE), array('jquery', 'ggpopover-js'), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('mindevents-js');
     wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),
       'post_id' => get_the_id()
     ) );
+  }
+
+
+  public function enque_scripts_and_styles() {
+
+    wp_register_style('mindevents-css', plugins_url('style.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
+		wp_enqueue_style('mindevents-css');
+
+    wp_register_style('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css', array(), '1.3.5', 'all');
+    wp_enqueue_style('timepicker-js');
+
 
 
     wp_register_script('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js', array('jquery'), '1.3.5', true);
 		wp_enqueue_script('timepicker-js');
 
+    wp_register_script('fontawesome-js', 'https://kit.fontawesome.com/bed26df994.js', array(), MINDEVENTS_PLUGIN_VERSION, true);
+		wp_enqueue_script('fontawesome-js');
 
-		wp_register_style('mindevents-css', plugins_url('style.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
-		wp_enqueue_style('mindevents-css');
-
-    wp_register_style('timepicker-css', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css', array(), '1.3.5', 'all');
-		wp_enqueue_style('timepicker-css');
-
+    wp_register_script('mindevents-js', plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE), array('jquery', 'timepicker-js'), MINDEVENTS_PLUGIN_VERSION, true);
+		wp_enqueue_script('mindevents-js');
+    wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
+      'ajax_url' => admin_url( 'admin-ajax.php' ),
+      'post_id' => get_the_id()
+    ) );
 
 	}
 

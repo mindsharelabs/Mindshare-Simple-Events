@@ -26,6 +26,10 @@
     }
     @include sassy-select;
   }
+  input.validate {
+    border: 1px solid $danger;
+    background: lighten($danger, 35%); 
+  }
 
 
 }

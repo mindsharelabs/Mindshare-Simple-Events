@@ -18,6 +18,17 @@
 		}
 		initTimePicker();
 
+		$(document).on('change', 'input', function() {
+			console.log($(this));
+			$(this).removeClass('validate');
+		})
+
+		$(document).on('click', '.time-block .remove', function (event) {
+			$(this).parent('.time-block').fadeOut(500, function() {
+				$(this).remove();
+			})
+		})
+
 		$(document).on('click', '.add-event-occurrence', function (event) {
 	    event.preventDefault();
 	    var i = $('.time-block').length + 1;
@@ -27,15 +38,16 @@
 	        return attrVal + i;  // change the name
 	    }).val('').removeAttr('checked').end().find('label').attr('for', function(idx, attrVal) {
 	        return attrVal + i; // change the for
-	    }).end().insertBefore(this);
+	    }).end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
 			initTimePicker();
 		});
 
 
 		$(document).on('click', '.calendar-nav .calnav', function (event) {
+
 			event.preventDefault();
 			var eventsCalendar = $('#eventsCalendar');
-			var calendarTable = $('#mindClalendar');
+			var calendarTable = $('#mindCalander');
 			var month = calendarTable.data('month');
 			var year = calendarTable.data('year');
 			var direction = $(this).data('dir');
@@ -45,8 +57,6 @@
 			var width = eventsCalendar.width();
 			eventsCalendar.height(height).width(width);
 			eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-
-			console.log(month);
 
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
@@ -59,6 +69,7 @@
 					eventid : mindeventsSettings.post_id
 				},
 				success: function(response) {
+					eventsCalendar.attr('style', false);
 					eventsCalendar.html(response.html);
 					console.log(response);
 				},
@@ -99,48 +110,66 @@
 
 
     $(document).on('click', '.calendar-day', function (event) {
-  		event.preventDefault();
-			var thisDay = $(this);
-			var occurrence = thisDay.siblings('.event');
-			var errorBox = $('#errorBox');
 
-			thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-
-			var times = { };
-
-			$("#defaultEventTimes .form-section > input").each(function() {
-				times[$(this).attr("name")] = $(this).val();
+			var emptyInputs = $("#defaultEventMeta").find('input[type="text"]').filter(function() {
+				return $(this).val() == "";
 			});
-			var date = $(this).attr('datetime');
-  		$.ajax({
-  			url : mindeventsSettings.ajax_url,
-  			type : 'post',
-  			data : {
-  				action : 'mindevents_selectday',
-  				eventid : mindeventsSettings.post_id,
-					date : date,
-					times : times,
-					occurrence : occurrence.length
-  			},
-  			success: function(response) {
-					thisDay.removeClass('loading');
-					thisDay.find('.la-ball-fall').remove();
-          if(response.html) {
-						thisDay.addClass('selected');
-						thisDay.attr('event', 'true');
-						thisDay.after(response.html);
-          }
-					if(response.errors.length > 0) {
-						$.each(response.errors, function( index, value ) {
-						  errorBox.append('<span>' + value + '</span>').addClass('show');
-						});
-          }
-  			},
-  			error: function (response) {
-  				console.log('An error occurred.');
-  				console.log(response);
-  			},
-  		});
+			console.log(emptyInputs.length);
+	    if (emptyInputs.length) {
+        emptyInputs.each(function() {
+					$(this).addClass('validate');
+				});
+	    } else {
+				event.preventDefault();
+				var thisDay = $(this);
+				var occurrence = thisDay.siblings('.event');
+				var errorBox = $('#errorBox');
+
+
+				var meta = {};
+				$("#defaultEventMeta .form-section > input").each(function() {
+					if($(this).val() == '') {
+						$(this).addClass('validate');
+						return false;
+					}
+					meta[$(this).attr("name")] = $(this).val();
+				});
+
+				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+				var date = $(this).attr('datetime');
+	  		$.ajax({
+	  			url : mindeventsSettings.ajax_url,
+	  			type : 'post',
+	  			data : {
+	  				action : 'mindevents_selectday',
+	  				eventid : mindeventsSettings.post_id,
+						date : date,
+						meta : meta,
+						occurrence : occurrence.length
+	  			},
+	  			success: function(response) {
+						thisDay.removeClass('loading');
+						thisDay.find('.la-ball-fall').remove();
+	          if(response.html) {
+							thisDay.addClass('selected');
+							thisDay.attr('event', 'true');
+							thisDay.after(response.html);
+	          }
+						if(response.errors.length > 0) {
+							$.each(response.errors, function( index, value ) {
+							  errorBox.append('<span>' + value + '</span>').addClass('show');
+							});
+	          }
+	  			},
+	  			error: function (response) {
+	  				console.log('An error occurred.');
+	  				console.log(response);
+	  			},
+	  		});
+			}
+
+
+
 
   	})
 

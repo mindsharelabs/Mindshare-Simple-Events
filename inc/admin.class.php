@@ -1,9 +1,10 @@
 <?php
-class mindeventsDisplay {
+class mindeventsAdmin {
   private $options = '';
   private $token = '';
   private $default_start_time = '';
   private $default_end_time = '';
+  private $default_event_color = '';
 
   protected static $instance = NULL;
 
@@ -13,6 +14,7 @@ class mindeventsDisplay {
 
     $this->default_start_time = (isset($this->options['mindevents_start_time']) ? $this->options['mindevents_start_time'] : '7:00 PM');
     $this->default_end_time = (isset($this->options['mindevents_end_time']) ? $this->options['mindevents_end_time'] : '10:00 PM');
+    $this->default_event_color = (isset($this->options['mindevents_event_color']) ? $this->options['mindevents_event_color'] : '#43A0D9');
 
     add_action( 'add_meta_boxes', array($this, 'add_events_metaboxes' ));
 
@@ -32,48 +34,41 @@ class mindeventsDisplay {
   static function display_event_metabox($post) {
     echo '<div id="mindevents_meta_box">';
       $this->get_time_form();
-      echo '<div class="calendar-nav">';
-        echo '<button data-dir="prev" class="calnav prev">PREV</button>';
-        echo '<button data-dir="next" class="calnav next">PREV</button>';
+      $events = new mindEvent($post->ID);
+
+  		echo '<div class="calendar-nav">';
+  			echo '<button data-dir="prev" class="calnav prev">PREV MONTH</button>';
+  			echo '<button data-dir="next" class="calnav next">NEXT MONTH</button>';
+  		echo '</div>';
+  		echo '<div id="eventsCalendar">';
+        echo $events->get_calendar();
       echo '</div>';
 
-      echo '<div id="eventsCalendar">';
-        echo $this->get_calendar($post);
-      echo '</div>';
       echo '<div id="errorBox"></div>';
       echo '<button class="clear-occurances button button-danger">Clear All Occurances</button>';
     echo '</div>';
   }
 
 
-  public function get_calendar($post, $calDate = '') {
-    $calendar = new SimpleCalendar($calDate);
-    $event = new mindEvent($post->ID);
-    $eventDates = $event->get_sub_events();
-    if($eventDates) :
-      foreach ($eventDates as $key => $event) :
-        $starttime = get_post_meta($event->ID, 'event_start', true);
-        $endtime = get_post_meta($event->ID, 'event_end', true);
-        $date = get_post_meta($event->ID, 'event_date', true);
-        $html = $calendar->get_daily_event_html('<span data-subid = ' . $event->ID . '>' . $starttime . '-' . $endtime . '</span>');
-        $eventDates = $calendar->addDailyHtml($html, $date);
-      endforeach;
-    endif;
 
-    return $calendar->show(false);
-  }
 
   private function get_time_form() {
-    echo '<div id="defaultEventTimes" class="event-times mindeventsPage">';
+    echo '<div id="defaultEventMeta" class="event-times mindeventsPage">';
       echo '<div class="time-block">';
-        echo '<div class="form-section form-left">';
+        echo '<div class="form-section">';
           echo '<p class="label"><label for="starttime_">Event Occurence Start</label></p>';
-          echo '<input type="text" class="timepicker" name="starttime_" id="starttime_" value="' . $this->default_start_time . '" placeholder="">';
+          echo '<input type="text" class="timepicker required" name="starttime_" id="starttime_" value="' . $this->default_start_time . '" placeholder="">';
         echo '</div>';
-        echo '<div class="form-section form-right">';
+        echo '<div class="form-section">';
           echo '<p class="label"><label for="endtime_">Event Occurence End</label></p>';
-          echo '<input type="text" class="timepicker" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
+          echo '<input type="text" class="timepicker required" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
         echo '</div>';
+
+        echo '<div class="form-section">';
+          echo '<p class="label"><label for="eventColor_">Occurence Color</label></p>';
+          echo '<input type="text" class=" required" name="eventColor_" id="eventColor_" value="' . $this->default_event_color . '" placeholder="">';
+        echo '</div>';
+
       echo '</div>';
       echo '<button class="plus add-event-occurrence">Add Occurence</button>';
 
@@ -83,4 +78,4 @@ class mindeventsDisplay {
 
 }//end of class
 
-new mindeventsDisplay();
+new mindeventsAdmin();

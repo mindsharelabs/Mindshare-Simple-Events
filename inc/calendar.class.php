@@ -206,6 +206,7 @@ class SimpleCalendar {
 	 * @return string
 	 */
 	public function render() {
+		$out = '';
 		$now   = getdate($this->now->getTimestamp());
 		$today = [ 'mday' => -1, 'mon' => -1, 'year' => -1 ];
 		if( $this->today !== null ) {
@@ -218,69 +219,69 @@ class SimpleCalendar {
 		$weekDayIndex = date('N', mktime(0, 0, 1, $now['mon'], 1, $now['year'])) - $this->offset;
 		$daysInMonth  = cal_days_in_month(CAL_GREGORIAN, $now['mon'], $now['year']);
 
-		$out = '<h3>' . $now['month'] . ' ' . $now['year'] . '</h3>';
 
-		$out .= '<table id="mindClalendar" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" cellpadding="0" cellspacing="0" class="' . $this->classes['calendar'] . '"><thead><tr>';
-  		foreach( $daysOfWeek as $dayName ) {
-  			$out .= '<th>' . $dayName . '</th>';
-  		}
-		$out .= '</tr></thead><tbody><tr>';
+			$out .= '<h3 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h3>';
+			$out .= '<table id="mindCalander" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" cellpadding="0" cellspacing="0" class="' . $this->classes['calendar'] . '"><thead><tr>';
+	  		foreach( $daysOfWeek as $dayName ) {
+	  			$out .= '<th>' . $dayName . '</th>';
+	  		}
+			$out .= '</tr></thead><tbody><tr>';
 
-
-		$weekDayIndex = ($weekDayIndex + 7) % 7;
-
-		if( $weekDayIndex === 7 ) {
-			$weekDayIndex = 0;
-		} else {
-			$out .= str_repeat('<td class="' . $this->classes['leading_day'] . '">&nbsp;</td>', $weekDayIndex);
-		}
-
-		$count = $weekDayIndex + 1;
-		for( $i = 1; $i <= $daysInMonth; $i++ ) {
-			$date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
-
-			$isToday = false;
-			if( $this->today !== null ) {
-				$isToday = $i == $today['mday']
-					&& $today['mon'] == $date->format('n')
-					&& $today['year'] == $date->format('Y');
+			$weekDayIndex = ($weekDayIndex + 7) % 7;
+			if( $weekDayIndex === 7 ) {
+				$weekDayIndex = 0;
+			} else {
+				$out .= str_repeat('<td class="' . $this->classes['leading_day'] . '">&nbsp;</td>', $weekDayIndex);
 			}
 
-			$out .= '<td' . ($isToday ? ' class="' . $this->classes['today'] . '"' : '') . '>';
+			$count = $weekDayIndex + 1;
+			for( $i = 1; $i <= $daysInMonth; $i++ ) {
+				$date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
 
-			$out .= sprintf('<time class="calendar-day" datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
-
-			$dailyHTML = null;
-			if( isset($this->dailyHtml[$now['year']][$now['mon']][$i]) ) {
-				$dailyHTML = $this->dailyHtml[$now['year']][$now['mon']][$i];
-			}
-
-			if( is_array($dailyHTML) ) {
-				foreach( $dailyHTML as $dHtml ) {
-					$out .= $dHtml;
+				$isToday = false;
+				if( $this->today !== null ) {
+					$isToday = $i == $today['mday']
+						&& $today['mon'] == $date->format('n')
+						&& $today['year'] == $date->format('Y');
 				}
+
+				$out .= '<td' . ($isToday ? ' class="' . $this->classes['today'] . '"' : '') . '>';
+
+				$out .= sprintf('<time class="calendar-day" datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
+
+				$dailyHTML = null;
+				if( isset($this->dailyHtml[$now['year']][$now['mon']][$i]) ) {
+					$dailyHTML = $this->dailyHtml[$now['year']][$now['mon']][$i];
+				}
+
+				if( is_array($dailyHTML) ) {
+					$out .= '<div class="events">';
+					foreach( $dailyHTML as $dHtml ) {
+						$out .= $dHtml;
+					}
+					$out .= '</div>';
+				}
+
+				$out .= '</td>';
+
+				if( $count > 6 ) {
+					$out   .= "</tr>\n" . ($i < $daysInMonth ? '<tr>' : '');
+					$count = 0;
+				}
+				$count++;
 			}
 
-			$out .= '</td>';
-
-			if( $count > 6 ) {
-				$out   .= "</tr>\n" . ($i < $daysInMonth ? '<tr>' : '');
-				$count = 0;
+			if( $count !== 1 ) {
+				$out .= str_repeat('<td class="' . $this->classes['trailing_day'] . '">&nbsp;</td>', 8 - $count) . '</tr>';
 			}
-			$count++;
-		}
 
-		if( $count !== 1 ) {
-			$out .= str_repeat('<td class="' . $this->classes['trailing_day'] . '">&nbsp;</td>', 8 - $count) . '</tr>';
-		}
-
-		$out .= "\n</tbody></table>\n";
+			$out .= "\n</tbody></table>\n";
 
 		return $out;
 	}
 
 	public function get_daily_event_html($dHtml) {
-		return sprintf('<div class="%s">%s</div>', $this->classes['event'], $dHtml);
+		return '<div class="event">' . $dHtml . '</div>';
 	}
 	/**
 	 * @param int $steps
