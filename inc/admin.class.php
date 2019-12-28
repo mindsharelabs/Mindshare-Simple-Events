@@ -20,21 +20,97 @@ class mindeventsAdmin {
 
     add_action( 'add_meta_boxes', array($this, 'add_events_metaboxes' ));
 
+    add_action( 'save_post', array($this, 'save_meta_info'), 10, 2 );
+
+
+
 	}
   static function add_events_metaboxes() {
     // add_meta_box( $id, $title, $callback, $page, $context, $priority, $callback_args );
   	add_meta_box(
   		'mindevents_calendar',
   		'Calendar',
-  		array($this, 'display_event_metabox' ),
+  		array($this, 'display_calendar_metabox' ),
   		'events',
   		'normal',
   		'default'
   	);
 
+    add_meta_box(
+  		'mindevents_event_options',
+  		'Calendar Options',
+  		array($this, 'display_event_options_metabox' ),
+  		'events',
+  		'side',
+  		'default'
+  	);
+
   }
-  static function display_event_metabox($post) {
-    echo '<div id="mindevents_meta_box">';
+
+
+  function save_meta_info( $post_id, $post ) {
+
+    /* Make sure this is our post type. */
+    if($post->post_type != 'events')
+      return $post_id;
+
+    /* Verify the nonce before proceeding. */
+    if ( !isset( $_POST['mindevents_event_meta_nonce'] ) || !wp_verify_nonce( $_POST['mindevents_event_meta_nonce'], basename( __FILE__ ) ) )
+      return $post_id;
+
+
+
+    $field_key = 'event_meta';
+    /* Get the posted data and sanitize it for use as an HTML class. */
+    $new_meta_values = (isset( $_POST[$field_key]) ? $_POST[$field_key]  : '' );
+    if($new_meta_values) :
+      foreach ($new_meta_values as $key => $value) :
+        update_post_meta( $post_id, $key, $value);
+      endforeach;
+    endif;
+
+    return $post_id;
+  }
+
+
+
+
+
+  static function display_event_options_metabox() {
+    $cal = get_post_meta(get_the_ID(), 'cal_display', true);
+    $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
+    wp_nonce_field( basename( __FILE__ ), 'mindevents_event_meta_nonce' );
+    echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
+      echo '<div class="form-section">';
+        echo '<p class="label"><label for="event_meta[cal_display]">Calendar Display</label></p>';
+        echo '<div class="select-wrap">';
+          echo '<select name="event_meta[cal_display]" id="event_meta[cal_display]">';
+            echo '<option value="calendar" ' . selected($cal, 'calendar', false) . '>Calendar</option>';
+            echo '<option value="list" ' . selected($cal, 'list', false) . '>List</option>';
+          echo '</select>';
+        echo '</div>';
+      echo '</div>';
+
+      echo '<div class="form-section">';
+        echo '<p class="label"><label for="event_meta[show_past_events]">Show Past Events?</label></p>';
+        echo '<div class="select-wrap">';
+          echo '<select name="event_meta[show_past_events]" id="event_meta[show_past_events]">';
+            echo '<option value="true" ' . selected($show_past_events, 'true', false) . '>Show all events</option>';
+            echo '<option value="false" ' . selected($show_past_events, 'false', false) . '>Show only future events</option>';
+          echo '</select>';
+        echo '</div>';
+      echo '</div>';
+    echo '</div>';
+  }
+
+
+
+
+
+
+
+  static function display_calendar_metabox($post) {
+    echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Select Occurance Options</h3>';
       echo '<small>These fields do not save, they simply set the information for occurances added to the calendar.</small>';
       $this->get_time_form();
@@ -49,7 +125,7 @@ class mindeventsAdmin {
       echo '</div>';
       echo '<div id="errorBox"></div>';
 
-      echo '<button class="clear-occurances button button-danger">Clear All Occurances</button>';
+      echo '<button class="clear-occurances button-danger">Clear All Occurances</button>';
     echo '</div>';
   }
 
@@ -57,7 +133,12 @@ class mindeventsAdmin {
 
 
   private function get_time_form() {
-    echo '<div id="defaultEventMeta" class="event-times mindeventsPage">';
+    // TODO: Rename these fields to match this name format.
+    // <input type="text" placeholder="Titel" name="sub_event_meta[starttime][]">
+    // <input type="text" placeholder="Titel" name="sub_event_meta[endtime][]">
+
+
+    echo '<div id="defaultEventMeta" class="event-times mindevents-forms">';
       echo '<div class="time-block">';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="starttime_">Event Occurence Start</label></p>';

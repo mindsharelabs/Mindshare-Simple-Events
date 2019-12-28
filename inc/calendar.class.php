@@ -189,7 +189,6 @@ class SimpleCalendar {
 	 *
 	 * @param bool $echo Whether to echo resulting calendar
 	 * @return string HTML of the Calendar
-	 * @deprecated Use `render()` method instead.
 	 */
 	public function show( $echo = true ) {
 		$out = $this->render();
@@ -199,6 +198,70 @@ class SimpleCalendar {
 
 		return $out;
 	}
+
+
+	/**
+	 * Returns the generated Calendar
+	 *
+	 * @return string
+	 */
+	public function renderList() {
+		$now   = getdate($this->now->getTimestamp());
+		$out = '<div id="mindCalanderList" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" class="' . $this->classes['calendar'] . '">';
+			$out .= $this->build_list_html($now);
+		$out .= '</div>';
+
+		return $out;
+	}
+
+
+
+	private function build_list_html($current, $out = '') {
+		$today = [ 'mday' => -1, 'mon' => -1, 'year' => -1 ];
+		if( $this->today !== null ) {
+			$today = getdate($this->today->getTimestamp());
+		}
+		$daysInMonth  = cal_days_in_month(CAL_GREGORIAN, $current['mon'], $current['year']);
+		for( $i = 1; $i <= $daysInMonth; $i++ ) {
+			$date = (new DateTime())->setDate($current['year'], $current['mon'], $i);
+			$isToday = false;
+			if( $this->today !== null ) {
+				$isToday = $i == $today['mday']
+					&& $today['mon'] == $date->format('n')
+					&& $today['year'] == $date->format('Y');
+			}
+
+			$dailyHTML = null;
+			if( isset($this->dailyHtml[$current['year']][$current['mon']][$i]) ) {
+				$dailyHTML = $this->dailyHtml[$current['year']][$current['mon']][$i];
+			}
+
+			if( is_array($dailyHTML) ) :
+				$out .= '<div' . ($isToday ? ' class="' . $this->classes['today'] . '"' : '') . '>';
+				$out .= '<h4 class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format('l, M j') . '</time></h4>';
+					$out .= '<div class="events">';
+						foreach( $dailyHTML as $dHtml ) :
+							$out .= $dHtml;
+						endforeach;
+					$out .= '</div>';
+				$out .= '</div>';
+			endif;
+
+		}
+
+		$date->modify('first day of next month');
+		$next_month = getdate($date->format('U'));
+		mapi_write_log($next_month);
+
+		if(isset($this->dailyHtml[$next_month['year']][$next_month['mon']])) {
+			if(count($this->dailyHtml[$next_month['year']][$next_month['mon']]) > 0) {
+				$out .= $this->build_list_html($next_month, $out);
+			}
+		}
+		return $out;
+	}
+
+
 
 	/**
 	 * Returns the generated Calendar

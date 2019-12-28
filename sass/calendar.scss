@@ -211,60 +211,86 @@
             text-align: center;
           }
 
-          .meta_inner_container {
-            display: flex;
-            flex-direction: row;
-            padding: 25px;
-            justify-content: space-between;
-            a.button{
-              &.button-link {
-                border: 1px solid #fff;
-                border-left: 5px solid #fff;;
-                padding: 14px 25px;
-                font-size: 1.3em;
-                font-weight: bold;
-                color: #fff;
-                @include transition(300ms);
-                &:hover {
-                  border-left-width: 10px;
-                  background-color: rgba(255,255,255,.3);
-                  @include transition(100ms);
-                }
-              }
-            }
-            .left-content, .right-content {
-              display: flex;
-              flex-direction: column;
-              justify-content: space-around;
-            }
-            .meta-item {
-              span {
-                display: block;
-                &.label {
-                  text-transform: uppercase;
-                  font-weight: bold;
-                  font-size: .7em;
-                  opacity: .9;
-                }
-                &.value {
-                  margin-bottom: 20px;
-                  &.eventlink {
-                    text-align: right;
-                  }
-                  &.eventdescription {
-                    font-size: .9em;
-                    line-height: 1.4em;
-                  }
-                }
-              }
-            }
-          }
-
-
-
         }
   		}
   	}
 
+  }
+}
+#publicCalendar, #mindEventList {
+  .meta_inner_container {
+    display: flex;
+    flex-direction: row;
+    padding: 25px;
+    justify-content: space-between;
+    a.button{
+      &.button-link {
+        border: 1px solid #fff;
+        border-left: 5px solid #fff;;
+        padding: 14px 25px;
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #fff;
+        @include transition(300ms);
+        &:hover {
+          border-left-width: 10px;
+          background-color: rgba(255,255,255,.3);
+          @include transition(100ms);
+        }
+      }
+    }
+    .left-content, .right-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .meta-item {
+      span {
+        display: block;
+        &.label {
+          text-transform: uppercase;
+          font-weight: bold;
+          font-size: .7em;
+          opacity: .8;
+        }
+        &.value {
+          margin-bottom: 20px;
+          &.eventlink {
+            text-align: right;
+          }
+          &.eventdescription {
+            font-size: .9em;
+            line-height: 1.4em;
+          }
+        }
+      }
+    }
+  }
+}
+#mindEventList {
+  h4.day-label {
+    text-align: center;
+    margin: 45px 0 15px;
+  }
+  p.no-events {
+    text-align: center;
+    font-weight: bold;
+  }
+  .meta_inner_container {
+    padding: 10px;
+    margin-bottom: 20px;
+    .meta-item {
+      span {
+        &.value {
+          margin-bottom: 5px;
+          &.eventdescription {
+            font-size: .85em;
+            line-height: 1.35em;
+            padding-right: 10px;
+          }
+        }
+
+      }
+    }
   }
 }

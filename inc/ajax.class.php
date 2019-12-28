@@ -37,64 +37,9 @@ class mindeventsAjax {
   static function get_event_meta_html() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
       $id = $_POST['eventid'];
-      $meta = get_post_meta($id);
-      mapi_write_log($meta);
-      if($meta) :
-        $style_str = array();
-        if($meta['eventColor']) :
-          $style_str['background'] = 'background:' . $meta['eventColor'][0] . ';';
-          $style_str['color'] = 'color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
-        endif;
+      $event = new mindEvent(get_the_ID());
+      $html = $event->get_sub_event_list_html($id);
 
-        $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
-          $html .= '<div class="left-content">';
-            if($meta['event_date'][0]) :
-              $date = new DateTime($meta['event_date'][0]);
-              $html .= '<div class="meta-item">';
-                $html .= '<span class="label">Event Date</span>';
-                $html .= '<span class="value eventdate">' . $date->format('l, F j, Y') . '</span>';
-              $html .= '</div>';
-            endif;
-
-            if($meta['starttime'][0]) :
-              $html .= '<div class="meta-item">';
-                $html .= '<span class="label">Event Time</span>';
-                $html .= '<span class="value starttime">' . $meta['starttime'][0] . ($meta['endtime'][0] ? ' - ' . $meta['endtime'][0] : '') . '</span>';
-              $html .= '</div>';
-            endif;
-            if($meta['eventCost'][0]) :
-              $html .= '<div class="meta-item">';
-                $html .= '<span class="label">Cost</span>';
-                $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
-              $html .= '</div>';
-            endif;
-
-            if($meta['eventDescription'][0]) :
-              $html .= '<div class="meta-item">';
-                $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
-              $html .= '</div>';
-            endif;
-
-
-
-          $html .= '</div>';
-
-
-
-          if($meta['eventLink'][0] && $meta['eventLinkLabel'][0]) :
-            $html .= '<div class="right-content">';
-              unset($style_str['background']);
-              $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
-              $html .= '<div class="meta-item">';
-                $html .= '<span class="value eventlink"><a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $meta['eventLink'][0] . '" target="_blank">' . $meta['eventLinkLabel'][0] . '</a></span>';
-              $html .= '</div>';
-            $html .= '</div>';
-          endif;
-
-
-
-        $html .= '</div>';
-      endif;
       $return = array(
         'success' => (bool)$meta,
         'html' => $html

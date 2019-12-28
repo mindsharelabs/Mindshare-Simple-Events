@@ -20,13 +20,13 @@ $dark:          rgb(35, 31, 32);
 @import 'forms-main';
 @import 'calendar';
 
-#mindevents_meta_box, {
+.mindevents_meta_box {
   a.button, button{
     cursor: pointer;
     border: 1px solid darken($primary, 10%);
     padding: 5px 7px;
     border-radius: 0;
-    color: #fff;
+    color: #fff !important;
     background: $primary;
     &:hover {
       background: darken($primary, 10%);
@@ -35,10 +35,12 @@ $dark:          rgb(35, 31, 32);
       margin-top: 5px;
     }
     &.button-danger {
+      color: #fff;
       background: $danger;
       border: darken($danger, 10%);
     }
     &.add-event-occurrence {
+      color: #fff;
       background: $secondary;
       border: darken($secondary, 10%);
     }
@@ -51,8 +53,7 @@ $dark:          rgb(35, 31, 32);
     margin-bottom: 3px;
   }
 }
-#mindevents_meta_box {
-
+.mindevents_meta_box {
 
   #errorBox {
     opacity: 0;

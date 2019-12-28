@@ -6,7 +6,7 @@
 @import "inputs/checkbox";
 @import "inputs/select";
 
-.mindeventsPage {
+.mindevents-forms {
   input[type=text],
   input[type=url],
   input[type=email],
@@ -28,7 +28,7 @@
   }
   input.validate {
     border: 1px solid $danger;
-    background: lighten($danger, 35%); 
+    background: lighten($danger, 35%);
   }
 
 
