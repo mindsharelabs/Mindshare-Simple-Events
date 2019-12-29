@@ -49,12 +49,12 @@ class mindEvents {
   }
   private function includes() {
     //General
+    include_once MINDEVENTS_ABSPATH . 'inc/events.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/options.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/calendar.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/admin.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/posttypes.php';
     include_once MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/events.class.php';
+
 
     include_once MINDEVENTS_ABSPATH . 'templates/front-end.php';
   }

@@ -37,11 +37,10 @@ class mindeventsAjax {
   static function get_event_meta_html() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
       $id = $_POST['eventid'];
-      $event = new mindEvent(get_the_ID());
-      $html = $event->get_sub_event_list_html($id);
+      $event = new mindEventCalendar($id);
+      $html = $event->get_list_item_html();
 
       $return = array(
-        'success' => (bool)$meta,
         'html' => $html
       );
       wp_send_json_success($return);
@@ -72,9 +71,7 @@ class mindeventsAjax {
       $eventID = $_POST['eventid'];
       $metas = $_POST['meta'];
       $metas = $this->make_meta_array($metas);
-      $event = new mindEvent($eventID);
-      $calendar = new SimpleCalendar();
-
+      $event = new mindEventCalendar($eventID);
 
       $added_events = array();
       $errors = array();
@@ -88,7 +85,7 @@ class mindeventsAjax {
           $errors[] = $added_event_id->get_error_message();
         else :
           $added_events[] = $added_event_id;
-          $html .= $calendar->get_daily_event_html('<span style="background:' . $meta['eventColor'] . '" data-subid = ' . $added_event_id . ' class="new">' . $meta['starttime'] . '-' . $meta['endtime'] . '</span>');
+          $html .= $event->get_daily_event_html('<span style="background:' . $meta['eventColor'] . '" data-subid = ' . $added_event_id . ' class="new">' . $meta['starttime'] . '-' . $meta['endtime'] . '</span>');
         endif;
       }
 
@@ -105,7 +102,7 @@ class mindeventsAjax {
   static function clearevents() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'clearevents'){
       $eventID = $_POST['eventid'];
-      $event = new mindEvent($eventID);
+      $event = new mindEventCalendar($eventID);
       $return = $event->delete_sub_events();
       $return = array(
         'html' => $event->get_calendar(),
@@ -122,21 +119,26 @@ class mindeventsAjax {
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];
+
+
+
       $eventID = $_POST['eventid'];
       $event = get_post($eventID);
       $date = new DateTime();
       $date->setDate($year, $month, 1);
+
 
       if($direction == 'prev') {
         $date->modify('first day of last month');
       } else {
         $date->modify('first day of next month');
       }
+      mapi_write_log($date->format('Y-m-d'));
       $new_date = $date->format('Y-m-d');
-      $event = new mindEvent($eventID);
+      $event = new mindEventCalendar($eventID, $new_date);
       $return = array(
         'new_date' => $new_date,
-        'html' => $event->get_front_calendar($new_date),
+        'html' => $event->get_front_calendar(),
       );
 
       wp_send_json($return);
@@ -162,7 +164,7 @@ class mindeventsAjax {
         $date->modify('first day of next month');
       }
       $new_date = $date->format('Y-m-d');
-      $event = new mindEvent($eventID);
+      $event = new mindEventCalendar($eventID);
       $return = array(
         'new_date' => $new_date,
         'html' => $event->get_calendar($new_date),

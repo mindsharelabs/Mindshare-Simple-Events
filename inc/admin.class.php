@@ -114,7 +114,7 @@ class mindeventsAdmin {
       echo '<h3>Select Occurance Options</h3>';
       echo '<small>These fields do not save, they simply set the information for occurances added to the calendar.</small>';
       $this->get_time_form();
-      $events = new mindEvent($post->ID);
+      $events = new mindEventCalendar($post->ID);
 
   		echo '<div class="calendar-nav">';
   			echo '<button data-dir="prev" class="calnav prev">PREV MONTH</button>';

@@ -42,7 +42,7 @@
 		$(document).on('click', '.calendar-nav .calnav', function (event) {
 			event.preventDefault();
 			var eventsCalendar = $('#publicCalendar');
-			var calendarTable = $('#mindCalander');
+			var calendarTable = $('#mindEventCalendar');
 			var month = calendarTable.data('month');
 			var year = calendarTable.data('year');
 			var direction = $(this).data('dir');
@@ -65,7 +65,7 @@
 				success: function(response) {
 					eventsCalendar.attr('style', false);
 					eventsCalendar.html(response.html);
-					console.log(response);
+
 				},
 				error: function (response) {
 					console.log('An error occurred.');
