@@ -12,7 +12,29 @@ echo '<main role="main" aria-label="Content">';
   do_action('mindevents_archive_loop_start');
 
     if(have_posts()) :
-      $calendar = new mindEventCalendar();
+      $first_event = get_posts(array(
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_start_time_stamp',
+        'meta_type' => 'DATETIME',
+        'order' => 'ASC',
+        'post_type' => 'sub_event',
+        'posts_per_page' => 1,
+        'meta_query' => array(
+            'key' => 'event_start_time_stamp', // Check the start date field
+            'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
+            'compare' => '>=', // Return the ones greater than today's date
+            'type' => 'DATETIME' // Let
+          ),
+        )
+      );
+      if($first_event) :
+        $first_event = $first_event[0];
+        $first_event = get_post_meta($first_event->ID, 'event_start_time_stamp', true);
+      else :
+        $first_event = null;
+      endif;
+
+      $calendar = new mindEventCalendar('', $first_event);
       $show_all = apply_filters(MINDRETURNS_PREPEND . 'events_archive_show_past_events', true);
       $calendar->set_past_events_display($show_all);
 
