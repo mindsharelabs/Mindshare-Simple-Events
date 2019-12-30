@@ -464,6 +464,7 @@ class mindEventCalendar {
         'type' => 'DATETIME' // Let WordPress know we're working with date
       );
     }
+    // mapi_write_log($this->event_categories);
     if($this->event_categories) {
       $args['tax_query'] = array(
         array(
@@ -475,6 +476,7 @@ class mindEventCalendar {
     }
 
     $args = wp_parse_args($args, $defaults);
+    mapi_write_log($args);
     return get_posts($args);
 
   }
@@ -625,7 +627,7 @@ class mindEventCalendar {
     $args = array(
       'fields' => 'ids',
       'post_type'   => 'sub_event',
-      'post_status' => 'inherit',
+      'post_status' => 'publish',
       'meta_query'  => array(
         array(
           'key' => 'unique_event_key',
