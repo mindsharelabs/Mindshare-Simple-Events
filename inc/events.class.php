@@ -226,37 +226,6 @@ class mindEventCalendar {
 
 
   /**
-   * Returns a list of sub events
-   *
-   * @return string
-   */
-  public function renderList() {
-    $now   = getdate($this->now->getTimestamp());
-    $out = '<div id="mindCalanderList" class="event-list ' . $this->classes['calendar'] . '">';
-      if(is_array($this->dailyHtml)) :
-        $number_of_years = count($this->dailyHtml);
-        foreach ($this->dailyHtml as $year => $year_items) :
-          foreach ($year_items as $month => $month_items) :
-            foreach ($month_items as $day => $daily_items) :
-              $date = (new DateTime())->setDate($year, $month, $day);
-              $date_format = ($number_of_years > 1) ? 'l, M j Y' : 'l, M j';
-              $out .= '<div class="day">';
-                $out .= '<h4 class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format($date_format) . '</time></h4>';
-                  foreach ($daily_items as $key => $dHTML) :
-                    $out .= $dHTML;
-                  endforeach;
-              $out .= '</div>';
-            endforeach;
-          endforeach;
-        endforeach;
-      endif;
-
-    $out .= '</div>';
-
-    return $out;
-  }
-
-  /**
    * Returns the generated Calendar
    *
    * @return string
@@ -534,7 +503,87 @@ class mindEventCalendar {
   }
 
 
+  /**
+   * Returns a list of sub events
+   *
+   * @return string
+   */
+  public function renderList() {
+    $now   = getdate($this->now->getTimestamp());
+    $out = '<div id="mindCalanderList" class="event-list ' . $this->classes['calendar'] . '">';
+      if(is_array($this->dailyHtml)) :
+        $number_of_years = count($this->dailyHtml);
+        foreach ($this->dailyHtml as $year => $year_items) :
+          foreach ($year_items as $month => $month_items) :
+            foreach ($month_items as $day => $daily_items) :
+              $date = (new DateTime())->setDate($year, $month, $day);
+              $date_format = ($number_of_years > 1) ? 'l, M j Y' : 'l, M j';
+                $out .= '<div class="list_day_container">';
+                  $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format($date_format) . '</time></div>';
+                  foreach ($daily_items as $key => $dHTML) :
+                    $out .= $dHTML;
+                  endforeach;
+                $out .= '</div>';
+
+            endforeach;
+          endforeach;
+        endforeach;
+      endif;
+
+    $out .= '</div>';
+
+    return $out;
+  }
+
   public function get_list_item_html($event = '') {
+    $meta = get_post_meta($event);
+    $sub_event_obj = get_post($event);
+
+    if($meta) :
+      $style_str = array();
+      if($meta['eventColor']) :
+        $style_str['border-color'] = 'border-color:' . $meta['eventColor'][0] . ';';
+        $style_str['color'] = 'color:' . $meta['eventColor'][0] . ';';
+      endif;
+
+      $html = '<div class="item_meta_container">';
+
+        if($meta['event_date'][0]) :
+          $html .= '<div class="meta_item starttime">';
+            $html .= '<span class="label">' . apply_filters('mindevents_start_time_label', 'Start Time') . '</span>';
+            $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
+          $html .= '</div>';
+        endif;
+
+
+        if($meta['eventCost'][0]) :
+          $html .= '<div class="meta_item cost">';
+            $html .= '<span class="label">' . apply_filters('mindevents_cost_label', 'Price') . '</span>';
+            $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
+          $html .= '</div>';
+        endif;
+
+        if($meta['eventDescription'][0]) :
+          $html .= '<div class="meta_item description">';
+            $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
+          $html .= '</div>';
+        endif;
+
+        if($meta['eventLink'][0] && $meta['eventLinkLabel'][0]) :
+
+          $html .= '<div class="meta_item link">';
+            $html .= '<span class="value eventlink"><a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $meta['eventLink'][0] . '" target="_blank">' . $meta['eventLinkLabel'][0] . '</a></span>';
+          $html .= '</div>';
+        endif;
+
+      $html .= '</div>';
+    endif;
+    return $html;
+
+  }
+
+
+  public function get_cal_meta_html($event = '') {
     $meta = get_post_meta($event);
     $sub_event_obj = get_post($event);
 
@@ -592,6 +641,8 @@ class mindEventCalendar {
     return $html;
 
   }
+
+
 
   private function getContrastColor($hexcolor) {
       $r = hexdec(substr($hexcolor, 1, 2));

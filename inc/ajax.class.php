@@ -41,7 +41,7 @@ class mindEventsAjax {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
       $id = $_POST['eventid'];
       $event = new mindEventCalendar();
-      $html = $event->get_list_item_html($id);
+      $html = $event->get_cal_meta_html($id);
 
       $return = array(
         'html' => $html

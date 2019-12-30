@@ -157,7 +157,7 @@
           font-weight: bold;
           text-align: center;
           padding: 20px 5px;
- 
+
   			}
         &.today {
           background: lighten($primary, 40%);
@@ -226,19 +226,7 @@
     justify-content: space-between;
     a.button{
       &.button-link {
-        border: 1px solid #fff;
-        border-left: 5px solid #fff;;
-        padding: 14px 25px;
-        font-size: 1.3em;
-        font-weight: bold;
-        color: #fff;
-        white-space: nowrap;
-        @include transition(300ms);
-        &:hover {
-          border-left-width: 10px;
-          background-color: rgba(255,255,255,.3);
-          @include transition(100ms);
-        }
+        @include button-link;
       }
     }
     .left-content, .right-content {
@@ -303,6 +291,67 @@
         }
 
       }
+    }
+  }
+}
+
+#mindCalanderList.event-list {
+  display: flex;
+  flex-direction: column;
+  .list_day_container {
+    flex-basis: 100%;
+    padding: 10px 0;
+    border-bottom: 1px solid $light;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    .day-label{
+      flex-basis: 100%;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      margin-top: 15px;
+    }
+    .item_meta_container {
+      flex-basis: 100%;
+      display: flex;
+      flex-direction: row;
+      padding-left: 15px;
+      .meta_item {
+        padding: 6px 0;
+        span.label {
+          display: block;
+          text-transform: uppercase;
+          font-weight: bold;
+          font-size: .6em;
+          white-space: nowrap;
+        }
+        span.value {
+
+          &.eventstarttime {
+            font-weight: bold;
+          }
+        }
+        &.starttime {
+          flex-basis: 10%;
+        }
+        &.cost {
+          flex-basis: 10%;
+        }
+        &.description {
+          flex-basis: 60%;
+        }
+        &.link {
+          flex-basis: 20%;
+          align-items: center;
+          justify-content: flex-end;
+          display: flex;
+          a.button{
+            @include button-link;
+          }
+        }
+      }
+
     }
   }
 }
