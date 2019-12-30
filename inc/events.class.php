@@ -638,7 +638,6 @@ class mindEventCalendar {
     $check_query = new WP_Query( $args );
     if( empty($check_query->have_posts()) ) :
       $terms = wp_get_post_terms( $eventID, 'event_category',  array('fields' => 'ids'));
-      mapi_write_log($terms);
       $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
       $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
       $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
