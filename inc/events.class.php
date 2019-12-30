@@ -15,6 +15,7 @@ class mindEventCalendar {
   private $weekDayNames;
 	private $now;
 	private $today;
+  private $all_events;
 
 
   private $classes = [
@@ -29,12 +30,16 @@ class mindEventCalendar {
   private $dailyHtml = [];
 	private $offset = 0;
 
-  function __construct($id, $calendarDate = null, $today = null ) {
+  function __construct($id = '', $calendarDate = null, $today = null ) {
 
     $this->setDate($calendarDate);
 		$this->setToday($today);
 		$this->setCalendarClasses();
 
+
+    if($id == 'archive') :
+      $this->all_events = $this->get_all_events();
+    endif;
 
     $this->options = get_option( 'mindevents_support_settings' );
     $this->eventID = $id;
@@ -360,7 +365,6 @@ class mindEventCalendar {
       if($display === '0') {$display = false;}
     endif;
 
-    mapi_write_log($display);
     if($display === false) {
       $this->show_past_events = false;
     } else {
@@ -429,6 +433,7 @@ class mindEventCalendar {
       'suppress_filters' => true,
       'posts_per_page'   => -1
     );
+
     if($this->show_past_events === false) {
       $args['meta_query'][] = array(
         'key' => 'event_time_stamp', // Check the start date field
@@ -443,7 +448,10 @@ class mindEventCalendar {
 
   }
 
-  public function get_front_calendar() {
+
+
+  public function get_front_calendar($place = 'post') {
+
     $this->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
     if($eventDates) :
@@ -452,10 +460,18 @@ class mindEventCalendar {
         $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = get_post_meta($event->ID, 'eventColor', true);
+
+
+        if($place == 'archive') {
+          $label = get_the_title($event->post_parent);
+        } else {
+          $label = $starttime;
+        }
+
         if(!$color){
           $color = '#858585';
         }
-        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="background:' . $color .'" >' . $starttime . '</span>';
+        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="background:' . $color .'" >' . $label . '</span>';
         $html = $this->get_daily_event_html($inside);
         $eventDates = $this->addDailyHtml($html, $date);
       endforeach;
@@ -463,7 +479,6 @@ class mindEventCalendar {
 
     return $this->render();;
   }
-
 
 
 
@@ -486,6 +501,7 @@ class mindEventCalendar {
 
   public function get_list_item_html() {
     $meta = get_post_meta($this->eventID);
+    $post = get_post($this->eventID);
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -495,6 +511,14 @@ class mindEventCalendar {
 
       $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
         $html .= '<div class="left-content">';
+
+          if($post) :
+
+            $html .= '<div class="meta-item">';
+              $html .= '<h3 class="event-title">' . get_the_title($post->post_parent) . '</h3>';
+            $html .= '</div>';
+          endif;
+
           if($meta['event_date'][0]) :
             $date = new DateTime($meta['event_date'][0]);
             $html .= '<div class="meta-item">';
@@ -558,8 +582,8 @@ class mindEventCalendar {
     return $this->render();
   }
 
-  public function add_sub_event($args = array(), $date, $meta) {
-    $unique = $this->build_unique_key($date, $meta);
+  public function add_sub_event($args = array(), $date, $meta, $eventID) {
+    $unique = $this->build_unique_key($date, $meta, $eventID);
     $return = array();
     $args = array(
       'fields' => 'ids',
@@ -600,8 +624,8 @@ class mindEventCalendar {
     }
 
 
-    private function build_unique_key($date = '', $times = '') {
-      return sanitize_title($date . '_' . $times['starttime'] . '-' . $times['endtime']);
+    private function build_unique_key($date = '', $times = '', $eventID) {
+      return sanitize_title($eventID . '_' . $date . '_' . $times['starttime'] . '-' . $times['endtime']);
     }
 
     private function build_title($date = '', $times = '') {

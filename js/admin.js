@@ -130,7 +130,7 @@
 
 			event.preventDefault();
 			var eventsCalendar = $('#eventsCalendar');
-			var calendarTable = $('#mindCalander');
+			var calendarTable = $('#mindEventCalendar');
 			var month = calendarTable.data('month');
 			var year = calendarTable.data('year');
 			var direction = $(this).data('dir');

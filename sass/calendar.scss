@@ -2,7 +2,7 @@
   margin: 5px 0;
   display: flex;
   justify-content: space-between;
-  button.calnav{
+  button.calnav, button.archive-calnav{
     font-size: 14px;
     line-height: 24px;
     cursor: pointer;
@@ -113,7 +113,7 @@
   }
 }
 
-#publicCalendar {
+#publicCalendar, #archiveCalendar {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -231,6 +231,7 @@
         font-size: 1.3em;
         font-weight: bold;
         color: #fff;
+        white-space: nowrap;
         @include transition(300ms);
         &:hover {
           border-left-width: 10px;
@@ -261,13 +262,14 @@
           &.eventdescription {
             font-size: .9em;
             line-height: 1.4em;
+            padding-right: 10px;
           }
         }
       }
     }
   }
 }
-#archiveCalendar {
+#archiveContainer {
   max-width: 1000px;
   margin: 0 auto;
   padding: 15px;

@@ -75,7 +75,6 @@ class mindeventsAdmin {
 
 
 
-
   static function display_event_options_metabox() {
     $cal = get_post_meta(get_the_ID(), 'cal_display', true);
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
@@ -102,8 +101,6 @@ class mindeventsAdmin {
       echo '</div>';
     echo '</div>';
   }
-
-
 
 
 

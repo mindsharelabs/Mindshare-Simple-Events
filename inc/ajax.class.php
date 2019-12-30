@@ -23,6 +23,9 @@ class mindEventsAjax {
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
 
+    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
+
 
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
@@ -78,7 +81,7 @@ class mindEventsAjax {
       $html = '';
 
       foreach ($metas as $meta) {
-        $added_event_id = $event->add_sub_event('', $date, $meta);
+        $added_event_id = $event->add_sub_event('', $date, $meta, $eventID);
         if($added_event_id == false) :
           $errors[] = 'An event at that time already exists';
         elseif(is_wp_error($added_event_id)) :
@@ -113,16 +116,15 @@ class mindEventsAjax {
   }
 
 
-
   static function move_pub_calendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'move_pub_calendar'){
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];
 
-
-
       $eventID = $_POST['eventid'];
+
+
       $event = get_post($eventID);
       $date = new DateTime();
       $date->setDate($year, $month, 1);
@@ -133,12 +135,12 @@ class mindEventsAjax {
       } else {
         $date->modify('first day of next month');
       }
-      mapi_write_log($date->format('Y-m-d'));
+
       $new_date = $date->format('Y-m-d');
       $event = new mindEventCalendar($eventID, $new_date);
       $return = array(
         'new_date' => $new_date,
-        'html' => $event->get_front_calendar(),
+        'html' => $event->get_front_calendar($eventID),
       );
 
       wp_send_json($return);
@@ -164,10 +166,10 @@ class mindEventsAjax {
         $date->modify('first day of next month');
       }
       $new_date = $date->format('Y-m-d');
-      $event = new mindEventCalendar($eventID);
+      $event = new mindEventCalendar($eventID, $new_date);
       $return = array(
         'new_date' => $new_date,
-        'html' => $event->get_calendar($new_date),
+        'html' => $event->get_calendar(),
       );
 
       wp_send_json($return);

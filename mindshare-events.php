@@ -64,9 +64,15 @@ class mindEvents {
 
     wp_register_script('mindevents-js', plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE), array('jquery'), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('mindevents-js');
+
+    if(is_post_type_archive('events')) :
+      $postID = 'archive';
+    else :
+      $postID = get_the_ID();
+    endif;
     wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),
-      'post_id' => get_the_id()
+      'post_id' => $postID
     ) );
   }
 
