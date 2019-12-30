@@ -17,6 +17,8 @@ class mindEventCalendar {
 	private $today;
   private $all_events;
 
+  private $event_categories = false;
+
 
   private $classes = [
 		'calendar'     => 'mindEventCalendar',
@@ -123,6 +125,11 @@ class mindEventCalendar {
 		}
 	}
 
+
+
+  public function setEventCategories($array = array()) {
+    $this->event_categories = $array;
+  }
 
   /**
 	 * Sets "today"'s date. Defaults to today.
@@ -411,6 +418,16 @@ class mindEventCalendar {
         );
       }
 
+      if($this->event_categories) {
+        $args['tax_query'] = array(
+          array(
+            'taxonomy' => 'event_category',
+            'field'    => 'slug',
+            'terms'    => $this->event_categories,
+          ),
+        );
+      }
+
       $args = wp_parse_args($args, $defaults);
       return get_posts($args);
 
@@ -445,6 +462,15 @@ class mindEventCalendar {
         'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
         'compare' => '>=', // Return the ones greater than today's date
         'type' => 'DATETIME' // Let WordPress know we're working with date
+      );
+    }
+    if($this->event_categories) {
+      $args['tax_query'] = array(
+        array(
+          'taxonomy' => 'event_category',
+          'field'    => 'slug',
+          'terms'    => $this->event_categories,
+        ),
       );
     }
 
@@ -605,13 +631,18 @@ class mindEventCalendar {
         )
       )
     );
-    $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
-    $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
-    $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
-    $meta['unique_event_key'] = $unique;
-    $meta['event_date'] = $date;
+
+
     $check_query = new WP_Query( $args );
     if( empty($check_query->have_posts()) ) :
+      $terms = wp_get_post_terms( $eventID, 'event_category',  array('fields' => 'ids'));
+      mapi_write_log($terms);
+      $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
+      $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
+      $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
+      $meta['unique_event_key'] = $unique;
+      $meta['event_date'] = $date;
+
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',
@@ -622,14 +653,23 @@ class mindEventCalendar {
         'post_parent'           => $this->eventID,
         'context'               => '',
         'meta_input'            => $meta,
-
+        'tax_input'             => array(
+          'event_category' => $terms
+        )
       );
       $args = wp_parse_args($args, $defaults);
       $return = wp_insert_post($args);
       else :
         $return = false;
       endif;
+
+
+
       return $return;
+
+
+
+
     }
 
 

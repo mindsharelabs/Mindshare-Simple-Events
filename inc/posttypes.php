@@ -144,7 +144,7 @@ class mindEventsCPTS {
       'show_in_nav_menus'          => true,
       'show_tagcloud'              => true,
     );
-    register_taxonomy( 'event_category', array( 'events' ), $cat_args );
+    register_taxonomy( 'event_category', array( 'events', 'sub_event' ), $cat_args );
 
 
 

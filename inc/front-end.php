@@ -19,5 +19,15 @@ add_filter('template_include', function ( $template ) {
       return MINDEVENTS_ABSPATH . 'templates/single-events.php';
     }
   }
+
+  if ( is_tax( 'event_category') ) {
+    $theme_files = array('taxonomy-event-category.php', 'templates/taxonomy-event-category.php');
+    $exists_in_theme = locate_template($theme_files, false);
+    if ( $exists_in_theme != '' ) {
+      return $exists_in_theme;
+    } else {
+      return MINDEVENTS_ABSPATH . 'templates/taxonomy-event-category.php';
+    }
+  }
   return $template;
 });

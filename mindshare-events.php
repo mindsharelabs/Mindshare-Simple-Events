@@ -30,6 +30,7 @@ class mindEvents {
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
 
     add_action ('save_post', array($this, 'add_start_end_meta'), 100, 2);
+    add_action ('save_post', array($this, 'sync_sub_event_tax'), 100, 2);
 
     // do_action( 'delete_post', array($this, 'delete_sub_events'), 100, 2);
     add_action( 'transition_post_status', array($this, 'transition_sub_events'), 100, 3 );
@@ -130,7 +131,22 @@ class mindEvents {
     endif;
   }
 
-
+  static function sync_sub_event_tax($id, $object) {
+    if($object->post_type == 'events') :
+      $terms = wp_get_post_terms( $id, 'event_category',  array('fields' => 'ids'));
+      $sub_events = get_posts(array(
+        'post_parent' => $object->ID,
+        'post_type' => 'sub_event',
+        'posts_per_page' => -1,
+        'post_status' => array('publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit', 'trash')
+      ));
+      if($sub_events) :
+        foreach ($sub_events as $key => $post) :
+          wp_set_post_terms( $post->ID, $terms, 'event_category');
+        endforeach;
+      endif;
+    endif;
+  }
   static function add_start_end_meta($id, $object) {
     if($object->post_type == 'events') :
       $first_event = get_posts(array(
