@@ -54,8 +54,7 @@ class mindEvents {
     include_once MINDEVENTS_ABSPATH . 'inc/admin.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/posttypes.php';
     include_once MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
-
-
+    include_once MINDEVENTS_ABSPATH . 'inc/shortcodes.class.php';
     include_once MINDEVENTS_ABSPATH . 'templates/front-end.php';
   }
 

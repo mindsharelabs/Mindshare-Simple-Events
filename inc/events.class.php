@@ -355,12 +355,56 @@ class mindEventCalendar {
 
 
   public function set_past_events_display($display) {
-    if($display == 'false') {
+    if(is_string($display)) :
+      if($display === '1') {$display = true;}
+      if($display === '0') {$display = false;}
+    endif;
+
+    mapi_write_log($display);
+    if($display === false) {
       $this->show_past_events = false;
     } else {
       $this->show_past_events = true;
     }
   }
+
+
+    public function get_all_events($args = array()) {
+
+      $defaults = array(
+        'meta_query' => array(
+          // 'relation' => 'AND',
+          'start_clause' => array(
+            'key' => 'starttime',
+            'compare' => 'EXISTS',
+          ),
+          'date_clause' => array(
+            'key' => 'event_date',
+            'compare' => 'EXISTS',
+          ),
+        ),
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_time_stamp',
+        'meta_type' => 'DATETIME',
+
+        'order'            => 'ASC',
+        'post_type'        => 'sub_event',
+        'suppress_filters' => true,
+        'posts_per_page'   => -1
+      );
+      if($this->show_past_events == false) {
+        $args['meta_query'][] = array(
+          'key' => 'event_time_stamp', // Check the start date field
+          'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
+          'compare' => '>=', // Return the ones greater than today's date
+          'type' => 'DATETIME' // Let WordPress know we're working with date
+        );
+      }
+
+      $args = wp_parse_args($args, $defaults);
+      return get_posts($args);
+
+    }
 
   public function get_sub_events($args = array()) {
     $defaults = array(
@@ -385,7 +429,7 @@ class mindEventCalendar {
       'suppress_filters' => true,
       'posts_per_page'   => -1
     );
-    if($this->show_past_events == false) {
+    if($this->show_past_events === false) {
       $args['meta_query'][] = array(
         'key' => 'event_time_stamp', // Check the start date field
         'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
@@ -400,7 +444,6 @@ class mindEventCalendar {
   }
 
   public function get_front_calendar() {
-
     $this->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
     if($eventDates) :
@@ -420,6 +463,7 @@ class mindEventCalendar {
 
     return $this->render();;
   }
+
 
 
 

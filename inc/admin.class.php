@@ -95,8 +95,8 @@ class mindeventsAdmin {
         echo '<p class="label"><label for="event_meta[show_past_events]">Show Past Events?</label></p>';
         echo '<div class="select-wrap">';
           echo '<select name="event_meta[show_past_events]" id="event_meta[show_past_events]">';
-            echo '<option value="true" ' . selected($show_past_events, 'true', false) . '>Show all events</option>';
-            echo '<option value="false" ' . selected($show_past_events, 'false', false) . '>Show only future events</option>';
+            echo '<option value="1" ' . selected($show_past_events, '1', false) . '>Show all events</option>';
+            echo '<option value="0" ' . selected($show_past_events, '0', false) . '>Show only future events</option>';
           echo '</select>';
         echo '</div>';
       echo '</div>';

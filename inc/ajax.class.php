@@ -1,7 +1,7 @@
 <?php
 
 
-class mindeventsAjax {
+class mindEventsAjax {
   private $options = '';
   private $token = '';
 
@@ -196,4 +196,4 @@ class mindeventsAjax {
 
 
 
-new mindeventsAjax();
+new mindEventsAjax();

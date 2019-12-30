@@ -17,7 +17,7 @@ add_filter('the_content', function ($content) {
         $new_content .= $calendar->get_front_calendar();
       $new_content .= '</div>';
 
-      $new_content = apply_filters(MINDRETURNS_PREPEND . 'mindevents_calendar', $new_content, $calendar);
+      $new_content = apply_filters('mindevents_single_calendar', $new_content, $calendar);
 
     elseif('list') :
       $new_content = '<div id="mindEventList" class="mindevents-list">';
@@ -33,4 +33,19 @@ add_filter('the_content', function ($content) {
     $content .= $new_content;
   }
   return $content;
+});
+
+
+
+add_filter('template_include', function ( $template ) {
+  if ( is_post_type_archive('events') ) {
+    $theme_files = array('archive-my_plugin_lesson.php', 'templates/archive-events.php');
+    $exists_in_theme = locate_template($theme_files, false);
+    if ( $exists_in_theme != '' ) {
+      return $exists_in_theme;
+    } else {
+      return MINDEVENTS_ABSPATH . 'templates/archive-events.php';
+    }
+  }
+  return $template;
 });
