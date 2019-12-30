@@ -548,7 +548,9 @@ class mindEventCalendar {
 
           if($sub_event_obj->post_parent) :
             $html .= '<div class="meta-item">';
-              $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+              $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+              $html .= '</a>';
             $html .= '</div>';
           endif;
 
