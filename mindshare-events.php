@@ -29,6 +29,12 @@ class mindEvents {
 
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
 
+    add_action ('save_post', array($this, 'add_start_end_meta'), 100, 2);
+
+    // do_action( 'delete_post', array($this, 'delete_sub_events'), 100, 2);
+    add_action( 'transition_post_status', array($this, 'transition_sub_events'), 100, 3 );
+
+
 
     $this->includes();
 
@@ -55,7 +61,7 @@ class mindEvents {
     include_once MINDEVENTS_ABSPATH . 'inc/posttypes.php';
     include_once MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/shortcodes.class.php';
-    include_once MINDEVENTS_ABSPATH . 'templates/front-end.php';
+    include_once MINDEVENTS_ABSPATH . 'inc/front-end.php';
   }
 
   public function enque_front_scripts_and_styles() {
@@ -101,6 +107,61 @@ class mindEvents {
     ) );
 
 	}
+
+
+
+
+  static function transition_sub_events($new_status, $old_status, $parentOBJ) {
+    if($parentOBJ->post_type == 'events') :
+      $sub_events = get_posts(array(
+        'post_parent' => $parentOBJ->ID,
+        'post_type' => 'sub_event',
+        'posts_per_page' => -1,
+        'post_status' => array('publish', 'pending', 'draft', 'auto-draft', 'future', 'private', 'inherit', 'trash')
+      ));
+      if($sub_events) :
+        foreach ($sub_events as $key => $post) :
+          wp_update_post(array(
+            'ID' =>  $post->ID,
+            'post_status' => $new_status
+          ));
+        endforeach;
+      endif;
+    endif;
+  }
+
+
+  static function add_start_end_meta($id, $object) {
+    if($object->post_type == 'events') :
+      $first_event = get_posts(array(
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_start_time_stamp',
+        'meta_type' => 'DATETIME',
+        'post_parent' => $id,
+        'order' => 'ASC',
+        'post_type' => 'sub_event',
+        'posts_per_page' => 1
+      ));
+      if($first_event) :
+        $first_event = $first_event[0];
+        update_post_meta($id, 'first_event_date', get_post_meta($first_event->ID, 'event_start_time_stamp', true));
+      endif;
+
+      $last_event = get_posts(array(
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_start_time_stamp',
+        'meta_type' => 'DATETIME',
+        'post_parent' => $id,
+        'order' => 'DESC',
+        'post_type' => 'sub_event',
+        'posts_per_page' => 1
+      ));
+      if($last_event):
+        $last_event = $last_event[0];
+        update_post_meta($id, 'last_event_date', get_post_meta($last_event->ID, 'event_start_time_stamp', true));
+      endif;
+    endif;
+  }
 
 
 }//end of class

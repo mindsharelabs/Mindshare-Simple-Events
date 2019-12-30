@@ -143,7 +143,7 @@ class mindeventsAdmin {
         echo '</div>';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="endtime_">Event Occurence End</label></p>';
-          echo '<input type="text" class="timepicker required" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
+          echo '<input type="text" class="timepicker" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventLink_">Event Link</label></p>';

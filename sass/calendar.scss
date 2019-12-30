@@ -129,6 +129,7 @@
   }
   table.mindEventCalendar {
   	width: 100%;
+    table-layout: fixed;
   	th {
   		background: #fff;
   		color: $dark;
@@ -146,13 +147,13 @@
         width: (100% / 7) !important;
         vertical-align: top;
   			border: 1px solid rgba(200, 200, 200, .3);
-  			background: #fff;
+  			background: rgba(255,255,255,.6);
         position: relative;
 
   			time {
           font-size: 1.1em;
           display: block;
-          background: #fff;
+          background: transparent;
           font-weight: bold;
           text-align: center;
           padding: 20px 5px;
@@ -182,12 +183,12 @@
               font-size: 13px;
               padding: 4px;
               line-height: 1em;
-              border-bottom: 1px solid #bbb;
               background: #858585;
               color: #fff;
               white-space: nowrap;
               display: block;
               height: 23px;
+              max-width: 100%;
               &:hover {
                 @include transition(100ms);
                 transform: scale(1.05);
@@ -269,10 +270,14 @@
     }
   }
 }
-#archiveContainer {
+#archiveContainer, #singleEventContainer {
   max-width: 1000px;
   margin: 0 auto;
   padding: 15px;
+  .events-wrap, .content-wrap, .event-datespan {
+    margin-bottom: 2em;
+  }
+
 }
 #mindEventList {
   h4.day-label {

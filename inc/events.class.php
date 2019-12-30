@@ -32,13 +32,19 @@ class mindEventCalendar {
 
   function __construct($id = '', $calendarDate = null, $today = null ) {
 
-    $this->setDate($calendarDate);
-		$this->setToday($today);
+
+    $this->setToday($today);
 		$this->setCalendarClasses();
 
 
     if($id == 'archive') :
       $this->all_events = $this->get_all_events();
+    endif;
+
+    if($calendarDate) :
+      $this->setDate($calendarDate);
+    elseif(get_post($id)) :
+      $this->setDate(get_post_meta($id, 'first_event_date', true));
     endif;
 
     $this->options = get_option( 'mindevents_support_settings' );
@@ -226,7 +232,7 @@ class mindEventCalendar {
           foreach ($year_items as $month => $month_items) :
             foreach ($month_items as $day => $daily_items) :
               $date = (new DateTime())->setDate($year, $month, $day);
-              $date_format = ($number_of_years > 1) ? 'l, M j Y' : 'L, M j';
+              $date_format = ($number_of_years > 1) ? 'l, M j Y' : 'l, M j';
               $out .= '<div class="day">';
                 $out .= '<h4 class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format($date_format) . '</time></h4>';
                   foreach ($daily_items as $key => $dHTML) :
@@ -426,7 +432,6 @@ class mindEventCalendar {
       'orderby' => 'meta_value',
       'meta_key' => 'event_time_stamp',
       'meta_type' => 'DATETIME',
-
       'order'            => 'ASC',
       'post_type'        => 'sub_event',
       'post_parent'      => $this->eventID,
@@ -471,7 +476,9 @@ class mindEventCalendar {
         if(!$color){
           $color = '#858585';
         }
-        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="background:' . $color .'" >' . $label . '</span>';
+        $text_color = $this->getContrastColor($color);
+
+        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >' . $label . '</span>';
         $html = $this->get_daily_event_html($inside);
         $eventDates = $this->addDailyHtml($html, $date);
       endforeach;
@@ -499,9 +506,10 @@ class mindEventCalendar {
   }
 
 
-  public function get_list_item_html() {
-    $meta = get_post_meta($this->eventID);
-    $post = get_post($this->eventID);
+  public function get_list_item_html($event = '') {
+    $meta = get_post_meta($event);
+    $sub_event_obj = get_post($event);
+
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -512,10 +520,9 @@ class mindEventCalendar {
       $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
         $html .= '<div class="left-content">';
 
-          if($post) :
-
+          if($sub_event_obj->post_parent) :
             $html .= '<div class="meta-item">';
-              $html .= '<h3 class="event-title">' . get_the_title($post->post_parent) . '</h3>';
+              $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
             $html .= '</div>';
           endif;
 
@@ -574,8 +581,10 @@ class mindEventCalendar {
         $starttime = get_post_meta($event->ID, 'starttime', true);
         $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
-          $color = get_post_meta($event->ID, 'eventColor', true);
-        $html = $this->get_daily_event_html('<span style="background:' . $color .'" data-subid= ' . $event->ID . '>' . $starttime . ' - ' . $endtime . '</span>');
+        $color = get_post_meta($event->ID, 'eventColor', true);
+        $text_color = $this->getContrastColor($color);
+
+        $html = $this->get_daily_event_html('<span style="color:' . $text_color . '; background:' . $color .'" data-subid= ' . $event->ID . '>' . $starttime . ' - ' . $endtime . '</span>');
         $eventDates = $this->addDailyHtml($html, $date);
       endforeach;
     endif;
@@ -588,6 +597,7 @@ class mindEventCalendar {
     $args = array(
       'fields' => 'ids',
       'post_type'   => 'sub_event',
+      'post_status' => 'inherit',
       'meta_query'  => array(
         array(
           'key' => 'unique_event_key',
@@ -595,7 +605,6 @@ class mindEventCalendar {
         )
       )
     );
-
     $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
     $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
     $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
@@ -606,7 +615,7 @@ class mindEventCalendar {
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',
-        'post_title'            => $this->build_title($date, $meta),
+        'post_title'            => $this->build_title($date, $meta, $eventID),
         'post_excerpt'          => '',
         'post_status'           => 'publish',
         'post_type'             => 'sub_event',
@@ -628,7 +637,7 @@ class mindEventCalendar {
       return sanitize_title($eventID . '_' . $date . '_' . $times['starttime'] . '-' . $times['endtime']);
     }
 
-    private function build_title($date = '', $times = '') {
+    private function build_title($date = '', $times = '', $parentID) {
       $title = get_the_title($this->eventID) . ' | ' . $date . ' | ' . $times['starttime'] . '-' . $times['endtime'];
       return apply_filters('mind_events_title', $title, $date, $times, $this);
     }
