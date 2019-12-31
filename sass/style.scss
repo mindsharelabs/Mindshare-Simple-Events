@@ -25,7 +25,7 @@ $dark:          rgb(35, 31, 32);
   @include transition(300ms);
   &:hover {
     border-left-width: 10px;
-    background-color: rgba(255,255,255,.3);
+    background-color: rgba(255,255,255,.6);
     @include transition(100ms);
   }
 }

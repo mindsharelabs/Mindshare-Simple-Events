@@ -262,8 +262,18 @@
   max-width: 1000px;
   margin: 0 auto;
   padding: 15px;
-  .events-wrap, .content-wrap, .event-datespan {
+  .events-wrap, .content-wrap {
     margin-bottom: 2em;
+  }
+  section.content{
+    display: flex;
+    .featured-image-wrap {
+      flex-basis: 35%;
+      padding-right: 15px;
+    }
+    .content-wrap {
+      flex-basis: 65%;
+    }
   }
 
 }
