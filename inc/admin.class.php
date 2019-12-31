@@ -111,6 +111,7 @@ class mindeventsAdmin {
       echo '<h3>Select Occurance Options</h3>';
       echo '<small>These fields do not save, they simply set the information for occurances added to the calendar.</small>';
       $this->get_time_form();
+
       $events = new mindEventCalendar($post->ID);
 
   		echo '<div class="calendar-nav">';
@@ -169,6 +170,7 @@ class mindeventsAdmin {
           echo '<p class="label"><label for="eventDescription_">Short Description</label></p>';
           echo '<textarea type="text" name="eventDescription_" id="eventDescription_" value="" placeholder=""></textarea>';
         echo '</div>';
+
 
       echo '</div>';
       echo '<button class="plus add-event-occurrence">Add Occurence</button>';

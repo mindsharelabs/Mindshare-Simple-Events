@@ -18,6 +18,15 @@
 		}
 		initTimePicker();
 
+
+
+		function initDatePicker() {
+			$( ".datepicker" ).datepicker({
+			  'dateFormat': 'yy-m-d'
+			});
+		}
+		initDatePicker();
+
 		$(document).on('change', 'input', function() {
 			$(this).removeClass('validate');
 		})
@@ -26,7 +35,14 @@
 			$(this).parent('.time-block').fadeOut(500, function() {
 				$(this).remove();
 			})
-		})
+		});
+
+
+
+
+
+
+
 
 		$(document).on('click', '.add-event-occurrence', function (event) {
 	    event.preventDefault();
@@ -66,7 +82,6 @@
 
 				var meta = {};
 				$("#defaultEventMeta .form-section > input, #defaultEventMeta .form-section > textarea").each(function() {
-					console.log($(this).val());
 					meta[$(this).attr("name")] = $(this).val();
 				});
 
@@ -165,7 +180,93 @@
 		})
 
 
-		$(document).on('click', 'td .event span', function (event) {
+		$(document).on('click', '.edit-button.update-event', function (event) {
+			event.preventDefault();
+			var subid = $(this).data('subid');
+			var eventsCalendar = $('#eventsCalendar');
+			var meta = {};
+			$("#editBox .form-section > input, #editBox .form-section > textarea").each(function() {
+				meta[$(this).attr("name")] = $(this).val();
+			});
+			console.log(meta);
+			$.ajax({
+				url : mindeventsSettings.ajax_url,
+				type : 'post',
+				data : {
+					action : 'mindevents_updatesubevent',
+					eventid : subid,
+					parentid : mindeventsSettings.post_id,
+					meta : meta
+				},
+				success: function(response) {
+					eventsCalendar.html(response.data.html);
+					$('#editBox').fadeOut(200, function() {
+						$(this).remove();
+					});
+				},
+				error: function (response) {
+					console.log('An error occurred.');
+					console.log(response);
+				},
+			});
+
+
+
+			console.log(meta);
+		});
+
+
+		$(document).on('click', '.edit-button.cancel', function (event) {
+			event.preventDefault();
+			$('#editBox').fadeOut(200, function() {
+				$(this).remove();
+			});
+		});
+
+
+
+		$(document).on('click', 'td .event span.edit', function (event) {
+			event.preventDefault();
+			var thisEvent = $(this).parent('.event');
+			var eventid = $(this).data('subid');
+			var calendarContainer = $('#eventsCalendar')
+
+			$.ajax({
+  			url : mindeventsSettings.ajax_url,
+  			type : 'post',
+  			data : {
+  				action : 'mindevents_editevent',
+  				eventid : eventid,
+					parentid : mindeventsSettings.post_id,
+  			},
+  			success: function(response) {
+
+
+					calendarContainer.prepend('<div id="editBox"></div>');
+					$('#editBox').html(response.data.html);
+
+
+
+					// errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
+					// setTimeout(function() {
+					// 	$('.error-item-'+ eventid +'').fadeOut(400, function() {
+					// 		$(this).remove();
+					// 	});
+					// }, 3000);
+					initTimePicker();
+					initDatePicker();
+  			},
+  			error: function (response) {
+  				console.log('An error occurred.');
+  				console.log(response);
+  			},
+  		});
+
+
+		});
+
+
+		$(document).on('click', 'td .event span.delete', function (event) {
 			event.preventDefault();
 			var thisEvent = $(this).parent('.event');
 			var eventid = $(this).data('subid');
@@ -180,7 +281,13 @@
   			},
   			success: function(response) {
 					thisEvent.fadeOut();
-					errorBox.append('<span>Event deleted</span>').addClass('show');
+					errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
+					setTimeout(function() {
+						$('.error-item-'+ eventid +'').fadeOut(400, function() {
+							$(this).remove();
+						});
+					}, 3000);
+
   			},
   			error: function (response) {
   				console.log('An error occurred.');

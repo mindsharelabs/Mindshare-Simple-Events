@@ -60,7 +60,7 @@ class mindEventCalendar {
     $date->modify('first day of next month');
     $this->next_month = $date->format('m');
 
-    // mapi_write_log($)
+
     $this->calendar_start_day = (isset($this->options['mindevents_start_day']) ? $this->options['mindevents_start_day'] : 'Monday');
 
   }
@@ -305,9 +305,7 @@ class mindEventCalendar {
     return $out;
   }
 
-  public function get_daily_event_html($dHtml) {
-		return '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">' . $dHtml . '</div>';
-	}
+
 
   /**
    * @param int $steps
@@ -433,7 +431,6 @@ class mindEventCalendar {
         'type' => 'DATETIME' // Let WordPress know we're working with date
       );
     }
-    // mapi_write_log($this->event_categories);
     if($this->event_categories) {
       $args['tax_query'] = array(
         array(
@@ -474,9 +471,15 @@ class mindEventCalendar {
         }
         $text_color = $this->getContrastColor($color);
 
-        $inside = '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >' . $label . '</span>';
-        $html = $this->get_daily_event_html($inside);
-        $eventDates = $this->addDailyHtml($html, $date);
+
+        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+          $insideHTML .= '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
+            $insideHTML .= $label;
+          $insideHTML .= '</span>';
+        $insideHTML .= '</div>';
+
+
+        $eventDates = $this->addDailyHtml($insideHTML, $date);
       endforeach;
     endif;
 
@@ -664,12 +667,36 @@ class mindEventCalendar {
         $color = get_post_meta($event->ID, 'eventColor', true);
         $text_color = $this->getContrastColor($color);
 
-        $html = $this->get_daily_event_html('<span style="color:' . $text_color . '; background:' . $color .'" data-subid= ' . $event->ID . '>' . $starttime . ' - ' . $endtime . '</span>');
-        $eventDates = $this->addDailyHtml($html, $date);
+        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+          $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .'" data-subid="' . $event->ID . '">';
+            $insideHTML .= $starttime . ' - ' . $endtime;
+          $insideHTML .= '</span>';
+          if(is_admin()) :
+            $insideHTML .= '<span data-subid="' . $event->ID . '" class="delete">&#10005;</span>';
+          endif;
+        $insideHTML .= '</div>';
+        $eventDates = $this->addDailyHtml($insideHTML, $date);
       endforeach;
     endif;
     return $this->render();
   }
+
+
+  public function update_sub_event($sub_event, $meta, $parentID) {
+    $unique = $this->build_unique_key($meta['event_date'], $meta, $parentID);
+
+    $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
+    $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
+    $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['endtime']) );
+    $meta['unique_event_key'] = $unique;
+
+    foreach ($meta as $key => $value) :
+      update_post_meta($sub_event, $key, $value);
+    endforeach;
+  }
+
+
+
 
   public function add_sub_event($args = array(), $date, $meta, $eventID) {
     $unique = $this->build_unique_key($date, $meta, $eventID);

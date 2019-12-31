@@ -17,6 +17,10 @@ class mindEventsAjax {
 
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'deleteevent', array( $this, 'deleteevent' ) );
 
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'editevent', array( $this, 'editevent' ) );
+
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'updatesubevent', array( $this, 'updatesubevent' ) );
+
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
 
 
@@ -51,12 +55,15 @@ class mindEventsAjax {
   }
 
 
+
+
   static function deleteevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'deleteevent'){
       $eventID = $_POST['eventid'];
       wp_delete_post($eventID);
+      wp_send_json_success();
     }
-    wp_send_json_success();
+    wp_send_json_error();
   }
 
   private function getContrastColor($hexcolor) {
@@ -88,12 +95,22 @@ class mindEventsAjax {
           $errors[] = $added_event_id->get_error_message();
         else :
           $added_events[] = $added_event_id;
-          $html .= $event->get_daily_event_html('<span style="background:' . $meta['eventColor'] . '" data-subid = ' . $added_event_id . ' class="new">' . $meta['starttime'] . '-' . $meta['endtime'] . '</span>');
+
+
+          $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+            $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
+              $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
+            $insideHTML .= '</span>';
+            if(is_admin()) :
+              $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
+            endif;
+          $insideHTML .= '</div>';
+
         endif;
       }
 
       $return = array(
-        'html' => $html,
+        'html' => $insideHTML,
         'events' => $added_events,
         'errors' => $errors
       );
@@ -149,6 +166,20 @@ class mindEventsAjax {
   }
 
 
+  static function updatesubevent() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'updatesubevent'){
+
+      $id = $_POST['eventid'];
+      $event = new mindEventCalendar($_POST['parentid'], $_POST['meta']['event_date']);
+
+      $event->update_sub_event($id, $_POST['meta'], $_POST['parentid']);
+      $return = array(
+        'html' => $event->get_calendar()
+      );
+      wp_send_json_success($return);
+    }
+    wp_send_json_error();
+  }
 
   static function movecalendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'movecalendar'){
@@ -180,18 +211,98 @@ class mindEventsAjax {
 
 
 
-  private function make_meta_array($times) {
+  private function make_meta_array($metas) {
     $return = array();
-    foreach($times as $key => $time) {
+    foreach($metas as $key => $meta) {
       $occuranceNum = explode ('_', $key);
-      $meta_item = $occuranceNum[0]; //this is 'starttime' or 'endtime' or eventColor
-      $occurance_number = $occuranceNum[1]; //this is null or a number
+      $meta_item = $occuranceNum[0]; //this is the meta_key
+      $occurance_number = $occuranceNum[1]; //this is the key associated with the recurring item (either blank or a number)
       if($occurance_number == ''){$occurance_number = 1;}
-      $return[$occurance_number][$meta_item] = $time;
+      $return[$occurance_number][$meta_item] = $meta;
     }
 
     return $return;
   }
+
+
+  static function editevent() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'editevent'){
+      $eventID = $_POST['eventid'];
+      $return = array(
+        'html' => $this->get_meta_form($eventID, $_POST['parentid'])
+      );
+      wp_send_json_success($return);
+    }
+    wp_send_json_error();
+  }
+
+
+  private function get_meta_form($sub_event_id, $parentID) {
+    $values = get_post_meta($sub_event_id);
+    $html = '<div class="container mindevents-forms event-times">';
+      $html .= '<h3>Edit Occurance</h3>';
+      $html .= '<div class="time-block">';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="event_date">Event Occurrence Date</label></p>';
+          $html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $values['event_date'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="starttime">Event Occurrence Start</label></p>';
+          $html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $values['starttime'][0] . '" placeholder="">';
+        $html .= '</div>';
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="endtime">Event Occurrence End</label></p>';
+          $html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $values['endtime'][0] . '" placeholder="">';
+        $html .= '</div>';
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="eventLink">Event Link</label></p>';
+          $html .= '<input type="text" name="eventLink" id="eventLink" value="' . $values['eventLink'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="eventLinkLabel">Link Label</label></p>';
+          $html .= '<input type="text" name="eventLinkLabel" id="eventLinkLabel" value="' . $values['eventLinkLabel'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="eventCost">Event Cost</label></p>';
+          $html .= '<input type="text" name="eventCost" id="eventCost" value="' . $values['eventCost'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
+          $html .= '<input type="text" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section full">';
+          $html .= '<p class="label"><label for="eventDescription">Short Description</label></p>';
+          $html .= '<textarea type="text" name="eventDescription" id="eventDescription" placeholder="">' . $values['eventDescription'][0] . '</textarea>';
+        $html .= '</div>';
+
+        $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';
+
+        $html .= '<div class="buttonContainer">';
+          $html .= '<button
+            class="edit-button update-event"
+            data-subid="' . $sub_event_id . '"
+
+            >Update Occurance</button>';
+        $html .= '</div>';
+
+        $html .= '<div class="buttonContainer">';
+          $html .= '<button class="edit-button cancel">Cancel</button>';
+        $html .= '</div>';
+
+      $html .= '</div>';
+
+    $html .= '</div>';
+
+    return $html;
+  }
+
+
 
 
 }
