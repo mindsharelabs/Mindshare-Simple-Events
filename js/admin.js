@@ -188,7 +188,6 @@
 			$("#editBox .form-section > input, #editBox .form-section > textarea").each(function() {
 				meta[$(this).attr("name")] = $(this).val();
 			});
-			console.log(meta);
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
 				type : 'post',

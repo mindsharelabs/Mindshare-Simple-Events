@@ -103,6 +103,10 @@ $dark:          rgb(35, 31, 32);
         &.full {
           flex-basis: 100%;
         }
+        &.third {
+          flex-basis: 31.333333%;
+          padding: 0 1%;
+        }
         p {
           margin: 3px;
         }

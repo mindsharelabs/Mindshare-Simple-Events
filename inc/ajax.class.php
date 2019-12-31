@@ -243,19 +243,21 @@ class mindEventsAjax {
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
 
-        $html .= '<div class="form-section">';
+        $html .= '<div class="form-section third">';
           $html .= '<p class="label"><label for="event_date">Event Occurrence Date</label></p>';
           $html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $values['event_date'][0] . '" placeholder="">';
         $html .= '</div>';
 
-        $html .= '<div class="form-section">';
+        $html .= '<div class="form-section third">';
           $html .= '<p class="label"><label for="starttime">Event Occurrence Start</label></p>';
           $html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $values['starttime'][0] . '" placeholder="">';
         $html .= '</div>';
-        $html .= '<div class="form-section">';
+        $html .= '<div class="form-section third">';
           $html .= '<p class="label"><label for="endtime">Event Occurrence End</label></p>';
           $html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $values['endtime'][0] . '" placeholder="">';
         $html .= '</div>';
+
+
         $html .= '<div class="form-section">';
           $html .= '<p class="label"><label for="eventLink">Event Link</label></p>';
           $html .= '<input type="text" name="eventLink" id="eventLink" value="' . $values['eventLink'][0] . '" placeholder="">';
