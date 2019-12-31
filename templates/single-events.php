@@ -24,15 +24,18 @@ echo '<main role="main" aria-label="Content">';
           $calendar->set_past_events_display($show_all);
 
           echo '<div class="event-title-container">';
+            //@hooked mind_events_single_title - 10
+            //@hooked mindevents_single_datespan - 20
             do_action('mindevents_single_title', get_the_ID());
           echo '</div>';
 
 
           echo '<section class="content">';
+            //@hooked mindevents_thumbnail - 10
+            do_action('mindevents_single_thumb', get_the_ID());
 
-              do_action('mindevents_single_thumb', get_the_ID());
-
-              do_action('mindevents_single_content', get_the_ID());
+            //@hooked mindevents_content - 10
+            do_action('mindevents_single_content', get_the_ID());
 
           echo '</section>';
 

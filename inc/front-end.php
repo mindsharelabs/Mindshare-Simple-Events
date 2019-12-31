@@ -33,28 +33,35 @@ add_filter('template_include', function ( $template ) {
 });
 
 
-add_action('mindevents_single_title', function($id) {
+add_action('mindevents_single_title', 'mind_events_single_title', 10, 1);
+function mind_events_single_title($id) {
+    echo '<h1>' . get_the_title($id) . '</h1>';
+}
+
+add_action('mindevents_single_title', 'mindevents_single_datespan', 20, 1);
+function mindevents_single_datespan($id) {
     $first_event = new DateTime(get_post_meta($id, 'first_event_date', true));
     $startdate = $first_event->format('F j, Y');
 
     $last_event = new DateTime(get_post_meta($id, 'last_event_date', true));
     $enddate = $last_event->format('F j, Y');
 
-    echo '<h1>' . get_the_title($id) . '</h1>';
     echo '<div class="event-datespan">';
       echo apply_filters('mindevents_single_datespan', '<span class="start-date">' . $startdate . '</span> - <span class="end-date">' . $enddate . '</span>', $startdate, $enddate);
     echo '</div>';
-}, 10, 1);
-//
-//
-add_action('mindevents_single_thumb', function($id) {
+}
+
+
+add_action('mindevents_single_thumb', 'mindevents_thumbnail', 10, 1);
+function mindevents_thumbnail($id) {
   echo '<div class="featured-image-wrap">';
     echo get_the_post_thumbnail($id, array(400, 400));
   echo '</div>';
-}, 10, 1);
+}
 //
-add_action('mindevents_single_content', function($id) {
+add_action('mindevents_single_content', 'mindevents_content', 10, 1);
+function mindevents_content($id) {
   echo '<div class="content-wrap">';
     the_content();
   echo '</div>';
-}, 10, 1);
+}
