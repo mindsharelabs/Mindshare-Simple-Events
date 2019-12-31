@@ -445,7 +445,6 @@ class mindEventCalendar {
     }
 
     $args = wp_parse_args($args, $defaults);
-    mapi_write_log($args);
     return get_posts($args);
 
   }

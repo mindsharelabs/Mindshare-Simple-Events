@@ -6,7 +6,7 @@
 defined( 'ABSPATH' ) || exit;
 
 get_header('events');
-do_action('mindevents_before_main_content');
+do_action('mindevents_before_main_content', get_the_ID());
 
 echo '<main role="main" aria-label="Content">';
   do_action('mindevents_single_page_start');
@@ -32,14 +32,17 @@ echo '<main role="main" aria-label="Content">';
 
           echo '<section class="content">';
             //@hooked mindevents_thumbnail - 10
-            do_action('mindevents_single_thumb', get_the_ID());
+            echo '<div class="featured-image-wrap">';
+              do_action('mindevents_single_thumb', get_the_ID());
+            echo '</div>';
 
-            //@hooked mindevents_content - 10
-            do_action('mindevents_single_content', get_the_ID());
-
+            echo '<div class="content-wrap">';
+              //@hooked mindevents_content - 10
+              do_action('mindevents_single_content', get_the_ID());
+            echo '</div>';
           echo '</section>';
 
-
+          do_action('mindevents_single_before_events', get_the_ID());
           echo '<div class="events-wrap">';
             if($display_type == 'calendar') :
               echo apply_filters('mindevents_calednar_label', '<h3>Calendar</h3>');

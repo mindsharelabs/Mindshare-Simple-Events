@@ -149,6 +149,7 @@ class mindEvents {
   }
   static function add_start_end_meta($id, $object) {
     if($object->post_type == 'events') :
+
       $first_event = get_posts(array(
         'orderby' => 'meta_value',
         'meta_key' => 'event_start_time_stamp',
@@ -158,6 +159,7 @@ class mindEvents {
         'post_type' => 'sub_event',
         'posts_per_page' => 1
       ));
+
       if($first_event) :
         $first_event = $first_event[0];
         update_post_meta($id, 'first_event_date', get_post_meta($first_event->ID, 'event_start_time_stamp', true));

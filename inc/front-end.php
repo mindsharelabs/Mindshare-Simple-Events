@@ -54,14 +54,11 @@ function mindevents_single_datespan($id) {
 
 add_action('mindevents_single_thumb', 'mindevents_thumbnail', 10, 1);
 function mindevents_thumbnail($id) {
-  echo '<div class="featured-image-wrap">';
-    echo get_the_post_thumbnail($id, array(400, 400));
-  echo '</div>';
+  echo get_the_post_thumbnail($id, array(400, 400));
 }
 //
 add_action('mindevents_single_content', 'mindevents_content', 10, 1);
 function mindevents_content($id) {
-  echo '<div class="content-wrap">';
-    the_content();
-  echo '</div>';
+  the_content();
+
 }
