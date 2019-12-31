@@ -25,6 +25,10 @@ class mindEvents {
     $this->define( 'MINDEVENTS_PLUGIN_VERSION', '0.1.0');
     $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
 
+
+    $this->includes();
+    
+    $mobile = new Mobile_Detect();
     add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
 
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
@@ -37,8 +41,8 @@ class mindEvents {
 
 
 
-    $this->includes();
 
+    $this->define( 'MINDRETURNS_IS_MOBILE', $mobile->isMobile() );
     $this->options = get_option( 'mindevents_support_settings' );
     $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
 
@@ -56,6 +60,7 @@ class mindEvents {
   }
   private function includes() {
     //General
+    include_once MINDEVENTS_ABSPATH . 'inc/mobile-detect.php';
     include_once MINDEVENTS_ABSPATH . 'inc/events.class.php';
     include_once MINDEVENTS_ABSPATH . 'inc/options.php';
     include_once MINDEVENTS_ABSPATH . 'inc/admin.class.php';

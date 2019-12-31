@@ -306,7 +306,7 @@ class mindEventCalendar {
   }
 
   public function get_daily_event_html($dHtml) {
-		return '<div class="event">' . $dHtml . '</div>';
+		return '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">' . $dHtml . '</div>';
 	}
 
   /**

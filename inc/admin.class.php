@@ -114,8 +114,8 @@ class mindeventsAdmin {
       $events = new mindEventCalendar($post->ID);
 
   		echo '<div class="calendar-nav">';
-  			echo '<button data-dir="prev" class="calnav prev">PREV MONTH</button>';
-  			echo '<button data-dir="next" class="calnav next">NEXT MONTH</button>';
+  			echo '<button data-dir="prev" class="calnav prev"><span>&#8592;</span></button>';
+  			echo '<button data-dir="next" class="calnav next"><span>&#8594;</span></button>';
   		echo '</div>';
   		echo '<div id="eventsCalendar">';
         echo $events->get_calendar();
