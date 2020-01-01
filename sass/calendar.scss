@@ -351,6 +351,9 @@
     display: flex;
     .featured-image-wrap {
       flex-basis: 35%;
+      img {
+        width: 100%;
+      }
     }
     .content-wrap {
       flex-basis: 65%;
