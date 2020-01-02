@@ -776,7 +776,79 @@ class mindEventCalendar {
 
 
 
-
+    public function generate_schema() {
+      $sub_events = $this->get_sub_events();
+      $schema = array(
+        '@context' => 'https://schema.org',
+        'type' => 'TheaterEvent',
+        'name' => get_the_title($this->eventID),
+        'startDate' => get_post_meta($this->eventID, 'first_event_date', true),
+        'endDate' => get_post_meta($this->eventID, 'last_event_date', true),
+        'location' => array(
+          '@type' => 'Place',
+          'name' => get_bloginfo('name'), //TODO: Add this to event options
+          'address' => array( //TODO: Add all this to event options
+            '@type' => 'PostalAddress',
+            'name' => '',
+            'addressLocality' => '',
+            'postalCode' => '',
+            'addressRegion' => '',
+            'addressCountry' => '',
+          ),
+        ),
+        'image' => array(
+          get_the_post_thumbnail_url($this->eventID, 'medium')
+        ),
+        'description' => get_the_content('', false, $this->eventID),
+        'performer' => array(
+          '@type' => 'Organization',
+          'url' => get_site_url(),
+          'name' => get_bloginfo('name')
+        )
+      );
+      if($sub_events) :
+        foreach ($sub_events as $key => $event) :
+          $schema['subEvent'][] = array(
+            '@context' => 'https://schema.org',
+            'type' => 'TheaterEvent',
+            'name' => get_the_title($this->eventID),
+            'doorTime' => get_post_meta($event->ID, 'event_start_time_stamp', true),
+            'startDate' => get_post_meta($event->ID, 'event_start_time_stamp', true),
+            'endDate' => get_post_meta($event->ID, 'event_end_time_stamp', true),
+            'location' => array(
+              '@type' => 'Place',
+              'name' => get_bloginfo('name'), //TODO: Add this to event options
+              'address' => array( //TODO: Add all this to event options
+                '@type' => 'PostalAddress',
+                'name' => '',
+                'addressLocality' => '',
+                'postalCode' => '',
+                'addressRegion' => '',
+                'addressCountry' => '',
+              ),
+            ),
+            'image' => array(
+              get_the_post_thumbnail_url($this->eventID, 'medium')
+            ),
+            'description' => get_post_meta($event->ID, 'eventDescription', true),
+            'offers' => array(
+              '@type' => 'Offer',
+              'url' => get_permalink($this->eventID),
+              'price' => str_replace('$', '', get_post_meta($event->ID, 'eventCost', true)),
+              'priceCurrency' => 'USD',
+              'availability' => 'https://schema.org/InStock', //TODO: add this to sub event options
+              'validFrom' => get_the_date( 'Y-m-d H:i:s', $this->eventID)
+            ),
+            'performer' => array(
+              '@type' => 'Organization',
+              'url' => get_site_url(),
+              'name' => get_bloginfo('name')
+            )
+          );
+        endforeach;
+      endif;
+      return json_encode($schema);
+    }
 
 
 

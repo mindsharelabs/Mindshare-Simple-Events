@@ -27,7 +27,7 @@ class mindEvents {
 
 
     $this->includes();
-    
+
     $mobile = new Mobile_Detect();
     add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
 
@@ -40,7 +40,7 @@ class mindEvents {
     add_action( 'transition_post_status', array($this, 'transition_sub_events'), 100, 3 );
 
 
-
+    add_action ('wp_head', array($this, 'generate_schema'));
 
     $this->define( 'MINDRETURNS_IS_MOBILE', $mobile->isMobile() );
     $this->options = get_option( 'mindevents_support_settings' );
@@ -183,6 +183,16 @@ class mindEvents {
         $last_event = $last_event[0];
         update_post_meta($id, 'last_event_date', get_post_meta($last_event->ID, 'event_start_time_stamp', true));
       endif;
+    endif;
+  }
+
+
+  public function generate_schema() {
+    if(is_singular('events')) :
+      $event = new mindEventCalendar(get_the_ID());
+      echo '<script type="application/ld+json">';
+        echo $event->generate_schema();
+      echo '</script>';
     endif;
   }
 
