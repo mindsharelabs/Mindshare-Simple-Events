@@ -79,35 +79,34 @@ class mindEventsAjax {
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
-      $metas = $_POST['meta'];
-      $metas = $this->make_meta_array($metas);
+      $meta = $_POST['meta']['defaults'];
+      mapi_write_log($meta);
+
       $event = new mindEventCalendar($eventID);
 
       $added_events = array();
       $errors = array();
       $html = '';
 
-      foreach ($metas as $meta) {
-        $added_event_id = $event->add_sub_event('', $date, $meta, $eventID);
-        if($added_event_id == false) :
-          $errors[] = 'An event at that time already exists';
-        elseif(is_wp_error($added_event_id)) :
-          $errors[] = $added_event_id->get_error_message();
-        else :
-          $added_events[] = $added_event_id;
+      $added_event_id = $event->add_sub_event('', $date, $meta, $eventID);
 
+      if($added_event_id == false) :
+        $errors[] = 'An event at that time already exists';
+      elseif(is_wp_error($added_event_id)) :
+        $errors[] = $added_event_id->get_error_message();
+      else :
+        $added_events[] = $added_event_id;
 
-          $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
-            $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
-              $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
-            $insideHTML .= '</span>';
-            if(is_admin()) :
-              $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
-            endif;
-          $insideHTML .= '</div>';
+        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
+            $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
+          $insideHTML .= '</span>';
+          if(is_admin()) :
+            $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
+          endif;
+        $insideHTML .= '</div>';
 
-        endif;
-      }
+      endif;
 
       $return = array(
         'html' => $insideHTML,
@@ -211,19 +210,6 @@ class mindEventsAjax {
 
 
 
-  private function make_meta_array($metas) {
-    $return = array();
-    foreach($metas as $key => $meta) {
-      $occuranceNum = explode ('_', $key);
-      $meta_item = $occuranceNum[0]; //this is the meta_key
-      $occurance_number = $occuranceNum[1]; //this is the key associated with the recurring item (either blank or a number)
-      if($occurance_number == ''){$occurance_number = 1;}
-      $return[$occurance_number][$meta_item] = $meta;
-    }
-
-    return $return;
-  }
-
 
   static function editevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'editevent'){
@@ -275,7 +261,7 @@ class mindEventsAjax {
 
         $html .= '<div class="form-section">';
           $html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
-          $html .= '<input type="text" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
+          $html .= '<input type="text" class="field-color" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
         $html .= '</div>';
 
         $html .= '<div class="form-section full">';

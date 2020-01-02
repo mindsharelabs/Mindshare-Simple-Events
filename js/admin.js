@@ -38,28 +38,10 @@
 		});
 
 
-
-
-
-
-
-
-		$(document).on('click', '.add-event-occurrence', function (event) {
-	    event.preventDefault();
-	    var i = $('.time-block').length + 1;
-	    $('.time-block').first().clone().find("input").attr('id', function(idx, attrVal) {
-	        return attrVal + i;  // change the id
-	    }).attr('name', function(idx, attrVal) {
-	        return attrVal + i;  // change the name
-	    }).removeAttr('checked').end().find('label').attr('for', function(idx, attrVal) {
-	        return attrVal + i; // change the for
-	    }).end().find('textarea').attr('id', function(idx, attrVal) {
-					return attrVal + i; //change id
-			}).attr('name', function(idx, attrVal) {
-					return attrVal + i; //change the name
-			}).removeAttr('checked').end().append('<div class="remove"><i class="fas fa-times"></i></div>').insertBefore(this);
-			initTimePicker();
-		});
+		$(document).on('change', '.field-color', function (e) {
+			$(this).css('border-left-color', $(this).val());
+			$(this).css('border-left-width', 30);
+		})
 
 
 
@@ -79,16 +61,20 @@
 				var occurrence = thisDay.siblings('.event');
 				var errorBox = $('#errorBox');
 
+				var meta = $('#defaultEventMeta :input').serializeControls();
+				// var meta = [];
+				// for (var i = 0; i < values.length; i++) {
+				// 	var key = values[i].name.replace('default[', '');
+				// 	meta[key] = values[i].value;
+				// }
 
-				var meta = {};
-				$("#defaultEventMeta .form-section > input, #defaultEventMeta .form-section > textarea").each(function() {
-					meta[$(this).attr("name")] = $(this).val();
-				});
-
+				console.log(meta);
 
 				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 				var date = $(this).attr('datetime');
-	  		$.ajax({
+
+
+				$.ajax({
 	  			url : mindeventsSettings.ajax_url,
 	  			type : 'post',
 	  			data : {
@@ -132,6 +118,8 @@
 	  				console.log(response);
 	  			},
 	  		});
+
+
 			}
   	})
 
@@ -333,6 +321,38 @@
 			})
 
 
+
+
+			$.fn.serializeControls = function() {
+			  var data = {};
+
+			  function buildInputObject(arr, val) {
+			    if (arr.length < 1)
+			      return val;
+			    var objkey = arr[0];
+			    if (objkey.slice(-1) == "]") {
+			      objkey = objkey.slice(0,-1);
+			    }
+			    var result = {};
+			    if (arr.length == 1){
+			      result[objkey] = val;
+			    } else {
+			      arr.shift();
+			      var nestedVal = buildInputObject(arr,val);
+			      result[objkey] = nestedVal;
+			    }
+			    return result;
+			  }
+
+			  $.each(this.serializeArray(), function() {
+			    var val = this.value;
+			    var c = this.name.split("[");
+			    var a = buildInputObject(c, val);
+			    $.extend(true, data, a);
+			  });
+
+			  return data;
+			}
 
   });
 

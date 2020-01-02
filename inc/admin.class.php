@@ -109,7 +109,6 @@ class mindeventsAdmin {
   static function display_calendar_metabox($post) {
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Select Occurance Options</h3>';
-      echo '<small>These fields do not save, they simply set the information for occurances added to the calendar.</small>';
       $this->get_time_form();
 
       $events = new mindEventCalendar($post->ID);
@@ -131,49 +130,45 @@ class mindeventsAdmin {
 
 
   private function get_time_form() {
-    // TODO: Rename these fields to match this name format.
-    // <input type="text" placeholder="Titel" name="sub_event_meta[starttime][]">
-    // <input type="text" placeholder="Titel" name="sub_event_meta[endtime][]">
-
+    $defaults = get_post_meta(get_the_ID(), 'defaults', true);
 
     echo '<div id="defaultEventMeta" class="event-times mindevents-forms">';
       echo '<div class="time-block">';
         echo '<div class="form-section">';
-          echo '<p class="label"><label for="starttime_">Event Occurence Start</label></p>';
-          echo '<input type="text" class="timepicker required" name="starttime_" id="starttime_" value="' . $this->default_start_time . '" placeholder="">';
+          echo '<p class="label"><label for="starttime">Event Occurence Start</label></p>';
+          echo '<input type="text" class="timepicker required" name="defaults[starttime]" id="starttime" value="' . ($defaults['starttime'] ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
-          echo '<p class="label"><label for="endtime_">Event Occurence End</label></p>';
-          echo '<input type="text" class="timepicker" name="endtime_" id="endtime_" value="' . $this->default_end_time . '" placeholder="">';
+          echo '<p class="label"><label for="endtime">Event Occurence End</label></p>';
+          echo '<input type="text" class="timepicker" name="defaults[endtime]" id="endtime" value="' . ($defaults['endtime'] ? $defaults['endtime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventLink_">Event Link</label></p>';
-          echo '<input type="text" name="eventLink_" id="eventLink_" value="" placeholder="">';
-        echo '</div>';
-
-        echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventLinkLabel_">Link Label</label></p>';
-          echo '<input type="text" name="eventLinkLabel_" id="eventLinkLabel_" value="" placeholder="">';
+          echo '<p class="label"><label for="eventLink">Event Link</label></p>';
+          echo '<input type="text" name="defaults[eventLink]" id="eventLink" value="' . ($defaults['eventLink'] ? $defaults['eventLink'] : '') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventCost_">Event Cost</label></p>';
-          echo '<input type="text" name="eventCost_" id="eventCost_" value="' . $this->default_event_cost . '" placeholder="">';
+          echo '<p class="label"><label for="eventLinkLabel">Link Label</label></p>';
+          echo '<input type="text" name="defaults[eventLinkLabel]" id="eventLinkLabel" value="' . ($defaults['eventLinkLabel'] ? $defaults['eventLinkLabel'] : 'Tickets') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventColor_">Occurence Color</label></p>';
-          echo '<input type="text" name="eventColor_" id="eventColor_" value="' . $this->default_event_color . '" placeholder="">';
+          echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
+          echo '<input type="text" name="defaults[eventCost]" id="eventCost" value="' . ($defaults['eventCost'] ? $defaults['eventCost'] : '') . '" placeholder="">';
+        echo '</div>';
+
+        echo '<div class="form-section">';
+          echo '<p class="label"><label for="eventColor">Occurence Color</label></p>';
+          echo '<input type="text" class="field-color" name="defaults[eventColor]" id="eventColor" value="' . ($defaults['eventColor'] ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section full">';
-          echo '<p class="label"><label for="eventDescription_">Short Description</label></p>';
-          echo '<textarea type="text" name="eventDescription_" id="eventDescription_" value="" placeholder=""></textarea>';
+          echo '<p class="label"><label for="eventDescription">Short Description</label></p>';
+          echo '<textarea type="text" name="defaults[eventDescription]" id="eventDescription" value="' . ($defaults['eventDescription'] ? $defaults['eventDescription'] : '') . '" placeholder="">' . ($defaults['eventDescription'] ? $defaults['eventDescription'] : '') . '</textarea>';
         echo '</div>';
 
 
       echo '</div>';
-      echo '<button class="plus add-event-occurrence">Add Occurence</button>';
 
     echo '</div>';
   }

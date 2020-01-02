@@ -33,7 +33,7 @@ class mindEvents {
 
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
 
-    add_action ('save_post', array($this, 'add_start_end_meta'), 100, 2);
+    add_action ('save_post', array($this, 'add_post_meta'), 100, 2);
     add_action ('save_post', array($this, 'sync_sub_event_tax'), 100, 2);
 
     // do_action( 'delete_post', array($this, 'delete_sub_events'), 100, 2);
@@ -152,8 +152,13 @@ class mindEvents {
       endif;
     endif;
   }
-  static function add_start_end_meta($id, $object) {
+  static function add_post_meta($id, $object) {
     if($object->post_type == 'events') :
+      $metas = array_map( 'sanitize_text_field', wp_unslash( $_POST['defaults'] ) );
+      update_post_meta($id, 'defaults', $metas);
+      foreach ($metas as $key => $value) {
+        update_post_meta($id, $key, $value);
+      }
 
       $first_event = get_posts(array(
         'orderby' => 'meta_value',
