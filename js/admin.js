@@ -153,7 +153,6 @@
 				success: function(response) {
 					eventsCalendar.attr('style', false);
 					eventsCalendar.html(response.html);
-					console.log(response);
 				},
 				error: function (response) {
 					console.log('An error occurred.');
@@ -193,9 +192,6 @@
 				},
 			});
 
-
-
-			console.log(meta);
 		});
 
 
