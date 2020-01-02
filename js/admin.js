@@ -3,6 +3,8 @@
 
 	$(function () {
 
+
+
 		function initTimePicker() {
 			$('.timepicker').timepicker({
 		    timeFormat: 'h:mm p',
@@ -21,9 +23,11 @@
 
 
 		function initDatePicker() {
-			$( ".datepicker" ).datepicker({
-			  'dateFormat': 'yy-m-d'
-			});
+			if($('.datepicker').length > 0) {
+				$( ".datepicker" ).datepicker({
+				  'dateFormat': 'yy-m-d'
+				});
+			}
 		}
 		initDatePicker();
 
@@ -62,14 +66,6 @@
 				var errorBox = $('#errorBox');
 
 				var meta = $('#defaultEventMeta :input').serializeControls();
-				// var meta = [];
-				// for (var i = 0; i < values.length; i++) {
-				// 	var key = values[i].name.replace('default[', '');
-				// 	meta[key] = values[i].value;
-				// }
-
-				console.log(meta);
-
 				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 				var date = $(this).attr('datetime');
 

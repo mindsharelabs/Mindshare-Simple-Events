@@ -136,35 +136,35 @@ class mindeventsAdmin {
       echo '<div class="time-block">';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="starttime">Event Occurence Start</label></p>';
-          echo '<input type="text" class="timepicker required" name="defaults[starttime]" id="starttime" value="' . ($defaults['starttime'] ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
+          echo '<input type="text" class="timepicker required" name="defaults[starttime]" id="starttime" value="' . (isset($defaults['starttime']) ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="endtime">Event Occurence End</label></p>';
-          echo '<input type="text" class="timepicker" name="defaults[endtime]" id="endtime" value="' . ($defaults['endtime'] ? $defaults['endtime'] : $this->default_start_time) . '" placeholder="">';
+          echo '<input type="text" class="timepicker" name="defaults[endtime]" id="endtime" value="' . (isset($defaults['endtime']) ? $defaults['endtime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventLink">Event Link</label></p>';
-          echo '<input type="text" name="defaults[eventLink]" id="eventLink" value="' . ($defaults['eventLink'] ? $defaults['eventLink'] : '') . '" placeholder="">';
+          echo '<input type="text" name="defaults[eventLink]" id="eventLink" value="' . (isset($defaults['eventLink']) ? $defaults['eventLink'] : '') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventLinkLabel">Link Label</label></p>';
-          echo '<input type="text" name="defaults[eventLinkLabel]" id="eventLinkLabel" value="' . ($defaults['eventLinkLabel'] ? $defaults['eventLinkLabel'] : 'Tickets') . '" placeholder="">';
+          echo '<input type="text" name="defaults[eventLinkLabel]" id="eventLinkLabel" value="' . (isset($defaults['eventLinkLabel']) ? $defaults['eventLinkLabel'] : 'Tickets') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
-          echo '<input type="text" name="defaults[eventCost]" id="eventCost" value="' . ($defaults['eventCost'] ? $defaults['eventCost'] : '') . '" placeholder="">';
+          echo '<input type="text" name="defaults[eventCost]" id="eventCost" value="' . (isset($defaults['eventCost']) ? $defaults['eventCost'] : '') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventColor">Occurence Color</label></p>';
-          echo '<input type="text" class="field-color" name="defaults[eventColor]" id="eventColor" value="' . ($defaults['eventColor'] ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
+          echo '<input type="text" class="field-color" name="defaults[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section full">';
           echo '<p class="label"><label for="eventDescription">Short Description</label></p>';
-          echo '<textarea type="text" name="defaults[eventDescription]" id="eventDescription" value="' . ($defaults['eventDescription'] ? $defaults['eventDescription'] : '') . '" placeholder="">' . ($defaults['eventDescription'] ? $defaults['eventDescription'] : '') . '</textarea>';
+          echo '<textarea type="text" name="defaults[eventDescription]" id="eventDescription" value="' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '" placeholder="">' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '</textarea>';
         echo '</div>';
 
 
