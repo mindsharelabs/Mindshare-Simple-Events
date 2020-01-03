@@ -154,11 +154,15 @@ class mindEvents {
   }
   static function add_post_meta($id, $object) {
     if($object->post_type == 'events') :
-      $metas = array_map( 'sanitize_text_field', wp_unslash( $_POST['defaults'] ) );
-      update_post_meta($id, 'defaults', $metas);
-      foreach ($metas as $key => $value) {
-        update_post_meta($id, $key, $value);
-      }
+      if(isset($_POST['defaults'])) :
+        $metas = array_map( 'sanitize_text_field', wp_unslash( $_POST['defaults'] ) );
+        update_post_meta($id, 'defaults', $metas);
+        foreach ($metas as $key => $value) {
+          update_post_meta($id, $key, $value);
+        }
+      endif;
+
+
 
       $first_event = get_posts(array(
         'orderby' => 'meta_value',
