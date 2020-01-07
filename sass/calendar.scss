@@ -330,9 +330,15 @@
           opacity: .8;
         }
         &.value {
-          margin-bottom: 20px;
+          margin-bottom: 10px;
           &.eventlink {
             text-align: right;
+            display: flex;
+            flex-direction: row;
+            .price {
+              padding: 6px;
+              font-family: monospace;
+            }
           }
           &.eventdescription {
             font-size: .9em;

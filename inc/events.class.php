@@ -628,12 +628,20 @@ class mindEventCalendar {
           endif;
         $html .= '</div>';
 
-        if($meta['eventLink'][0] && $meta['eventLinkLabel'][0]) :
+        if($meta['offers']) :
+          $offers = unserialize ($meta['offers'][0]);
           $html .= '<div class="right-content">';
             unset($style_str['background']);
             $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
             $html .= '<div class="meta-item">';
-              $html .= '<span class="value eventlink"><a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $meta['eventLink'][0] . '" target="_blank">' . $meta['eventLinkLabel'][0] . '</a></span>';
+
+              foreach ($offers as $key => $offer) :
+                $html .= '<span class="value eventlink">';
+                  $html .= '<span style="' . implode(' ', $style_str) . '" class="price">$' . $offer['price'] . '</span>';
+                  $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $offer['link'] . '" target="_blank">' . $offer['label'] . '</a>';
+                $html .= '</span>';
+              endforeach;
+
             $html .= '</div>';
           $html .= '</div>';
         endif;
@@ -722,7 +730,6 @@ class mindEventCalendar {
       $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
       $meta['unique_event_key'] = $unique;
       $meta['event_date'] = $date;
-
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',

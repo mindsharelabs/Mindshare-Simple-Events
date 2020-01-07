@@ -31,15 +31,27 @@
 		}
 		initDatePicker();
 
+
 		$(document).on('change', 'input', function() {
 			$(this).removeClass('validate');
 		})
 
-		$(document).on('click', '.time-block .remove', function (event) {
-			$(this).parent('.time-block').fadeOut(500, function() {
+
+		$(document).on('click', '.add-offer', function (event) {
+			var element = $(this).parent('.single-offer'),
+					clone = element.clone( true ).appendTo('#allOffers'),
+					add = clone.find('.add-offer')
+						.removeClass('add-offer')
+						.addClass('remove-offer')
+						.html('<span>-</span>');
+		});
+
+		$(document).on('click', '.remove-offer', function(event) {
+			$(this).parent('.single-offer').fadeOut(500, function() {
 				$(this).remove();
 			})
-		});
+		})
+
 
 
 		$(document).on('change', '.field-color', function (e) {
@@ -65,7 +77,14 @@
 				var occurrence = thisDay.siblings('.event');
 				var errorBox = $('#errorBox');
 
-				var meta = $('#defaultEventMeta :input').serializeControls();
+				var meta = $('#defaultEventMeta').serializeObject();
+
+
+				// $.each($('#defaultEventMeta').serializeObject(), function() {
+				//     meta[this.name] = this.value;
+				// });
+
+				console.log(meta);
 				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 				var date = $(this).attr('datetime');
 
@@ -313,38 +332,71 @@
 			})
 
 
+			$.fn.serializeObject = function(){
+				var data = {};
 
+		    function buildInputObject(arr, val) {
+		        if (arr.length < 1) {
+		            return val;
+		        }
+		        var objkey = arr[0];
+		        if (objkey.slice(-1) == "]") {
+		            objkey = objkey.slice(0,-1);
+		        }
+		        var result = {};
+		        if (arr.length == 1){
+		            result[objkey] = val;
+		        } else {
+		            arr.shift();
+		            var nestedVal = buildInputObject(arr,val);
+		            result[objkey] = nestedVal;
+		        }
+		        return result;
+		    }
 
-			$.fn.serializeControls = function() {
-			  var data = {};
+		    function gatherMultipleValues( that ) {
+		        var final_array = [];
+		        $.each(that.serializeArray(), function( key, field ) {
+		            // Copy normal fields to final array without changes
+		            if( field.name.indexOf('[]') < 0 ){
+		                final_array.push( field );
+		                return true; // That's it, jump to next iteration
+		            }
 
-			  function buildInputObject(arr, val) {
-			    if (arr.length < 1)
-			      return val;
-			    var objkey = arr[0];
-			    if (objkey.slice(-1) == "]") {
-			      objkey = objkey.slice(0,-1);
-			    }
-			    var result = {};
-			    if (arr.length == 1){
-			      result[objkey] = val;
-			    } else {
-			      arr.shift();
-			      var nestedVal = buildInputObject(arr,val);
-			      result[objkey] = nestedVal;
-			    }
-			    return result;
-			  }
+		            // Remove "[]" from the field name
+		            var field_name = field.name.split('[]')[0];
 
-			  $.each(this.serializeArray(), function() {
-			    var val = this.value;
-			    var c = this.name.split("[");
-			    var a = buildInputObject(c, val);
-			    $.extend(true, data, a);
-			  });
+		            // Add the field value in its array of values
+		            var has_value = false;
+		            $.each( final_array, function( final_key, final_field ){
+		                if( final_field.name === field_name ) {
+		                    has_value = true;
+		                    final_array[ final_key ][ 'value' ].push( field.value );
+		                }
+		            });
+		            // If it doesn't exist yet, create the field's array of values
+		            if( ! has_value ) {
+		                final_array.push( { 'name': field_name, 'value': [ field.value ] } );
+		            }
+		        });
+		        return final_array;
+		    }
 
-			  return data;
-			}
+		    // Manage fields allowing multiple values first (they contain "[]" in their name)
+		    var final_array = gatherMultipleValues( this );
+
+		    // Then, create the object
+		    $.each(final_array, function() {
+		        var val = this.value;
+		        var c = this.name.split('[');
+		        var a = buildInputObject(c, val);
+		        $.extend(true, data, a);
+		    });
+
+		    return data;
+
+		  };
+
 
   });
 

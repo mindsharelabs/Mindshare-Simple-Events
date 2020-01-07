@@ -108,7 +108,7 @@ class mindeventsAdmin {
 
   static function display_calendar_metabox($post) {
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
-      echo '<h3>Select Occurance Options</h3>';
+      echo '<h3>Occurance Options</h3>';
       $this->get_time_form();
 
       $events = new mindEventCalendar($post->ID);
@@ -132,45 +132,60 @@ class mindeventsAdmin {
   private function get_time_form() {
     $defaults = get_post_meta(get_the_ID(), 'defaults', true);
 
-    echo '<div id="defaultEventMeta" class="event-times mindevents-forms">';
+    echo '<fieldset id="defaultEventMeta" class="event-times mindevents-forms">';
       echo '<div class="time-block">';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="starttime">Event Occurence Start</label></p>';
-          echo '<input type="text" class="timepicker required" name="defaults[starttime]" id="starttime" value="' . (isset($defaults['starttime']) ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
+          echo '<input type="text" class="timepicker required" name="event[starttime]" id="starttime" value="' . (isset($defaults['starttime']) ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
         echo '<div class="form-section">';
           echo '<p class="label"><label for="endtime">Event Occurence End</label></p>';
-          echo '<input type="text" class="timepicker" name="defaults[endtime]" id="endtime" value="' . (isset($defaults['endtime']) ? $defaults['endtime'] : $this->default_start_time) . '" placeholder="">';
-        echo '</div>';
-        echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventLink">Event Link</label></p>';
-          echo '<input type="text" name="defaults[eventLink]" id="eventLink" value="' . (isset($defaults['eventLink']) ? $defaults['eventLink'] : '') . '" placeholder="">';
-        echo '</div>';
-
-        echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventLinkLabel">Link Label</label></p>';
-          echo '<input type="text" name="defaults[eventLinkLabel]" id="eventLinkLabel" value="' . (isset($defaults['eventLinkLabel']) ? $defaults['eventLinkLabel'] : 'Tickets') . '" placeholder="">';
-        echo '</div>';
-
-        echo '<div class="form-section">';
-          echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
-          echo '<input type="text" name="defaults[eventCost]" id="eventCost" value="' . (isset($defaults['eventCost']) ? $defaults['eventCost'] : '') . '" placeholder="">';
+          echo '<input type="text" class="timepicker" name="event[endtime]" id="endtime" value="' . (isset($defaults['endtime']) ? $defaults['endtime'] : $this->default_start_time) . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventColor">Occurence Color</label></p>';
-          echo '<input type="text" class="field-color" name="defaults[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
+          echo '<input type="text" class="field-color" name="event[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
         echo '</div>';
 
         echo '<div class="form-section full">';
           echo '<p class="label"><label for="eventDescription">Short Description</label></p>';
-          echo '<textarea type="text" name="defaults[eventDescription]" id="eventDescription" value="' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '" placeholder="">' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '</textarea>';
+          echo '<textarea type="text" name="event[eventDescription]" id="eventDescription" value="' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '" placeholder="">' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '</textarea>';
+        echo '</div>';
+
+
+        echo '<h3 class="offers-title">Tickets</h3>';
+        echo '<div class="offer-options" id="allOffers">';
+
+          echo '<div class="single-offer">';
+            echo '<div class="form-section">';
+              echo '<p class="label"><label for="eventLinkLabel">Ticket Label</label></p>';
+              echo '<input type="text" name="event[offerlabel][]" id="eventLinkLabel" value="' . (isset($defaults['eventLinkLabel']) ? $defaults['eventLinkLabel'] : 'General Admission') . '" placeholder="">';
+            echo '</div>';
+
+            echo '<div class="form-section">';
+              echo '<p class="label"><label for="eventCost">Price</label></p>';
+              echo '<input type="text" name="event[offerprice][]" id="eventCost" value="' . (isset($defaults['eventCost']) ? $defaults['eventCost'] : '') . '" placeholder="">';
+            echo '</div>';
+
+            echo '<div class="form-section">';
+              echo '<p class="label"><label for="eventLink">Link</label></p>';
+              echo '<input type="text" name="event[offerlink][]" id="eventLink" value="' . (isset($defaults['eventLink']) ? $defaults['eventLink'] : '') . '" placeholder="">';
+            echo '</div>';
+
+            echo '<div class="add-offer">';
+              echo '<span>+</span>';
+            echo '</div>';
+          echo '</div>';
+
+
+
         echo '</div>';
 
 
       echo '</div>';
 
-    echo '</div>';
+    echo '</fieldset>';
   }
 
 

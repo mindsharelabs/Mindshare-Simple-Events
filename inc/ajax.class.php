@@ -74,13 +74,34 @@ class mindEventsAjax {
       return ($yiq >= 150) ? '#333' : '#fff';
   }
 
+  private function reArrayMeta($metaStart) {
+    $meta = array();
+    $meta['starttime'] = $metaStart['starttime'];
+    $meta['endtime'] = $metaStart['endtime'];
+    $meta['eventColor'] = $metaStart['eventColor'];
+    $meta['eventDescription'] = $metaStart['eventDescription'];
+
+    $meta['offers'] = array();
+    foreach ($metaStart['offerlabel'] as $key => $label) :
+      $meta['offers'][$key]['label'] = $label;
+    endforeach;
+    foreach ($metaStart['offerprice'] as $key => $price) :
+      $meta['offers'][$key]['price'] = $price;
+    endforeach;
+    foreach ($metaStart['offerlink'] as $key => $link) :
+      $meta['offers'][$key]['link'] = $link;
+    endforeach;
+
+    return $meta;
+  }
+
   static function selectday() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'selectday'){
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
-      $meta = $_POST['meta']['defaults'];
-      mapi_write_log($meta);
+
+      $meta = $this->reArrayMeta($_POST['meta']['event']);
 
       $event = new mindEventCalendar($eventID);
 

@@ -17,8 +17,9 @@ $dark:          rgb(35, 31, 32);
 @mixin button-link {
   border: 1px solid #fff;
   border-left: 5px solid #fff;;
-  padding: 14px 25px;
-  font-size: 1.3em;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: .9em;
   font-weight: bold;
   color: #fff;
   white-space: nowrap;
@@ -87,6 +88,34 @@ $dark:          rgb(35, 31, 32);
       @include transition(200ms);
     }
   }
+
+  h3.offers-title {
+    margin-left: 1%;
+  }
+  .offer-options {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    .single-offer {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+    }
+    .add-offer, .remove-offer {
+      width: 10%;
+      text-align: center;
+      font-size: 2em;
+      color: $primary;
+      span {
+        padding: 23px 0 0;
+        display: block;
+      }
+    }
+    .remove-offer {
+      color: $danger;
+    }
+  }
+
   .event-times {
     margin-bottom: 20px;
     .time-block {
