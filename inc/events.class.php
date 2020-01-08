@@ -540,7 +540,7 @@ class mindEventCalendar {
   public function get_list_item_html($event = '') {
     $meta = get_post_meta($event);
     $sub_event_obj = get_post($event);
-
+    mapi_write_log($meta);
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -558,12 +558,6 @@ class mindEventCalendar {
         endif;
 
 
-        if($meta['eventCost'][0]) :
-          $html .= '<div class="meta_item cost">';
-            $html .= '<span class="label">' . apply_filters('mindevents_cost_label', 'Price') . '</span>';
-            $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
-          $html .= '</div>';
-        endif;
 
         if($meta['eventDescription'][0]) :
           $html .= '<div class="meta_item description">';
@@ -571,10 +565,15 @@ class mindEventCalendar {
           $html .= '</div>';
         endif;
 
-        if($meta['eventLink'][0] && $meta['eventLinkLabel'][0]) :
-
-          $html .= '<div class="meta_item link">';
-            $html .= '<span class="value eventlink"><a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $meta['eventLink'][0] . '" target="_blank">' . $meta['eventLinkLabel'][0] . '</a></span>';
+        if($meta['offers'][0]) :
+          $offers = unserialize($meta['offers'][0]);
+          $html .= '<div class="offers meta_item">';
+          foreach ($offers as $key => $offer) :
+            $html .= '<div class="cost">';
+              $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
+              $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">' . $offer['price'] . '</a></span>';
+            $html .= '</div>';
+          endforeach;
           $html .= '</div>';
         endif;
 
@@ -692,7 +691,6 @@ class mindEventCalendar {
 
   public function update_sub_event($sub_event, $meta, $parentID) {
     $unique = $this->build_unique_key($meta['event_date'], $meta, $parentID);
-
     $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['endtime']) );
@@ -750,12 +748,7 @@ class mindEventCalendar {
         $return = false;
       endif;
 
-
-
       return $return;
-
-
-
 
     }
 

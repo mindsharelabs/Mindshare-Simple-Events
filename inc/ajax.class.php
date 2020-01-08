@@ -74,26 +74,7 @@ class mindEventsAjax {
       return ($yiq >= 150) ? '#333' : '#fff';
   }
 
-  private function reArrayMeta($metaStart) {
-    $meta = array();
-    $meta['starttime'] = $metaStart['starttime'];
-    $meta['endtime'] = $metaStart['endtime'];
-    $meta['eventColor'] = $metaStart['eventColor'];
-    $meta['eventDescription'] = $metaStart['eventDescription'];
 
-    $meta['offers'] = array();
-    foreach ($metaStart['offerlabel'] as $key => $label) :
-      $meta['offers'][$key]['label'] = $label;
-    endforeach;
-    foreach ($metaStart['offerprice'] as $key => $price) :
-      $meta['offers'][$key]['price'] = $price;
-    endforeach;
-    foreach ($metaStart['offerlink'] as $key => $link) :
-      $meta['offers'][$key]['link'] = $link;
-    endforeach;
-
-    return $meta;
-  }
 
   static function selectday() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'selectday'){
@@ -185,14 +166,53 @@ class mindEventsAjax {
 
   }
 
+  private function reArrayMeta($metaStart) {
+    $meta = array();
+    $meta['event_date'] = $metaStart['event_date'];
+    $meta['starttime'] = $metaStart['starttime'];
+    $meta['endtime'] = $metaStart['endtime'];
+    $meta['eventColor'] = $metaStart['eventColor'];
+    $meta['eventDescription'] = $metaStart['eventDescription'];
+
+    $meta['offers'] = array();
+
+    if(isset($metaStart['event'])) :
+      foreach ($metaStart['event']['offerlabel'] as $key => $label) :
+        $meta['offers'][$key]['label'] = $label;
+      endforeach;
+
+      foreach ($metaStart['event']['offerprice'] as $key => $price) :
+        $meta['offers'][$key]['price'] = $price;
+      endforeach;
+
+      foreach ($metaStart['event']['offerlink'] as $key => $link) :
+        $meta['offers'][$key]['link'] = $link;
+      endforeach;
+    else :
+      foreach ($metaStart['offerlabel'] as $key => $label) :
+        $meta['offers'][$key]['label'] = $label;
+      endforeach;
+
+      foreach ($metaStart['offerprice'] as $key => $price) :
+        $meta['offers'][$key]['price'] = $price;
+      endforeach;
+
+      foreach ($metaStart['offerlink'] as $key => $link) :
+        $meta['offers'][$key]['link'] = $link;
+      endforeach;
+    endif;
+
+    return $meta;
+  }
+
 
   static function updatesubevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'updatesubevent'){
 
       $id = $_POST['eventid'];
       $event = new mindEventCalendar($_POST['parentid'], $_POST['meta']['event_date']);
-
-      $event->update_sub_event($id, $_POST['meta'], $_POST['parentid']);
+      $meta = $this->reArrayMeta($_POST['meta']);
+      $event->update_sub_event($id, $meta, $_POST['parentid']);
       $return = array(
         'html' => $event->get_calendar()
       );
@@ -246,7 +266,8 @@ class mindEventsAjax {
 
   private function get_meta_form($sub_event_id, $parentID) {
     $values = get_post_meta($sub_event_id);
-    $html = '<div class="container mindevents-forms event-times">';
+    $offers = unserialize($values['offers'][0]);
+    $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
 
@@ -264,22 +285,6 @@ class mindEventsAjax {
           $html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $values['endtime'][0] . '" placeholder="">';
         $html .= '</div>';
 
-
-        $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="eventLink">Event Link</label></p>';
-          $html .= '<input type="text" name="eventLink" id="eventLink" value="' . $values['eventLink'][0] . '" placeholder="">';
-        $html .= '</div>';
-
-        $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="eventLinkLabel">Link Label</label></p>';
-          $html .= '<input type="text" name="eventLinkLabel" id="eventLinkLabel" value="' . $values['eventLinkLabel'][0] . '" placeholder="">';
-        $html .= '</div>';
-
-        $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="eventCost">Event Cost</label></p>';
-          $html .= '<input type="text" name="eventCost" id="eventCost" value="' . $values['eventCost'][0] . '" placeholder="">';
-        $html .= '</div>';
-
         $html .= '<div class="form-section">';
           $html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
           $html .= '<input type="text" class="field-color" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
@@ -290,7 +295,51 @@ class mindEventsAjax {
           $html .= '<textarea type="text" name="eventDescription" id="eventDescription" placeholder="">' . $values['eventDescription'][0] . '</textarea>';
         $html .= '</div>';
 
+
+        if($offers) :
+          foreach ($offers as $key => $offer) :
+            $html .= '<div class="offer-options" id="editOffers_' . $key .'">';
+
+              $html .='<div class="single-offer">';
+                $html .='<div class="form-section">';
+                  $html .='<p class="label"><label for="eventLinkLabel_' . $key .'">Ticket Label</label></p>';
+                  $html .='<input type="text" name="event[offerlabel][]" id="eventLinkLabel_' . $key .'" value="' . (isset($offer['label']) ? $offer['label'] : 'General Admission') . '" placeholder="">';
+                $html .='</div>';
+
+                $html .='<div class="form-section">';
+                  $html .='<p class="label"><label for="eventCost_' . $key .'">Price</label></p>';
+                  $html .='<input type="text" name="event[offerprice][]" id="eventCost_' . $key .'" value="' . (isset($offer['price']) ? $offer['price'] : '') . '" placeholder="">';
+                $html .='</div>';
+
+                $html .='<div class="form-section">';
+                  $html .='<p class="label"><label for="eventLink_' . $key .'">Link</label></p>';
+                  $html .='<input type="text" name="event[offerlink][]" id="eventLink_' . $key .'" value="' . (isset($offer['link']) ? $offer['link'] : '') . '" placeholder="">';
+                $html .='</div>';
+
+
+                if($key == 0) :
+                  $html .='<div class="add-offer-edit" data-key="' . $key . '">';
+                    $html .='<span>+</span>';
+                  $html .='</div>';
+                else :
+                  $html .='<div class="remove-offer" data-key="' . $key . '">';
+                    $html .='<span>-</span>';
+                  $html .='</div>';
+                endif;
+
+              $html .='</div>';
+
+
+            $html .= '</div>';
+
+
+
+
+          endforeach;
+        endif;
+
         $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';
+        $html .= '<input type="hidden" name="event_date" value="' . $values['event_date'][0] . '">';
 
         $html .= '<div class="buttonContainer">';
           $html .= '<button
@@ -306,7 +355,7 @@ class mindEventsAjax {
 
       $html .= '</div>';
 
-    $html .= '</div>';
+    $html .= '</fieldset';
 
     return $html;
   }

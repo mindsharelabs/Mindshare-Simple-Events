@@ -347,6 +347,15 @@
           }
         }
       }
+      &.offers {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 30%;
+        .cost {
+          margin-top: 5px;
+
+        }
+      }
     }
   }
 }
@@ -451,6 +460,15 @@
           display: flex;
           a.button{
             @include button-link;
+          }
+        }
+        &.offers {
+          display: flex;
+          flex-wrap: wrap;
+          max-width: 30%;
+          .cost {
+            margin: 5px 8px;
+
           }
         }
       }
