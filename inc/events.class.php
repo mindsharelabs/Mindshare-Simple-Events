@@ -448,7 +448,7 @@ class mindEventCalendar {
 
 
 
-  public function get_front_calendar($place = 'post') {
+  public function get_front_calendar($place = '') {
 
     $this->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
@@ -469,8 +469,13 @@ class mindEventCalendar {
         if(!$color){
           $color = '#858585';
         }
-        $text_color = $this->getContrastColor($color);
 
+        if (strlen($label) > 15) :
+          $label = substr($label, 0, 12) . '...';
+        endif;
+
+
+        $text_color = $this->getContrastColor($color);
 
         $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
@@ -569,10 +574,12 @@ class mindEventCalendar {
           $offers = unserialize($meta['offers'][0]);
           $html .= '<div class="offers meta_item">';
           foreach ($offers as $key => $offer) :
-            $html .= '<div class="cost">';
-              $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
-              $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">' . $offer['price'] . '</a></span>';
-            $html .= '</div>';
+
+              $html .= '<div class="cost">';
+                $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
+                $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">' . ($offer['price'] ? $offer['price'] : $offer['label']) . '</a></span>';
+              $html .= '</div>';
+
           endforeach;
           $html .= '</div>';
         endif;

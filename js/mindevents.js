@@ -46,6 +46,7 @@
 			var month = calendarTable.data('month');
 			var year = calendarTable.data('year');
 			var direction = $(this).data('dir');
+			var category = $(this).data('cat');
 
 			var height = eventsCalendar.height();
 			var width = eventsCalendar.width();
@@ -60,6 +61,7 @@
 					direction : direction,
 					month : month,
 					year : year,
+					category : category,
 					eventid : mindeventsSettings.post_id
 				},
 				success: function(response) {

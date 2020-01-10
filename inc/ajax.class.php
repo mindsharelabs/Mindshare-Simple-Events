@@ -139,26 +139,37 @@ class mindEventsAjax {
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];
-
-      $eventID = $_POST['eventid'];
-
-
-      $event = get_post($eventID);
       $date = new DateTime();
       $date->setDate($year, $month, 1);
-
-
       if($direction == 'prev') {
         $date->modify('first day of last month');
       } else {
         $date->modify('first day of next month');
       }
-
       $new_date = $date->format('Y-m-d');
-      $event = new mindEventCalendar($eventID, $new_date);
+
+
+      $cat = (isset($_POST['category']) ? $_POST['category'] : false);
+
+      if($cat) :
+        $eventID = 'archive';
+      else :
+        $eventID = $_POST['eventid'];
+        $event = get_post($eventID);
+      endif;
+
+
+
+      $calendar = new mindEventCalendar($eventID, $new_date);
+      if($cat) :
+        $calendar->setEventCategories($cat);
+      endif;
+
+
+
       $return = array(
         'new_date' => $new_date,
-        'html' => $event->get_front_calendar($eventID),
+        'html' => $calendar->get_front_calendar($eventID),
       );
 
       wp_send_json($return);
@@ -227,6 +238,7 @@ class mindEventsAjax {
       $month = $_POST['month'];
       $year = $_POST['year'];
       $eventID = $_POST['eventid'];
+
       $event = get_post($eventID);
       $date = new DateTime();
       $date->setDate($year, $month, 1);

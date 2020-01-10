@@ -369,13 +369,14 @@
   section.content{
     display: flex;
     .featured-image-wrap {
-      flex-basis: 35%;
+      flex-grow: 1;
+      min-width: 400px;
       img {
         width: 100%;
       }
     }
     .content-wrap {
-      flex-basis: 65%;
+      flex-grow: 2;
     }
   }
 
@@ -467,8 +468,7 @@
           flex-wrap: wrap;
           max-width: 30%;
           .cost {
-            margin: 5px 8px;
-
+            margin: 0 8px 5px 8px;
           }
         }
       }

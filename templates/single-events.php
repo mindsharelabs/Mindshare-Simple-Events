@@ -31,15 +31,14 @@ echo '<main role="main" aria-label="Content">';
 
 
           echo '<section class="content">';
-            //@hooked mindevents_thumbnail - 10
-            echo '<div class="featured-image-wrap">';
-              do_action('mindevents_single_thumb', get_the_ID());
-            echo '</div>';
 
-            echo '<div class="content-wrap">';
-              //@hooked mindevents_content - 10
-              do_action('mindevents_single_content', get_the_ID());
-            echo '</div>';
+            //@hooked mindevents_thumbnail - 10
+            do_action('mindevents_single_thumb', get_the_ID());
+
+
+            //@hooked mindevents_content - 10
+            do_action('mindevents_single_content', get_the_ID());
+
           echo '</section>';
 
           do_action('mindevents_single_before_events', get_the_ID());
