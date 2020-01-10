@@ -579,7 +579,7 @@ class mindEventCalendar {
               $html .= '<div class="cost">';
                 $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
                 $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">';
-                $html .= ($offer['price'] ? $this->$currency_symbol . $offer['price'] : $offer['label']);
+                $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
                 $html .= '</a></span>';
               $html .= '</div>';
 
@@ -818,6 +818,22 @@ class mindEventCalendar {
       );
       if($sub_events) :
         foreach ($sub_events as $key => $event) :
+
+          $offers = get_post_meta($event->ID, 'offers', true);
+          if($offers) :
+            $offer_array = array();
+            foreach ($offers as $key => $offer) :
+              $offer_array[] = array(
+                '@type' => 'Offer',
+                'url' => $offer['link'],
+                'price' => $offer['price'],
+                'priceCurrency' => 'USD',
+                'availability' => 'https://schema.org/InStock', //TODO: add this to sub event options
+                'validFrom' => get_the_date( 'Y-m-d H:i:s', $this->eventID)
+              );
+            endforeach;
+          endif;
+
           $schema['subEvent'][] = array(
             '@context' => 'https://schema.org',
             'type' => 'TheaterEvent',
@@ -841,14 +857,7 @@ class mindEventCalendar {
               get_the_post_thumbnail_url($this->eventID, 'medium')
             ),
             'description' => get_post_meta($event->ID, 'eventDescription', true),
-            'offers' => array(
-              '@type' => 'Offer',
-              'url' => get_permalink($this->eventID),
-              'price' => str_replace('$', '', get_post_meta($event->ID, 'eventCost', true)),
-              'priceCurrency' => 'USD',
-              'availability' => 'https://schema.org/InStock', //TODO: add this to sub event options
-              'validFrom' => get_the_date( 'Y-m-d H:i:s', $this->eventID)
-            ),
+            'offers' => $offer_array,
             'performer' => array(
               '@type' => 'Organization',
               'url' => get_site_url(),
