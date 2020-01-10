@@ -99,9 +99,24 @@ class mindEventsOptions {
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
-          'message' => 'Default cost for event occurances. (Include your currency symbol.)',
+          'message' => 'Default cost for event occurances. (Do not include currency symbol)',
           'field' => 'mindevents_event_cost',
           'value' => (isset($options['mindevents_event_cost']) ? $options['mindevents_event_cost'] : ''),
+          'type' => 'text',
+          'class' => ''
+        ) //args
+      );
+
+      add_settings_field(
+        'mindevents_currency_symbol', //setting id
+        'Currency Symbol', //setting title
+        array($this, 'mindevents_setting_field'), //display callback
+        'mindeventsPlugin', //setting page
+        'mindevents_api_settings_section', //setting section
+        array(
+          'message' => 'Default currency symbol.',
+          'field' => 'mindevents_currency_symbol',
+          'value' => (isset($options['mindevents_currency_symbol']) ? $options['mindevents_currency_symbol'] : '$'),
           'type' => 'text',
           'class' => ''
         ) //args

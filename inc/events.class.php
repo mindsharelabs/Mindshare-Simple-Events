@@ -8,6 +8,7 @@ class mindEventCalendar {
 
   private $displayType;
   private $calendar_start_day;
+  private $currency_symbol;
   private $options;
   private $show_past_events;
   private $next_month;
@@ -60,6 +61,7 @@ class mindEventCalendar {
     $date->modify('first day of next month');
     $this->next_month = $date->format('m');
 
+    $this->currency_symbol = (isset($this->options['mindevents_currency_symbol']) ? $this->options['mindevents_currency_symbol'] : '$');
 
     $this->calendar_start_day = (isset($this->options['mindevents_start_day']) ? $this->options['mindevents_start_day'] : 'Monday');
 
@@ -545,7 +547,6 @@ class mindEventCalendar {
   public function get_list_item_html($event = '') {
     $meta = get_post_meta($event);
     $sub_event_obj = get_post($event);
-    mapi_write_log($meta);
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -577,7 +578,9 @@ class mindEventCalendar {
 
               $html .= '<div class="cost">';
                 $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
-                $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">' . ($offer['price'] ? $offer['price'] : $offer['label']) . '</a></span>';
+                $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">';
+                $html .= ($offer['price'] ? $this->$currency_symbol . $offer['price'] : $offer['label']);
+                $html .= '</a></span>';
               $html .= '</div>';
 
           endforeach;
