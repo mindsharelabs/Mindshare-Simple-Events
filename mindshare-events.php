@@ -3,7 +3,7 @@
  * Plugin Name: Mindshare Simple Events
  * Plugin URI:https://mind.sh/are
  * Description: A simple events plugin, for sites that just need the basics.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Mindshare Labs, Inc
  * Author URI: https://mind.sh/are
  */
