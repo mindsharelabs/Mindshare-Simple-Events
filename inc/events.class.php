@@ -637,9 +637,11 @@ class mindEventCalendar {
             $html .= '</div>';
           endif;
 
-          $html .= '<div class="meta-item">';
-            $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
-          $html .= '</div>';
+          if(!is_singular('events')) :
+            $html .= '<div class="meta-item">';
+              $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
+            $html .= '</div>';
+          endif;
 
 
         $html .= '</div>';
