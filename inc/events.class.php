@@ -596,6 +596,7 @@ class mindEventCalendar {
 
   public function get_cal_meta_html($event = '') {
     $meta = get_post_meta($event);
+    $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
     if($meta) :
@@ -635,6 +636,12 @@ class mindEventCalendar {
               $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
             $html .= '</div>';
           endif;
+
+          $html .= '<div class="meta-item">';
+            $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
+          $html .= '</div>';
+
+
         $html .= '</div>';
 
         if($meta['offers']) :
