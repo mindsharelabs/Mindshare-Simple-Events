@@ -3,7 +3,7 @@
  * Plugin Name: Mindshare Simple Events
  * Plugin URI:https://mind.sh/are
  * Description: A simple events plugin, for sites that just need the basics.
- * Version: 0.1.3
+ * Version: 0.1.4
  * Author: Mindshare Labs, Inc
  * Author URI: https://mind.sh/are
  */
@@ -22,7 +22,7 @@ class mindEvents {
     }
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
-    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '0.1.0');
+    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '0.1.4');
     $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
 
 
