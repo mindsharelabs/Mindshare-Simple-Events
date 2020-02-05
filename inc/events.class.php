@@ -547,6 +547,9 @@ class mindEventCalendar {
   public function get_list_item_html($event = '') {
     $meta = get_post_meta($event);
     $sub_event_obj = get_post($event);
+
+
+
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -625,7 +628,7 @@ class mindEventCalendar {
           endif;
 
 
-          if($meta['eventCost'][0]) :
+          if(isset($meta['eventCost'][0])) :
             $html .= '<div class="meta-item">';
               $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
             $html .= '</div>';
@@ -637,19 +640,19 @@ class mindEventCalendar {
             $html .= '</div>';
           endif;
 
+          $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
           if(!is_singular('events')) :
             $html .= '<div class="meta-item">';
               $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
             $html .= '</div>';
           endif;
 
-
         $html .= '</div>';
 
         if($meta['offers']) :
           $offers = unserialize ($meta['offers'][0]);
           $html .= '<div class="right-content">';
-            unset($style_str['background']);
+
             $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
             $html .= '<div class="meta-item">';
 
@@ -877,7 +880,4 @@ class mindEventCalendar {
       endif;
       return json_encode($schema);
     }
-
-
-
   }
