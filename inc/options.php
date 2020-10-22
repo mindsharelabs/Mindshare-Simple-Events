@@ -15,7 +15,7 @@ class mindEventsOptions {
         'Mindshare Events Plugin Settings',
         'manage_options', //permisions
         'mindevents-settings', //page slug
-        array($this, 'mindevents_support_settings') //callback for display
+        array('mindEventsOptions', 'mindevents_support_settings') //callback for display
       );
   }
 
@@ -27,7 +27,7 @@ class mindEventsOptions {
       add_settings_section(
         'mindevents_api_settings_section', //section id
         'WooCommerce Returns Options', //section title
-        array($this, 'mindevents_support_settings_section_callback'), //display callback
+        array('mindEventsOptions', 'mindevents_support_settings_section_callback'), //display callback
         'mindeventsPlugin' //settings page
       );
 
@@ -35,7 +35,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_api_token', //setting id
         'API Token', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
@@ -50,7 +50,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_start_day', //setting id
         'Week Start Day', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
@@ -65,7 +65,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_start_time', //setting id
         'Default Start Time', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
@@ -80,7 +80,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_end_time', //setting id
         'Default End Time', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
@@ -95,7 +95,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_event_cost', //setting id
         'Default Event Cost', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(
@@ -110,7 +110,7 @@ class mindEventsOptions {
       add_settings_field(
         'mindevents_currency_symbol', //setting id
         'Currency Symbol', //setting title
-        array($this, 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
         'mindeventsPlugin', //setting page
         'mindevents_api_settings_section', //setting section
         array(

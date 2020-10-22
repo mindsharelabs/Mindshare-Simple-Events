@@ -30,7 +30,7 @@ class mindeventsAdmin {
   	add_meta_box(
   		'mindevents_calendar',
   		'Calendar',
-  		array($this, 'display_calendar_metabox' ),
+  		array('mindeventsAdmin', 'display_calendar_metabox' ),
   		'events',
   		'normal',
   		'default'
@@ -39,7 +39,7 @@ class mindeventsAdmin {
     add_meta_box(
   		'mindevents_event_options',
   		'Calendar Options',
-  		array($this, 'display_event_options_metabox' ),
+  		array('mindeventsAdmin', 'display_event_options_metabox' ),
   		'events',
   		'side',
   		'default'
@@ -109,7 +109,8 @@ class mindeventsAdmin {
   static function display_calendar_metabox($post) {
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Occurance Options</h3>';
-      $this->get_time_form();
+      $mindeventsAdmin = new mindeventsAdmin();
+      $mindeventsAdmin->get_time_form();
 
       $events = new mindEventCalendar($post->ID);
 
