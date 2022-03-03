@@ -658,7 +658,7 @@ class mindEventCalendar {
 
               foreach ($offers as $key => $offer) :
                 $html .= '<span class="value eventlink">';
-                  $html .= '<span style="' . implode(' ', $style_str) . '" class="price">$' . $offer['price'] . '</span>';
+                  $html .= '<span style="' . implode(' ', $style_str) . '" class="price">' . $offer['price'] . '</span>';
                   $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $offer['link'] . '" target="_blank">' . $offer['label'] . '</a>';
                 $html .= '</span>';
               endforeach;
