@@ -323,7 +323,7 @@
     .meta-item {
       span {
         display: block;
-        &.label {
+        &.label { 
           text-transform: uppercase;
           font-weight: bold;
           font-size: .7em;
@@ -338,6 +338,7 @@
             .price {
               padding: 6px;
               font-family: monospace;
+              white-space: nowrap;
             }
           }
           &.eventdescription {

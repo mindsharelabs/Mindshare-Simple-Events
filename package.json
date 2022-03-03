@@ -8,12 +8,16 @@
     "url": "ssh://git@git.mindsharelabs.com:devops/mindblank.git"
   },
   "devDependencies": {
-    "grunt": "^1.0.4",
-    "grunt-contrib-sass": "1.0.0",
-    "grunt-contrib-watch": "1.1.0",
-    "grunt-newer": "",
-    "matchdep": "2.0.0"
+    "del": "^5.1.0",
+    "gulp": "^4.0.2",
+    "gulp-sass": "^5.0.0",
+    "gulp-sourcemaps": "^3.0.0",
+    "node-sass": "^6.0.1"
   },
   "author": "Mindshare Labs, Inc.",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": []
 }

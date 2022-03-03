@@ -55,7 +55,7 @@ class mindEventsCPTS {
   		'exclude_from_search'   => false,
   		'publicly_queryable'    => true,
   		'capability_type'       => 'page',
-  		'show_in_rest'          => false,
+  		'show_in_rest'          => true,
   		// 'rest_base'             => 'events',
   	);
     $sub_event_args = array(
