@@ -82,7 +82,8 @@ class mindEventsAjax {
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
 
-      $meta = $this->reArrayMeta($_POST['meta']['event']);
+      $ajaxHandler = new mindEventsAjax();
+      $meta = $ajaxHandler->reArrayMeta($_POST['meta']['event']);
 
       $event = new mindEventCalendar($eventID);
 
@@ -100,7 +101,7 @@ class mindEventsAjax {
         $added_events[] = $added_event_id;
 
         $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
-          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
+          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $ajaxHandler->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';
           if(is_admin()) :
@@ -179,7 +180,7 @@ class mindEventsAjax {
 
   private function reArrayMeta($metaStart) {
     $meta = array();
-    $meta['event_date'] = $metaStart['event_date'];
+    $meta['event_date'] = (isset($metaStart['event_date']) ? $metaStart['event_date'] : '');
     $meta['starttime'] = $metaStart['starttime'];
     $meta['endtime'] = $metaStart['endtime'];
     $meta['eventColor'] = $metaStart['eventColor'];

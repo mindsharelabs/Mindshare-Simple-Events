@@ -97,8 +97,6 @@ class mindEvents {
     wp_register_style('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css', array(), '1.3.5', 'all');
     wp_enqueue_style('timepicker-js');
 
-
-
     wp_register_script('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js', array('jquery'), '1.3.5', true);
 		wp_enqueue_script('timepicker-js');
 
