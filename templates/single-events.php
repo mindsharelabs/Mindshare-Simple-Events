@@ -41,7 +41,9 @@ echo '<main role="main" aria-label="Content">';
 
           echo '</section>';
 
+
           do_action('mindevents_single_before_events', get_the_ID());
+          
           echo '<div class="events-wrap">';
             if($display_type == 'calendar') :
               echo apply_filters('mindevents_calednar_label', '<h3>Calendar</h3>');
@@ -55,7 +57,7 @@ echo '<main role="main" aria-label="Content">';
               echo '</div>';
               do_action('mindevents_single_after_calendar', get_the_ID());
 
-            elseif('list') :
+            elseif($display_type == 'list') :
               echo apply_filters('mindevents_list_label', '<h3>Events</h3>');
               do_action('mindevents_single_before_list', get_the_ID());
               echo '<div id="mindEventList" class="mindevents-list">';
@@ -64,6 +66,10 @@ echo '<main role="main" aria-label="Content">';
               do_action('mindevents_single_after_list', get_the_ID());
             endif;
           echo '</div>';
+
+          do_action('mindevents_single_after_events', get_the_ID());
+
+
         echo '</div>';
 
         do_action('mindevents_after_single_container', get_the_ID());

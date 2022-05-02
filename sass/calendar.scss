@@ -323,7 +323,7 @@
     .meta-item {
       span {
         display: block;
-        &.label { 
+        &.label {
           text-transform: uppercase;
           font-weight: bold;
           font-size: .7em;
@@ -363,7 +363,6 @@
 #archiveContainer, #singleEventContainer {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 15px;
   .events-wrap, .content-wrap {
     margin-bottom: 2em;
   }

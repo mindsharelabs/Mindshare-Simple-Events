@@ -52,18 +52,25 @@ function mindevents_single_datespan($id) {
 }
 
 
-add_action('mindevents_single_thumb', 'mindevents_thumbnail', 10, 1);
-function mindevents_thumbnail($id) {
+add_action('mindevents_single_thumb', function ($id) {
   if(has_post_thumbnail()) :
     echo '<div class="featured-image-wrap">';
       echo get_the_post_thumbnail($id, array(400, 400));
     echo '</div>';
   endif;
-}
+}, 10, 1);
+
 //
-add_action('mindevents_single_content', 'mindevents_content', 10, 1);
-function mindevents_content($id) {
-  echo '<div class="content-wrap">';
+add_action('mindevents_single_content', function ($id) {
+  echo '<div class="content-wrap"><p class="event-excerpt">';
+    the_excerpt();
+  echo '</p></div>';
+}, 10, 1);
+
+
+
+add_action( 'mindevents_single_before_events', function() {
+  echo '<div class="content">';
     the_content();
   echo '</div>';
-}
+}, 1);
