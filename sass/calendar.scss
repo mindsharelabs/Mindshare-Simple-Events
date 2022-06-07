@@ -369,8 +369,8 @@
   section.content{
     display: flex;
     .featured-image-wrap {
-      flex-grow: 1;
-      min-width: 400px;
+      flex-grow: 1; 
+      min-width: 300px;
       img {
         width: 100%;
       }

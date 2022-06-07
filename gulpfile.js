@@ -24,7 +24,7 @@ gulp.task('clean', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch('scss/*.scss', (done) => {
+  gulp.watch('sass/*.scss', (done) => {
     gulp.series(['plugin-styles'])(done);
   });
 });

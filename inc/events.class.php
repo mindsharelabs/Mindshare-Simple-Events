@@ -712,7 +712,7 @@ class mindEventCalendar {
 
 
   public function update_sub_event($sub_event, $meta, $parentID) {
-    $unique = $this->build_unique_key($meta['event_date'], $meta, $parentID);
+    $unique = $this->build_unique_key($parentID, $meta['event_date'], $meta);
     $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['endtime']) );
@@ -726,8 +726,8 @@ class mindEventCalendar {
 
 
 
-  public function add_sub_event($args = array(), $date, $meta, $eventID) {
-    $unique = $this->build_unique_key($date, $meta, $eventID);
+  public function add_sub_event($date, $meta, $eventID, $args = array()) {
+    $unique = $this->build_unique_key($eventID, $date, $meta);
     $return = array();
     $args = array(
       'fields' => 'ids',
@@ -753,7 +753,7 @@ class mindEventCalendar {
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',
-        'post_title'            => $this->build_title($date, $meta, $eventID),
+        'post_title'            => $this->build_title($eventID, $date, $meta),
         'post_excerpt'          => '',
         'post_status'           => 'publish',
         'post_type'             => 'sub_event',
@@ -775,11 +775,11 @@ class mindEventCalendar {
     }
 
 
-    private function build_unique_key($date = '', $times = '', $eventID) {
+    private function build_unique_key($eventID, $date = '', $times = '') {
       return sanitize_title($eventID . '_' . $date . '_' . $times['starttime'] . '-' . $times['endtime']);
     }
 
-    private function build_title($date = '', $times = '', $parentID) {
+    private function build_title($parentID, $date = '', $times = '') {
       $title = get_the_title($this->eventID) . ' | ' . $date . ' | ' . $times['starttime'] . '-' . $times['endtime'];
       return apply_filters('mind_events_title', $title, $date, $times, $this);
     }

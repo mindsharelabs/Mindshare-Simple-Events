@@ -91,7 +91,7 @@ class mindEventsAjax {
       $errors = array();
       $html = '';
 
-      $added_event_id = $event->add_sub_event('', $date, $meta, $eventID);
+      $added_event_id = $event->add_sub_event($date, $meta, $eventID);
 
       if($added_event_id == false) :
         $errors[] = 'An event at that time already exists';
