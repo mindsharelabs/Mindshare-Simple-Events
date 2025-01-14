@@ -37,6 +37,10 @@
 		})
 
 
+
+		
+
+
 		$(document).on('click', '.add-offer', function (event) {
 			var element = $(this).parent('.single-offer'),
 					clone = element.clone( true ).appendTo('#allOffers'),
@@ -74,96 +78,227 @@
 
     $(document).on('click', '.calendar-day', function (event) {
 
-			var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
+		var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
 				return $(this).val() == "";
-			});
+		});
+
 	    if (emptyInputs.length) {
-        emptyInputs.each(function() {
-					$(this).addClass('validate');
-				});
+        	emptyInputs.each(function() {
+				$(this).addClass('validate');
+			});
 	    } else {
-				event.preventDefault();
-				var thisDay = $(this);
-				var occurrence = thisDay.siblings('.event');
-				var errorBox = $('#errorBox');
+			event.preventDefault();
+			var thisDay = $(this);
+			var occurrence = thisDay.siblings('.event');
+			var errorBox = $('#errorBox');
 
-				var meta = $('#defaultEventMeta').serializeObject();
-
-
-				// $.each($('#defaultEventMeta').serializeObject(), function() {
-				//     meta[this.name] = this.value;
-				// });
-
-				console.log(meta);
-				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-				var date = $(this).attr('datetime');
+			var meta = $('#defaultEventMeta').serializeObject();
 
 
-				$.ajax({
+			thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+			var date = $(this).attr('datetime');
+
+
+			$.ajax({
 	  			url : mindeventsSettings.ajax_url,
 	  			type : 'post',
 	  			data : {
 	  				action : 'mindevents_selectday',
 	  				eventid : mindeventsSettings.post_id,
-						date : date,
-						meta : meta,
-						occurrence : occurrence.length
+					date : date,
+					meta : meta,
+					occurrence : occurrence.length
 	  			},
 	  			success: function(response) {
-						thisDay.removeClass('loading');
-						thisDay.find('.la-ball-fall').remove();
-	          if(response.html) {
-							thisDay.addClass('selected');
-							setTimeout(function() {
-								thisDay.removeClass('selected');
-							}, 400);
-							thisDay.attr('event', 'true');
-							thisDay.after(response.html);
-	          }
-						if(response.errors.length > 0) {
-							thisDay.addClass('whoops');
-							setTimeout(function() {
-								thisDay.removeClass('whoops');
-							}, 400);
+					thisDay.removeClass('loading');
+					thisDay.find('.la-ball-fall').remove();
+	          		if(response.html) {
+						thisDay.addClass('selected');
+						setTimeout(function() {
+							thisDay.removeClass('selected');
+						}, 400);
+						thisDay.attr('event', 'true');
+						thisDay.after(response.html);
+	          		}
+					
+					if(response.errors.length > 0) {
+						thisDay.addClass('whoops');
+						setTimeout(function() {
+							thisDay.removeClass('whoops');
+						}, 400);
 
-							var items = $("#errorBox > span").length;
-							$.each(response.errors, function( index, value ) {
-								var i = items + 1;
-								errorBox.prepend('<span class="error-item-'+ i +'">' + value + '</span>').addClass('show');
-								setTimeout(function() {
-								  $('.error-item-'+ i +'').fadeOut(400, function() {
-										$(this).remove();
-									});
-								}, 3000);
-							});
-	          }
+						var items = $("#errorBox > span").length;
+						
+						$.each(response.errors, function( index, value ) {
+							var i = items + 1;
+							errorBox.prepend('<span class="error-item-'+ i +'">' + value + '</span>').addClass('show');
+							setTimeout(function() {
+								$('.error-item-'+ i +'').fadeOut(400, function() {
+									$(this).remove();
+								});
+							}, 3000);
+						});
+	          		}
 	  			},
 	  			error: function (response) {
 	  				console.log('An error occurred.');
 	  				console.log(response);
 	  			},
 	  		});
-
-
-			}
+		}
   	})
 
 
 
+	$(document).on('click', '.calendar-nav .calnav', function (event) {
+
+		event.preventDefault();
+		var eventsCalendar = $('#eventsCalendar');
+		var calendarTable = $('#mindEventCalendar');
+		var month = calendarTable.data('month');
+		var year = calendarTable.data('year');
+		var direction = $(this).data('dir');
+
+
+		var height = eventsCalendar.height();
+		var width = eventsCalendar.width();
+		eventsCalendar.height(height).width(width);
+		eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+
+		$.ajax({
+			url : mindeventsSettings.ajax_url,
+			type : 'post',
+			data : {
+				action : 'mindevents_movecalendar',
+				direction : direction,
+				month : month,
+				year : year,
+				eventid : mindeventsSettings.post_id
+			},
+			success: function(response) {
+				eventsCalendar.attr('style', false);
+				eventsCalendar.html(response.html);
+			},
+			error: function (response) {
+				console.log('An error occurred.');
+				console.log(response);
+			},
+		});
+
+	})
+
+
+	$(document).on('click', '.edit-button.update-event', function (event) {
+		event.preventDefault();
+		var subid = $(this).data('subid');
+		var eventsCalendar = $('#eventsCalendar');
+		var meta = {};
+
+
+		var meta = $('#subEventEdit').serializeObject();
+
+		$.ajax({
+			url : mindeventsSettings.ajax_url,
+			type : 'post',
+			data : {
+				action : 'mindevents_updatesubevent',
+				eventid : subid,
+				parentid : mindeventsSettings.post_id,
+				meta : meta
+			},
+			success: function(response) {
+				eventsCalendar.html(response.data.html);
+				$('#editBox').fadeOut(200, function() {
+					$(this).remove();
+				});
+			},
+			error: function (response) {
+				console.log('An error occurred.');
+				console.log(response);
+			},
+		});
+
+	});
+
+
+	$(document).on('click', '.edit-button.cancel', function (event) {
+		event.preventDefault();
+		$('#editBox').fadeOut(200, function() {
+			$(this).remove();
+		});
+	});
 
 
 
+	$(document).on('click', 'td .event span.edit', function (event) {
+		event.preventDefault();
+		var thisEvent = $(this).parent('.event');
+		var eventid = $(this).data('subid');
+		var calendarContainer = $('#eventsCalendar')
 
-		$(document).on('click', '.calendar-nav .calnav', function (event) {
+		$.ajax({
+			url : mindeventsSettings.ajax_url,
+			type : 'post',
+			data : {
+				action : 'mindevents_editevent',
+				eventid : eventid,
+					parentid : mindeventsSettings.post_id,
+			},
+			success: function(response) {
+					calendarContainer.prepend('<div id="editBox"></div>');
+					$('#editBox').html(response.data.html);
+					initTimePicker();
+					initDatePicker();
+			},
+			error: function (response) {
+				console.log('An error occurred.');
+				console.log(response);
+			},
+		});
 
-			event.preventDefault();
+
+	});
+
+
+	$(document).on('click', 'td .event span.delete', function (event) {
+		event.preventDefault();
+		var thisEvent = $(this).parent('.event');
+		var eventid = $(this).data('subid');
+		var errorBox = $('#errorBox');
+
+		$.ajax({
+			url : mindeventsSettings.ajax_url,
+			type : 'post',
+			data : {
+				action : 'mindevents_deleteevent',
+				eventid : eventid,
+			},
+			success: function(response) {
+					thisEvent.fadeOut();
+					errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
+					setTimeout(function() {
+						$('.error-item-'+ eventid +'').fadeOut(400, function() {
+							$(this).remove();
+						});
+					}, 3000);
+
+			},
+			error: function (response) {
+				console.log('An error occurred.');
+				console.log(response);
+			},
+		});
+
+
+	});
+
+
+	$(document).on('click', '.clear-occurances', function (event) {
+  		event.preventDefault();
+
+      	if(confirm("Wait a tic! This will remove ALL occurances of this event in every month. You cannot undo this. Are you REALY sure?")) {
+
 			var eventsCalendar = $('#eventsCalendar');
-			var calendarTable = $('#mindEventCalendar');
-			var month = calendarTable.data('month');
-			var year = calendarTable.data('year');
-			var direction = $(this).data('dir');
-
-
 			var height = eventsCalendar.height();
 			var width = eventsCalendar.width();
 			eventsCalendar.height(height).width(width);
@@ -173,15 +308,14 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-					action : 'mindevents_movecalendar',
-					direction : direction,
-					month : month,
-					year : year,
-					eventid : mindeventsSettings.post_id
+						action : 'mindevents_clearevents',
+					eventid : mindeventsSettings.post_id,
 				},
 				success: function(response) {
-					eventsCalendar.attr('style', false);
-					eventsCalendar.html(response.html);
+						$('#errorBox').removeClass('show').html('');
+						eventsCalendar.html(response.html);
+						eventsCalendar.attr('style', false);
+
 				},
 				error: function (response) {
 					console.log('An error occurred.');
@@ -189,214 +323,77 @@
 				},
 			});
 
-		})
+		}
+	})
 
 
-		$(document).on('click', '.edit-button.update-event', function (event) {
-			event.preventDefault();
-			var subid = $(this).data('subid');
-			var eventsCalendar = $('#eventsCalendar');
-			var meta = {};
+	$.fn.serializeObject = function(){
+		var data = {};
+
+		// Manage fields allowing multiple values first (they contain "[]" in their name)
+		var final_array = gatherMultipleValues( this );
+
+		// Then, create the object
+		$.each(final_array, function() {
+			var val = this.value;
+			var c = this.name.split('[');
+			var a = buildInputObject(c, val);
+			$.extend(true, data, a);
+		});
+
+		return data;
+
+	};
 
 
-			var meta = $('#subEventEdit').serializeObject();
 
+	function buildInputObject(arr, val) {
+		if (arr.length < 1) {
+			return val;
+		}
+		var objkey = arr[0];
+		if (objkey.slice(-1) == "]") {
+			objkey = objkey.slice(0,-1);
+		}
+		var result = {};
+		if (arr.length == 1){
+			result[objkey] = val;
+		} else {
+			arr.shift();
+			var nestedVal = buildInputObject(arr,val);
+			result[objkey] = nestedVal;
+		}
+		return result;
+	}
 
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : 'mindevents_updatesubevent',
-					eventid : subid,
-					parentid : mindeventsSettings.post_id,
-					meta : meta
-				},
-				success: function(response) {
-					eventsCalendar.html(response.data.html);
-					$('#editBox').fadeOut(200, function() {
-						$(this).remove();
-					});
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
+	function gatherMultipleValues( that ) {
+		var final_array = [];
+		$.each(that.serializeArray(), function( key, field ) {
+			// Copy normal fields to final array without changes
+			if( field.name.indexOf('[]') < 0 ){
+				final_array.push( field );
+				return true; // That's it, jump to next iteration
+			}
+
+			// Remove "[]" from the field name
+			var field_name = field.name.split('[]')[0];
+
+			// Add the field value in its array of values
+			var has_value = false;
+			$.each( final_array, function( final_key, final_field ){
+				if( final_field.name === field_name ) {
+					has_value = true;
+					final_array[ final_key ][ 'value' ].push( field.value );
+				}
 			});
-
+			// If it doesn't exist yet, create the field's array of values
+			if( ! has_value ) {
+				final_array.push( { 'name': field_name, 'value': [ field.value ] } );
+			}
 		});
+		return final_array;
+	}
 
-
-		$(document).on('click', '.edit-button.cancel', function (event) {
-			event.preventDefault();
-			$('#editBox').fadeOut(200, function() {
-				$(this).remove();
-			});
-		});
-
-
-
-		$(document).on('click', 'td .event span.edit', function (event) {
-			event.preventDefault();
-			var thisEvent = $(this).parent('.event');
-			var eventid = $(this).data('subid');
-			var calendarContainer = $('#eventsCalendar')
-
-			$.ajax({
-  			url : mindeventsSettings.ajax_url,
-  			type : 'post',
-  			data : {
-  				action : 'mindevents_editevent',
-  				eventid : eventid,
-					parentid : mindeventsSettings.post_id,
-  			},
-  			success: function(response) {
-					calendarContainer.prepend('<div id="editBox"></div>');
-					$('#editBox').html(response.data.html);
-					initTimePicker();
-					initDatePicker();
-  			},
-  			error: function (response) {
-  				console.log('An error occurred.');
-  				console.log(response);
-  			},
-  		});
-
-
-		});
-
-
-		$(document).on('click', 'td .event span.delete', function (event) {
-			event.preventDefault();
-			var thisEvent = $(this).parent('.event');
-			var eventid = $(this).data('subid');
-			var errorBox = $('#errorBox');
-
-			$.ajax({
-  			url : mindeventsSettings.ajax_url,
-  			type : 'post',
-  			data : {
-  				action : 'mindevents_deleteevent',
-  				eventid : eventid,
-  			},
-  			success: function(response) {
-					thisEvent.fadeOut();
-					errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
-					setTimeout(function() {
-						$('.error-item-'+ eventid +'').fadeOut(400, function() {
-							$(this).remove();
-						});
-					}, 3000);
-
-  			},
-  			error: function (response) {
-  				console.log('An error occurred.');
-  				console.log(response);
-  			},
-  		});
-
-
-		});
-
-
-		$(document).on('click', '.clear-occurances', function (event) {
-  		event.preventDefault();
-
-
-      if(confirm("Wait a tic! This will remove ALL occurances of this event in every month. You cannot undo this. Are you REALY sure?")) {
-
-					var eventsCalendar = $('#eventsCalendar');
-					var height = eventsCalendar.height();
-					var width = eventsCalendar.width();
-					eventsCalendar.height(height).width(width);
-					eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-
-		  		$.ajax({
-		  			url : mindeventsSettings.ajax_url,
-		  			type : 'post',
-		  			data : {
-							action : 'mindevents_clearevents',
-		  				eventid : mindeventsSettings.post_id,
-		  			},
-		  			success: function(response) {
-							$('#errorBox').removeClass('show').html('');
-							eventsCalendar.html(response.html);
-							eventsCalendar.attr('style', false);
-
-		  			},
-		  			error: function (response) {
-		  				console.log('An error occurred.');
-		  				console.log(response);
-		  			},
-		  		});
-
-		  	}
-			})
-
-
-			$.fn.serializeObject = function(){
-				var data = {};
-
-		    function buildInputObject(arr, val) {
-		        if (arr.length < 1) {
-		            return val;
-		        }
-		        var objkey = arr[0];
-		        if (objkey.slice(-1) == "]") {
-		            objkey = objkey.slice(0,-1);
-		        }
-		        var result = {};
-		        if (arr.length == 1){
-		            result[objkey] = val;
-		        } else {
-		            arr.shift();
-		            var nestedVal = buildInputObject(arr,val);
-		            result[objkey] = nestedVal;
-		        }
-		        return result;
-		    }
-
-		    function gatherMultipleValues( that ) {
-		        var final_array = [];
-		        $.each(that.serializeArray(), function( key, field ) {
-		            // Copy normal fields to final array without changes
-		            if( field.name.indexOf('[]') < 0 ){
-		                final_array.push( field );
-		                return true; // That's it, jump to next iteration
-		            }
-
-		            // Remove "[]" from the field name
-		            var field_name = field.name.split('[]')[0];
-
-		            // Add the field value in its array of values
-		            var has_value = false;
-		            $.each( final_array, function( final_key, final_field ){
-		                if( final_field.name === field_name ) {
-		                    has_value = true;
-		                    final_array[ final_key ][ 'value' ].push( field.value );
-		                }
-		            });
-		            // If it doesn't exist yet, create the field's array of values
-		            if( ! has_value ) {
-		                final_array.push( { 'name': field_name, 'value': [ field.value ] } );
-		            }
-		        });
-		        return final_array;
-		    }
-
-		    // Manage fields allowing multiple values first (they contain "[]" in their name)
-		    var final_array = gatherMultipleValues( this );
-
-		    // Then, create the object
-		    $.each(final_array, function() {
-		        var val = this.value;
-		        var c = this.name.split('[');
-		        var a = buildInputObject(c, val);
-		        $.extend(true, data, a);
-		    });
-
-		    return data;
-
-		  };
 
 
   });

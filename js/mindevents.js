@@ -113,6 +113,55 @@
 		})
 
 
+		$(document).on('click', 'button.mindevents-add-to-cart', function (event) {
+			event.preventDefault();
+			var button = $(this);
+			var product_id = $(this).data('product_id');
+			var quantity = $(this).data('quantity');
+			var variation_id = $(this).data('variation_id');
+			var event_date = $(this).data('event_date');
+			console.log(product_id);
+
+			$.ajax({
+				url : mindeventsSettings.ajax_url,
+				type : 'post',
+				data : {
+					action : 'mindevents_add_woo_product_to_cart',
+					product_id : product_id,
+					quantity : quantity,
+					variation_id : variation_id,
+					event_date : event_date
+				},
+				beforeSend: function() {
+					button.prop('disabled', true);
+				},
+				afterSend: function() {
+					
+				},
+				success: function(response) {
+					console.log(response);
+
+					if(response.success) {
+						button.prop('disabled', false);
+						button.html('+1');
+					} else {
+						button.html('Error!');
+						button.prop('disabled', false);
+					}
+					
+					// window.location.href = response.data.cart_url;
+					
+
+				},
+				error: function (response) {
+					console.log('An error occurred.');
+					console.log(response);
+				},
+			});
+
+
+		});
+
   });
 
 } ( this, jQuery ));

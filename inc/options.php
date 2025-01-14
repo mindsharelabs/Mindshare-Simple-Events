@@ -23,10 +23,9 @@ class mindEventsOptions {
   static function mindevents_api_settings_init(  ) {
       register_setting( 'mindeventsPlugin', 'mindevents_support_settings' );
       $options = get_option( 'mindevents_support_settings' );
-
       add_settings_section(
         'mindevents_api_settings_section', //section id
-        'WooCommerce Returns Options', //section title
+        'Mindshare Simple Events Options', //section title
         array('mindEventsOptions', 'mindevents_support_settings_section_callback'), //display callback
         'mindeventsPlugin' //settings page
       );
@@ -123,8 +122,36 @@ class mindEventsOptions {
       );
 
 
+      add_settings_field(
+        'mindevents_enable_woocommerce', //setting id
+        'Enable WooCommerce Integration', //setting title
+        array('mindEventsOptions', 'mindevents_checkbox_field'), //display callback
+        'mindeventsPlugin', //setting page
+        'mindevents_api_settings_section', //setting section
+        array(
+          'message' => 'Enable WooCommerce Integration.',
+          'label' => 'Check here to enable WooCommerce integration.',
+          'field' => 'mindevents_enable_woocommerce',
+          //'value' => (isset($options['mindevents_enable_woocommerce']) ? $options['mindevents_enable_woocommerce'] : false),
+          'checked' => (isset($options['mindevents_enable_woocommerce']) ? true : false),
+          'type' => 'checkbox',
+          'class' => ''
+        ) //args
+      );
+
+
   }
 
+
+
+  static function mindevents_checkbox_field($args) {
+
+    $html = '<input type="checkbox" class="' . $args['class'] . '" id="' . $args['field'] . '" name="mindevents_support_settings[' . $args['field'] . ']" ' . checked( 1, $args['checked'], false ) . '/>';
+    $html .= ($args['label'] ? '<label for="checkbox_example">' . $args['label'] . '</label>' : '');
+
+    echo $html;
+
+}
 
   static function mindevents_setting_field($args) {
     echo '<input type="' . $args['type'] . '" class="' . $args['class'] . '" id="' . $args['field'] . '" name="mindevents_support_settings[' . $args['field'] . ']" value="' . $args['value'] . '">';
@@ -134,7 +161,7 @@ class mindEventsOptions {
   }
 
 
-  static function mindevents_support_settings_section_callback() {
+  static function mindevents_support_settings_section_callback($section) {
     echo '';
   }
 

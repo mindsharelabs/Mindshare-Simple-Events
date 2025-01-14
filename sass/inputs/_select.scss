@@ -1,3 +1,6 @@
+
+
+
 @mixin sassy-select {
   position: relative;
   color: inherit;
@@ -5,9 +8,8 @@
   &::after {
     content: '\25BE';
     position: absolute;
-    top: rem(10);
-    right: rem(15);
-    color: $primary; 
+    top: 10px;
+    right: 15px;
     pointer-events: none;
   }
 
@@ -17,43 +19,35 @@
   }
 
   select {
-    @include appearance-none;
-
-    height: rem(39);
+    height: 40px;
     width: 100%;
-    padding-left: rem(10);
-    margin-bottom: rem(10);
+    padding-left: 10px;
+    margin-bottom: 10px;
     font-family: inherit;
-    font-size: rem(14);
-
-    border: rem(1) solid lighten($primary, 10%);
-    border-radius: rem(3);
+    font-size: 14px; 
+    border: 1px solid rgb(67, 160, 217);
+    border-radius: 3px;
     outline: none;
 
     background-color: white;
 
-    &:focus {
-      border-color: $secondary;
-    }
 
     &:disabled {
-      background-color: $info;
+      background-color: rgb(225, 233, 214); 
       cursor: not-allowed;
     }
   }
 }
 
 @mixin sassy-select-multiple {
-  @include appearance-none;
-
   width: 100%;
-  padding: 0 rem(10);
-  margin-bottom: rem(10);
+  padding: 0 10px;
+  margin-bottom: 10px;
   font-family: inherit;
-  font-size: rem(14);
+  font-size: 14px;
 
-  border: rem(1) solid lighten($primary, 10%);
-  border-radius: rem(3);
+  border: 1px solid lighten($primary, 10%);
+  border-radius: 3px;
   outline: none;
 
   background-color: white;

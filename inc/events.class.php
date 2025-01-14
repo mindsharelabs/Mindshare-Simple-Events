@@ -62,8 +62,8 @@ class mindEventCalendar {
     $this->next_month = $date->format('m');
 
     $this->currency_symbol = (isset($this->options['mindevents_currency_symbol']) ? $this->options['mindevents_currency_symbol'] : '$');
-
     $this->calendar_start_day = (isset($this->options['mindevents_start_day']) ? $this->options['mindevents_start_day'] : 'Monday');
+
 
   }
   private function define( $name, $value ) {
@@ -355,52 +355,52 @@ class mindEventCalendar {
   }
 
 
-    public function get_all_events($args = array()) {
+  public function get_all_events($args = array()) {
 
-      $defaults = array(
-        'meta_query' => array(
-          // 'relation' => 'AND',
-          'start_clause' => array(
-            'key' => 'starttime',
-            'compare' => 'EXISTS',
-          ),
-          'date_clause' => array(
-            'key' => 'event_date',
-            'compare' => 'EXISTS',
-          ),
+    $defaults = array(
+      'meta_query' => array(
+        // 'relation' => 'AND',
+        'start_clause' => array(
+          'key' => 'starttime',
+          'compare' => 'EXISTS',
         ),
-        'orderby' => 'meta_value',
-        'meta_key' => 'event_time_stamp',
-        'meta_type' => 'DATETIME',
+        'date_clause' => array(
+          'key' => 'event_date',
+          'compare' => 'EXISTS',
+        ),
+      ),
+      'orderby' => 'meta_value',
+      'meta_key' => 'event_time_stamp',
+      'meta_type' => 'DATETIME',
 
-        'order'            => 'ASC',
-        'post_type'        => 'sub_event',
-        'suppress_filters' => true,
-        'posts_per_page'   => -1
+      'order'            => 'ASC',
+      'post_type'        => 'sub_event',
+      'suppress_filters' => true,
+      'posts_per_page'   => -1
+    );
+    if($this->show_past_events == false) {
+      $args['meta_query'][] = array(
+        'key' => 'event_time_stamp', // Check the start date field
+        'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
+        'compare' => '>=', // Return the ones greater than today's date
+        'type' => 'DATETIME' // Let WordPress know we're working with date
       );
-      if($this->show_past_events == false) {
-        $args['meta_query'][] = array(
-          'key' => 'event_time_stamp', // Check the start date field
-          'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
-          'compare' => '>=', // Return the ones greater than today's date
-          'type' => 'DATETIME' // Let WordPress know we're working with date
-        );
-      }
-
-      if($this->event_categories) {
-        $args['tax_query'] = array(
-          array(
-            'taxonomy' => 'event_category',
-            'field'    => 'slug',
-            'terms'    => $this->event_categories,
-          ),
-        );
-      }
-
-      $args = wp_parse_args($args, $defaults);
-      return get_posts($args);
-
     }
+
+    if($this->event_categories) {
+      $args['tax_query'] = array(
+        array(
+          'taxonomy' => 'event_category',
+          'field'    => 'slug',
+          'terms'    => $this->event_categories,
+        ),
+      );
+    }
+
+    $args = wp_parse_args($args, $defaults);
+    return get_posts($args);
+
+  }
 
   public function get_sub_events($args = array()) {
     $defaults = array(
@@ -578,14 +578,7 @@ class mindEventCalendar {
           $offers = unserialize($meta['offers'][0]);
           $html .= '<div class="offers meta_item">';
           foreach ($offers as $key => $offer) :
-
-              $html .= '<div class="cost">';
-                $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
-                $html .= '<span class="value eventcost"><a href="' . $offer['link'] . '" target="_blank">';
-                $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
-                $html .= '</a></span>';
-              $html .= '</div>';
-
+            $html .= $this->build_offer_link($offer);
           endforeach;
           $html .= '</div>';
         endif;
@@ -597,11 +590,52 @@ class mindEventCalendar {
   }
 
 
+  private function build_offer_link($offer) {
+
+    $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
+    $options = get_option( 'mindevents_support_settings' );
+    $html = '<div class="meta-item">';
+        $html .= '<div class="offer-link">';
+          $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
+    
+    
+          if($options['mindevents_enable_woocommerce']) :
+            $html .= '<button 
+              data-product_id="' . $offer['product_id'] . '"
+              data-variation_id="' . $offer['variation_id'] . '"
+              data-quantity="' . $offer['quantity'] . '"
+              data-event_date="' . $offer['event_date'] . '"
+              class="button mindevents-add-to-cart" 
+              style="' . $style_str . '"
+              >';
+              $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
+            $html .= '</button>';
+
+          else :
+            
+            $html .= '<a href="' . $offer['link'] . '" class="button" target="_blank" style="' . $style_str . '">';
+              $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
+            $html .= '</a>';
+              
+          endif;
+          $html .= '</div>';
+        $html .= '</div>';
+    return $html;
+  }
+
+
+
+
+
+  private function get_variation_sku_from_date($eventID, $start_date) {
+    return sanitize_title($eventID . '_' . $start_date);
+  }
+
   public function get_cal_meta_html($event = '') {
     $meta = get_post_meta($event);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
-
+    
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -641,7 +675,8 @@ class mindEventCalendar {
           endif;
 
           $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
-          if(!is_singular('events')) :
+          
+          if(is_post_type_archive('events')) :
             $html .= '<div class="meta-item">';
               $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
             $html .= '</div>';
@@ -649,23 +684,53 @@ class mindEventCalendar {
 
         $html .= '</div>';
 
-        if($meta['offers']) :
-          $offers = unserialize ($meta['offers'][0]);
-          $html .= '<div class="right-content">';
+        mapi_write_log($meta);
+        if($meta['wooLinkedProduct'][0]) :
+          
+            $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+            $variation_sku = $this->get_variation_sku_from_date($event, $event_start_date->format('D, M d Y @ H:i'));
+            $variation_id = wc_get_product_id_by_sku( $variation_sku);
+            $variation = wc_get_product_object( 'variation', $variation_id );
 
-            $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
-            $html .= '<div class="meta-item">';
+            
+            if($variation) :
+              $html .= '<div class="right-content">';
+                $html .= $this->build_offer_link(array(
+                    'label' => $meta['wooLabel'][0],
+                    'price' => $variation->get_price(),
+                    'link' => $variation->get_permalink(), 
+                    'background' => $meta['eventColor'][0],
+                    'color' => $this->getContrastColor($meta['eventColor'][0]),
+                    'product_id' => $meta['wooLinkedProduct'][0],
+                    'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                    'variation_id' => $variation_id,
+                    'quantity' => 1
+                  ));
+              $html .= '</div>';
+            endif;
 
-              foreach ($offers as $key => $offer) :
-                $html .= '<span class="value eventlink">';
-                  $html .= '<span style="' . implode(' ', $style_str) . '" class="price">' . $offer['price'] . '</span>';
-                  $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . $offer['link'] . '" target="_blank">' . $offer['label'] . '</a>';
-                $html .= '</span>';
+
+        elseif($meta['offers']) :
+            $offers = unserialize ($meta['offers'][0]);
+            $html .= '<div class="right-content">';
+            
+             foreach ($offers as $key => $offer) :
+                $offer['background'] = $meta['eventColor'][0];
+                $offer['color'] = $this->getContrastColor($meta['eventColor'][0]);
+                $html .= $this->build_offer_link($offer);
               endforeach;
-
             $html .= '</div>';
-          $html .= '</div>';
         endif;
+
+
+
+        
+
+
+
+
+
+
 
       $html .= '</div>';
     endif;
@@ -729,6 +794,8 @@ class mindEventCalendar {
   public function add_sub_event($date, $meta, $eventID, $args = array()) {
     $unique = $this->build_unique_key($eventID, $date, $meta);
     $return = array();
+
+    //check to see if the event already exists
     $args = array(
       'fields' => 'ids',
       'post_type'   => 'sub_event',
@@ -740,9 +807,9 @@ class mindEventCalendar {
         )
       )
     );
-
-
     $check_query = new WP_Query( $args );
+
+    //if it doesnt exist, add it
     if( empty($check_query->have_posts()) ) :
       $terms = wp_get_post_terms( $eventID, 'event_category',  array('fields' => 'ids'));
       $meta['event_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['starttime']) );
@@ -750,6 +817,11 @@ class mindEventCalendar {
       $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($date . ' ' . $meta['endtime']) );
       $meta['unique_event_key'] = $unique;
       $meta['event_date'] = $date;
+
+      // $meta['linked_product'] = $meta['linked_product'];
+
+      do_action('mindevents_before_add_sub_event', $eventID, $meta);
+      
       $defaults = array(
         'post_author'           => get_current_user_id(),
         'post_content'          => '',
@@ -766,6 +838,7 @@ class mindEventCalendar {
       );
       $args = wp_parse_args($args, $defaults);
       $return = wp_insert_post($args);
+      do_action('mindevents_after_add_sub_event', $eventID, $return, $meta);
       else :
         $return = false;
       endif;
@@ -789,7 +862,9 @@ class mindEventCalendar {
       $sub_events = $this->get_sub_events();
       if (is_array($sub_events) && count($sub_events) > 0) {
         foreach($sub_events as $event){
+          do_action('mindevents_before_delete_sub_event', $event->ID);
           $return = wp_delete_post($event->ID);
+          do_action('mindevents_after_delete_sub_event', $event->ID);
         }
         return true;
       }

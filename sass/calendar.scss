@@ -1,3 +1,5 @@
+@use "sass:color";
+@use 'utilities' as *; 
 #ui-datepicker-div {
   background: #fff;
   padding: 5px;
@@ -12,17 +14,20 @@
     font-size: 14px;
     line-height: 24px;
     cursor: pointer;
-    border: 1px solid darken($primary, 10%);
+    border: 1px solid color.adjust(rgb(67, 160, 217), $lightness: -10%);
     padding: 5px 7px;
     border-radius: 0;
     color: #fff;
-    background: $primary;
+    background: rgb(67, 160, 217);
     margin-bottom: -10px;
     &:hover {
-      background: darken($primary, 10%);
-    }
+      background: color.adjust(rgb(67, 160, 217), $lightness: -10%)
+    } 
   }
 }
+
+
+
 
 #eventsCalendar {
   display: flex;
@@ -37,15 +42,15 @@
   	font-family: monospace;
   	width: 100%;
     thead {
-      border: 1px solid $secondary;
+      border: 1px solid rgb(217, 67, 160);
     }
   	th {
-  		background: $light;
-  		color: $dark;
+  		background: rgba(220,220,220, 1); 
+  		color: rgb(35, 31, 32); 
   		font-size: 1.3em;
   		padding: 5px;
-      border-color: $secondary;
-  		border-bottom: 1px solid $secondary;
+      border-color: rgb(217, 67, 160); 
+  		border-bottom: 1px solid rgb(217, 67, 160);
   	}
 
   	tbody {
@@ -53,7 +58,7 @@
         border: none;
       }
   		td {
-        width: (100% / 7) !important;
+        width: (calc(100% / 7)) !important;
         vertical-align: top;
   			border: 1px solid rgba(200, 200, 200, .3);
   			background: rgb(250, 250, 250);
@@ -73,13 +78,13 @@
             width: 100%;
           }
           &.selected {
-            background: lighten($success, 40%);
+            background: color.adjust($success, $lightness: 40%);
           }
           &.whoops {
-            background: lighten($danger, 40%);
+            background: color.adjust($danger, $lightness: 40%);
           }
           &:hover {
-            background: lighten($success, 50%);
+            background: color.adjust($success, $lightness: 50%);
           }
   			}
         &.today {
@@ -160,9 +165,9 @@
             margin: 0 auto;
             display: block;
             background-color: $danger;
-            border-color: darken($danger, 20%);
+            border-color: color.adjust($danger, $lightness: -20%);
             &:hover {
-              background-color: darken($danger, 20%);
+              background-color: color.adjust($danger, $lightness: -20%);;
             }
           }
         }
@@ -180,7 +185,7 @@
           margin: 0 auto;
           display: block;
           background-color: $danger;
-          border-color: darken($danger, 20%);
+          border-color: color.adjust($danger, $lightness: -20%);
         }
       }
     }
@@ -206,7 +211,7 @@
     table-layout: fixed;
   	th {
   		background: rgba(255,255,255,.7);
-  		color: $dark;
+  		color: rgb(35, 31, 32); 
       text-align: center;
   		font-size: 1.1em;
   		padding: 5px;
@@ -218,7 +223,7 @@
 
       }
   		td {
-        width: (100% / 7) !important;
+        width: (calc(100% / 7)) !important;
         vertical-align: top;
   			border: 1px solid rgba(200, 200, 200, .2);
   			background: rgba(255,255,255,.4);
@@ -234,9 +239,11 @@
 
   			}
         &.today {
-          background: lighten($primary, 40%);
+          background: color.adjust($primary, $lightness: 40%);
+          // background: color.adjust($primary, $lightness: 40%);
+          
           time {
-            background: lighten($primary, 40%);
+            background: color.adjust($primary, $lightness: 40%);
           }
         }
   			&.SCsuffix, &.SCprefix {
@@ -321,42 +328,20 @@
       justify-content: space-around;
     }
     .meta-item {
-      span {
-        display: block;
-        &.label {
-          text-transform: uppercase;
-          font-weight: bold;
-          font-size: .7em;
-          opacity: .8;
-        }
-        &.value {
-          margin-bottom: 10px;
-          &.eventlink {
-            text-align: right;
-            display: flex;
-            flex-direction: row;
-            .price {
-              padding: 6px;
-              font-family: monospace;
-              white-space: nowrap;
-            }
-          }
-          &.eventdescription {
-            font-size: .9em;
-            line-height: 1.4em;
-            padding-right: 10px;
+      .offer-link {
+        span {
+          display: inline-block;
+          &.label {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: .7em;
           }
         }
-      }
-      &.offers {
-        display: flex;
-        flex-wrap: wrap;
-        max-width: 30%;
-        .cost {
-          margin-top: 5px;
-
+        a, button {
+          @include button-link;
         }
       }
+      
     }
   }
 }
@@ -415,7 +400,7 @@
   .list_day_container {
     flex-basis: 100%;
     padding: 10px 0;
-    border-bottom: 1px solid $light;
+    border-bottom: 1px solid rgba(220,220,220, 1); 
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -476,3 +461,4 @@
     }
   }
 }
+

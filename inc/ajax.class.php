@@ -34,6 +34,11 @@ class mindEventsAjax {
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
 
+
+
+    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
+
   }
   private function define( $name, $value ) {
     if ( ! defined( $name ) ) {
@@ -41,7 +46,7 @@ class mindEventsAjax {
     }
   }
 
-  static function get_event_meta_html() {
+  public function get_event_meta_html() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
       $id = $_POST['eventid'];
       $event = new mindEventCalendar();
@@ -57,7 +62,7 @@ class mindEventsAjax {
 
 
 
-  static function deleteevent() {
+  public function deleteevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'deleteevent'){
       $eventID = $_POST['eventid'];
       wp_delete_post($eventID);
@@ -76,21 +81,19 @@ class mindEventsAjax {
 
 
 
-  static function selectday() {
+  public function selectday() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'selectday'){
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
 
-      $ajaxHandler = new mindEventsAjax();
-      $meta = $ajaxHandler->reArrayMeta($_POST['meta']['event']);
-
+      $meta = $this->reArrayMeta($_POST['meta']['event']);
       $event = new mindEventCalendar($eventID);
 
       $added_events = array();
       $errors = array();
-      $html = '';
 
+      
       $added_event_id = $event->add_sub_event($date, $meta, $eventID);
 
       if($added_event_id == false) :
@@ -101,15 +104,17 @@ class mindEventsAjax {
         $added_events[] = $added_event_id;
 
         $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
-          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $ajaxHandler->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
+          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';
           if(is_admin()) :
             $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
           endif;
         $insideHTML .= '</div>';
-
       endif;
+
+
+      do_action('mindreturns_after_sub_event_added', $added_event_id, $eventID, $meta);
 
       $return = array(
         'html' => $insideHTML,
@@ -121,7 +126,7 @@ class mindEventsAjax {
     }
   }
 
-  static function clearevents() {
+  public function clearevents() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'clearevents'){
       $eventID = $_POST['eventid'];
       $event = new mindEventCalendar($eventID);
@@ -135,7 +140,7 @@ class mindEventsAjax {
   }
 
 
-  static function move_pub_calendar() {
+  public function move_pub_calendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'move_pub_calendar'){
       $direction = $_POST['direction'];
       $month = $_POST['month'];
@@ -188,6 +193,10 @@ class mindEventsAjax {
 
     $meta['offers'] = array();
 
+    $meta = array_merge($meta, $metaStart);
+    
+    
+
     if(isset($metaStart['event'])) :
       foreach ($metaStart['event']['offerlabel'] as $key => $label) :
         $meta['offers'][$key]['label'] = $label;
@@ -200,6 +209,10 @@ class mindEventsAjax {
       foreach ($metaStart['event']['offerlink'] as $key => $link) :
         $meta['offers'][$key]['link'] = $link;
       endforeach;
+    elseif($metaStart['wooLinked']) :
+      $meta['offers'][0]['label'] = (isset($meta['wooLabel']) ? $meta['wooLabel'] : 'Get Tickets');
+      $meta['offers'][0]['link'] = get_permalink($meta['wooLinkedProduct']);
+      $meta['offers'][0]['price'] = ($metaStart['wooPrice'] ? $meta['wooPrice'] : '');
     else :
       foreach ($metaStart['offerlabel'] as $key => $label) :
         $meta['offers'][$key]['label'] = $label;
@@ -218,7 +231,7 @@ class mindEventsAjax {
   }
 
 
-  static function updatesubevent() {
+  public function updatesubevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'updatesubevent'){
 
       $id = $_POST['eventid'];
@@ -233,7 +246,7 @@ class mindEventsAjax {
     wp_send_json_error();
   }
 
-  static function movecalendar() {
+  public function movecalendar() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'movecalendar'){
       $direction = $_POST['direction'];
       $month = $_POST['month'];
@@ -261,11 +274,35 @@ class mindEventsAjax {
 
   }
 
+  public function add_woo_product_to_cart() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'add_woo_product_to_cart'){
+      $product_id = $_POST['product_id'];
+      $variation_id = $_POST['variation_id'];
+      $quantity = $_POST['quantity'];
+      $event_date = $_POST['event_date'];
+
+      $success = false;
+
+      $variation = array(
+        'attribute_event-date' => $event_date,
+      );
+
+      if($product_id && $quantity && $variation_id) :
+        $success = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation);
+        $return['cart_url'] = wc_get_cart_url();
+        $return['cart_count'] = WC()->cart->get_cart_contents_count();
+      endif;
+
+      if($success) :
+        wp_send_json_success($return);
+      else :
+        wp_send_json_error();
+      endif;
+    }
+  }
 
 
-
-
-  static function editevent() {
+  public function editevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'editevent'){
       $eventID = $_POST['eventid'];
       $return = array(
@@ -358,7 +395,6 @@ class mindEventsAjax {
           $html .= '<button
             class="edit-button update-event"
             data-subid="' . $sub_event_id . '"
-
             >Update Occurance</button>';
         $html .= '</div>';
 

@@ -26,15 +26,21 @@ class mindEvents {
     $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
 
 
+    $this->options = get_option( 'mindevents_support_settings' );
+    $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
+
+
     $this->includes();
 
     $mobile = new Mobile_Detect();
-    add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
 
+    add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
 
-    add_action ('save_post', array($this, 'add_post_meta'), 100, 2);
-    add_action ('save_post', array($this, 'sync_sub_event_tax'), 100, 2);
+    add_action ('save_post_events', array($this, 'add_post_meta'), 1, 2);
+
+
+    add_action ('save_post_events', array($this, 'sync_sub_event_tax'), 100, 2);
 
     // do_action( 'delete_post', array($this, 'delete_sub_events'), 100, 2);
     add_action( 'transition_post_status', array($this, 'transition_sub_events'), 100, 3 );
@@ -43,9 +49,7 @@ class mindEvents {
     add_action ('wp_head', array($this, 'generate_schema'));
 
     $this->define( 'MINDRETURNS_IS_MOBILE', $mobile->isMobile() );
-    $this->options = get_option( 'mindevents_support_settings' );
-    $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
-
+    
 	}
   public static function get_instance() {
     if ( null === self::$instance ) {
@@ -60,14 +64,19 @@ class mindEvents {
   }
   private function includes() {
     //General
-    include_once MINDEVENTS_ABSPATH . 'inc/mobile-detect.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/events.class.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/options.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/admin.class.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/posttypes.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/shortcodes.class.php';
-    include_once MINDEVENTS_ABSPATH . 'inc/front-end.php';
+    include MINDEVENTS_ABSPATH . 'inc/mobile-detect.php';
+    include MINDEVENTS_ABSPATH . 'inc/events.class.php';
+    include MINDEVENTS_ABSPATH . 'inc/options.php';
+    include MINDEVENTS_ABSPATH . 'inc/admin.class.php';
+    include MINDEVENTS_ABSPATH . 'inc/posttypes.php';
+    include MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
+    include MINDEVENTS_ABSPATH . 'inc/front-end.php';
+
+    if($this->options['mindevents_enable_woocommerce']) :
+      include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
+    endif;
+
+
   }
 
   public function enque_front_scripts_and_styles() {
@@ -132,6 +141,8 @@ class mindEvents {
         endforeach;
       endif;
     endif;
+
+    //TODO: transition product status as well
   }
 
   static function sync_sub_event_tax($id, $object) {
@@ -205,6 +216,5 @@ class mindEvents {
 
 
 }//end of class
-
 
 new mindEvents();

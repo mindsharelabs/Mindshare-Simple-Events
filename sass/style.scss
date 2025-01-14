@@ -1,50 +1,23 @@
-$primary:       rgb(67, 160, 217);
-$secondary:     rgb(217, 67, 160);
-$tertiary:      rgb(160, 217, 67);
-$success:       $tertiary;
-$info:          rgb(225, 233, 214);
-$warning:       rgb(255, 205, 23);
-$danger:        rgba(201,73,73, 1);
-$light:         rgba(220,220,220, 1);
-$dark:          rgb(35, 31, 32);
-@mixin transition($speed) {
-  -webkit-transition: all $speed ease;
-  -moz-transition: all $speed ease;
-  -ms-transition: all $speed ease;
-  -o-transition: all $speed ease;
-  transition: all $speed ease;
-}
-@mixin button-link {
-  border: 1px solid #fff;
-  border-left: 5px solid #fff;
-  padding: 6px 8px;
-  margin-bottom: 4px;
-  font-size: .9em;
-  font-weight: bold;
-  color: #fff;
-  white-space: nowrap;
-  @include transition(300ms);
-  &:hover {
-    border-left-width: 10px;
-    background-color: rgba(255,255,255,.6);
-    @include transition(100ms);
-  }
-}
 
-@import 'loading';
-@import 'forms-main';
-@import 'calendar';
+@use "sass:color";
+@use 'utilities' as *;  
+@use 'mobile' as *; 
+@use 'loading' as *;
+@use 'forms-main' as *;
+@use 'calendar' as *;
+
+
 
 .mindevents_meta_box {
   a.button, button{
     cursor: pointer;
-    border: 1px solid darken($primary, 10%);
+    border: 1px solid color.adjust($primary, $lightness: -10%);
     padding: 5px 7px;
     border-radius: 0;
     color: #fff !important;
     background: $primary;
     &:hover {
-      background: darken($primary, 10%);
+      background: color.adjust($primary, $lightness: -10%);
     }
     &.clear-occurances {
       margin-top: 5px;
@@ -52,12 +25,12 @@ $dark:          rgb(35, 31, 32);
     &.button-danger {
       color: #fff;
       background: $danger;
-      border: darken($danger, 10%);
+      border: color.adjust($danger, $lightness: -10%)
     }
     &.add-event-occurrence {
       color: #fff;
       background: $secondary;
-      border: darken($secondary, 10%);
+      border: color.adjust($secondary, $lightness: -10%)
     }
     &.button-white {
       background: #fff;
@@ -75,7 +48,7 @@ $dark:          rgb(35, 31, 32);
 
     span {
       border: $danger;
-      background-color: lighten($danger, 35%);
+      background-color: color.adjust($danger, $lightness: 35%);
       margin: 5px 0;
       display: block;
       padding: 5px 7px;
@@ -119,7 +92,7 @@ $dark:          rgb(35, 31, 32);
   .event-times {
     margin-bottom: 20px;
     .time-block {
-      display: flex;
+      display: flex; 
       flex-direction: row;
       flex-wrap: wrap;
       margin-left: -10px;
@@ -158,4 +131,4 @@ $dark:          rgb(35, 31, 32);
 
   }
 }
-@import 'mobile';
+

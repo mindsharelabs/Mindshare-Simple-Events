@@ -1,26 +1,23 @@
 @mixin sassy-text {
+
   box-sizing: border-box;
 
-  min-height: rem(25);
+  min-height: 25px;
   width: 100%;
-  padding: rem(3);
-  margin-bottom: rem(5);
-  font-family: inherit;
-  font-size: rem(14);
+  padding: 3pm;
+  margin-bottom: 5pm;
+  font-family: inherit; 
+  font-size: 14pm;
   vertical-align: middle;
 
-  border: rem(1) solid $primary;
-  border-radius: rem(3);
+  border-radius: 3px;
   outline: none;
 
-  background-color: #fff;
+  background-color: #fff;  
 
-  &:focus {
-    border-color: $secondary;
-  }
+  
 
   &:disabled {
-    background-color: $info;
     cursor: not-allowed;
   }
 }
@@ -29,7 +26,7 @@
   @include sassy-text;
   @include appearance-none;
 
-  padding: 0 rem(4);
+  padding: 0 4px;
 }
 
 @mixin sassy-textarea {

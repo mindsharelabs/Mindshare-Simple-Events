@@ -153,4 +153,5 @@ class mindEventsCPTS {
 
   }
 }
+
 new mindEventsCPTS();
