@@ -6,6 +6,8 @@ class mindEventsWooCommerce {
     public function __construct() {
         add_action('woocommerce_init', array($this, 'add_event_options'));
         add_action('save_post_events', array($this, 'save_event_options'), 999, 3);
+        add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 1, 3);
+        
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
 
 
@@ -61,13 +63,16 @@ class mindEventsWooCommerce {
         $product_id = wc_get_product_id_by_sku($parent_product_sku);
 
         $sub_events = $this->get_sub_events($post_id);
+
+       
+
         if($sub_events) :
             $sub_event_data = array();
             foreach($sub_events as $sub_event) :
 
-
-                update_post_meta($sub_event->ID, 'wooLinkedProduct', $product_id);
-
+                
+                $meta = update_post_meta($sub_event->ID, 'wooLinkedProduct', $product_id);
+                
 
                 $meta = get_post_meta($sub_event->ID);
                 $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);

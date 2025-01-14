@@ -120,7 +120,7 @@
 			var quantity = $(this).data('quantity');
 			var variation_id = $(this).data('variation_id');
 			var event_date = $(this).data('event_date');
-			console.log(product_id);
+
 
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
@@ -143,8 +143,9 @@
 
 					if(response.success) {
 						button.prop('disabled', false);
-						button.html('+1');
+						button.html('Add +1');
 					} else {
+						console.log(response.data.errors);
 						button.html('Error!');
 						button.prop('disabled', false);
 					}

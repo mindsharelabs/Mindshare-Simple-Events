@@ -296,7 +296,8 @@ class mindEventsAjax {
       if($success) :
         wp_send_json_success($return);
       else :
-        wp_send_json_error();
+        $error_messages = wc_get_notices('error');
+        wp_send_json_error($error_messages);
       endif;
     }
   }

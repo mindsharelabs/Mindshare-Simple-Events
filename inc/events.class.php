@@ -635,7 +635,8 @@ class mindEventCalendar {
     $meta = get_post_meta($event);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
-    
+
+
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -681,10 +682,9 @@ class mindEventCalendar {
               $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
             $html .= '</div>';
           endif;
-
+          
         $html .= '</div>';
 
-        mapi_write_log($meta);
         if($meta['wooLinkedProduct'][0]) :
           
             $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
@@ -853,7 +853,7 @@ class mindEventCalendar {
     }
 
     private function build_title($parentID, $date = '', $times = '') {
-      $title = get_the_title($this->eventID) . ' | ' . $date . ' | ' . $times['starttime'] . '-' . $times['endtime'];
+      $title = get_the_title($parentID) . ' | ' . $date . ' | ' . $times['starttime'] . '-' . $times['endtime'];
       return apply_filters('mind_events_title', $title, $date, $times, $this);
     }
 
