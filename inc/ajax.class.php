@@ -65,7 +65,9 @@ class mindEventsAjax {
   public function deleteevent() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'deleteevent'){
       $eventID = $_POST['eventid'];
+      do_action('mindreturns_before_sub_event_deleted', $eventID);
       wp_delete_post($eventID);
+      do_action('mindreturns_after_sub_event_deleted', $eventID);
       wp_send_json_success();
     }
     wp_send_json_error();
