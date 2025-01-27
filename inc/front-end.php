@@ -62,9 +62,9 @@ add_action('mindevents_single_thumb', function ($id) {
 
 //
 add_action('mindevents_single_content', function ($id) {
-  echo '<div class="content-wrap"><p class="event-excerpt">';
+  echo '<div class="content-wrap">';
     the_excerpt();
-  echo '</p></div>';
+  echo '</div>';
 }, 10, 1);
 
 

@@ -136,20 +136,83 @@ class mindeventsAdmin {
   }
 
   static function display_attendees_metabox($post) {
-    $attendees = get_post_meta($post->ID, 'event_attendees', true);
+    $attendees = get_post_meta($post->ID, 'attendees', true);
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Attendees</h3>';
-      echo '<div class="attendee-list">';
+      
         if($attendees) :
-          echo '<ul>';
-          foreach($attendees as $attendee) :
-            echo '<li>' . $attendee['name'] . '</li>';
+          
+          $columns = apply_filters('mindevents_attendee_columns', array(
+            'order_id' => 'Order ID',
+            'user_id' => 'Attendee',
+            'product' => 'Product',
+            'check_in' => 'Check In',
+          ));
+
+          
+          foreach($attendees as $occurance_id => $tickets) :
+            $event_start_time_stamp = new DateTimeImmutable(get_post_meta($occurance_id, 'event_start_time_stamp', true));
+            echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
+            echo '<table class="attendee-list widefat fixed">';
+              echo '<tbody>';
+
+                echo '<tr>';
+                  foreach($columns as $key => $column) :
+                    echo '<th>' . $column . '</th>';
+                  endforeach;
+                echo '</tr>';
+
+
+
+                foreach($tickets as $ticket) :
+                  $ticket_data = apply_filters('mindevents_attendee_data', array(
+                    'order_id' => $ticket['order_id'],
+                    'user_id' => $ticket['user_id'],
+                    'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
+                    'checked_in' => $ticket['checked_in'],
+                  ));
+                  $user_info = get_userdata($ticket_data['user_id']);
+
+                  echo '<tr>';
+                   
+                    foreach($ticket_data as $key => $value) :
+
+                      if($key == 'user_id') :
+                        $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
+                      elseif($key == 'product') :
+                        $product = wc_get_product($value);
+                        $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
+                      elseif($key == 'checked_in') :
+                        if($value) : //if is true
+                          $value = '<button class="check-in" data-occurance="' . $occurance_id . '" data-user="' . $ticket_data['user_id'] . '">Undo Check In</button>';
+                        else :
+                          $value = '<button class="check-in" data-occurance="' . $occurance_id . '" data-user="' . $ticket_data['user_id'] . '">Check In</button>';
+                        endif;
+                      elseif($key == 'order_id') :
+                        $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
+                      
+                      endif;
+
+
+                      echo '<td>' . apply_filters('mindevents_attendee_value', $value) . '</td>';
+
+                    endforeach;
+                    
+                    
+                    
+                  echo '</tr>';
+                endforeach;
+
+
+
+              echo '</tbody>';
+            echo '</table>';
           endforeach;
-          echo '</ul>';
+          
         else :
           echo '<p>No attendees yet.</p>';
         endif;
-      echo '</div>';
+      
     echo '</div>';
   }
 

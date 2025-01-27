@@ -321,7 +321,6 @@ class mindEventsAjax {
 
   private function get_meta_form($sub_event_id, $parentID) {
     $values = get_post_meta($sub_event_id);
-    $offers = unserialize($values['offers'][0]);
     $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
@@ -351,47 +350,6 @@ class mindEventsAjax {
         $html .= '</div>';
 
 
-        if($offers) :
-          foreach ($offers as $key => $offer) :
-            $html .= '<div class="offer-options" id="editOffers_' . $key .'">';
-
-              $html .='<div class="single-offer">';
-                $html .='<div class="form-section">';
-                  $html .='<p class="label"><label for="eventLinkLabel_' . $key .'">Ticket Label</label></p>';
-                  $html .='<input type="text" name="event[offerlabel][]" id="eventLinkLabel_' . $key .'" value="' . (isset($offer['label']) ? $offer['label'] : 'General Admission') . '" placeholder="">';
-                $html .='</div>';
-
-                $html .='<div class="form-section">';
-                  $html .='<p class="label"><label for="eventCost_' . $key .'">Price</label></p>';
-                  $html .='<input type="text" name="event[offerprice][]" id="eventCost_' . $key .'" value="' . (isset($offer['price']) ? $offer['price'] : '') . '" placeholder="">';
-                $html .='</div>';
-
-                $html .='<div class="form-section">';
-                  $html .='<p class="label"><label for="eventLink_' . $key .'">Link</label></p>';
-                  $html .='<input type="text" name="event[offerlink][]" id="eventLink_' . $key .'" value="' . (isset($offer['link']) ? $offer['link'] : '') . '" placeholder="">';
-                $html .='</div>';
-
-
-                if($key == 0) :
-                  $html .='<div class="add-offer-edit" data-key="' . $key . '">';
-                    $html .='<span>+</span>';
-                  $html .='</div>';
-                else :
-                  $html .='<div class="remove-offer" data-key="' . $key . '">';
-                    $html .='<span>-</span>';
-                  $html .='</div>';
-                endif;
-
-              $html .='</div>';
-
-
-            $html .= '</div>';
-
-
-
-
-          endforeach;
-        endif;
 
         $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';
         $html .= '<input type="hidden" name="event_date" value="' . $values['event_date'][0] . '">';

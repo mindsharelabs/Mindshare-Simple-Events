@@ -15,7 +15,7 @@ class mindEventsWooCommerce {
 
 
         //attendee management
-        add_action('woocommerce_checkout_order_created', array($this, 'add_attendee'), 10, 2);
+        add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
 
 
     }
@@ -24,6 +24,67 @@ class mindEventsWooCommerce {
         
     }
 
+    public function order_status_change($order, $from, $to) {
+        mapi_write_log('Order status changed from ' . $from . ' to ' . $to);
+        if($to == 'refunded' || $to == 'cancelled' || $to == 'failed' || $to == 'on-hold') :
+            $this->remove_attendee($order);
+        endif;
+
+        if($to == 'completed') :
+            $this->add_attendee($order);
+        endif;
+
+    }
+    private function add_attendee($order_id) { 
+        $order = wc_get_order( $order_id );
+        if($order->get_items()) :
+            foreach($order->get_items() as $line_item) :
+                $product_id = $line_item->get_product_id();
+                $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
+                $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
+
+                if($get_linked_event && $get_linked_occurance) :
+                    $quantity = $line_item->get_quantity();
+
+                    $attendees = get_post_meta($get_linked_event, 'attendees', true);
+                    if(!$attendees) :
+                        $attendees = array();
+                    endif;
+
+                    for($i = 0; $i < $quantity; $i++) :
+                        $attendees[$get_linked_occurance][] = array(
+                            'order_id' => $order->get_id(),
+                            'user_id' => $order->get_user_id(),
+                            'checked_in' => false,
+                        );
+                    endfor;
+
+                   
+                    update_post_meta($get_linked_event, 'attendees', $attendees);
+                endif;
+
+                
+            
+            endforeach;
+        endif;
+    }
+
+    private function remove_attendee($order) {
+        if($order->get_items()) :
+            foreach($order->get_items() as $line_item) :
+                $product_id = $line_item->get_product_id();
+                $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
+                if($get_linked_event) :
+                    $attendees = get_post_meta($get_linked_event, 'attendees', true);
+                    if(!$attendees) :
+                        $attendees = array();
+                    endif;
+                    unset($attendees[$order->get_user_id()]);
+                    update_post_meta($get_linked_event, 'attendees', $attendees);
+                endif;
+            endforeach;
+        endif;
+    }
 
     public function save_event_options($post_id, $post, $update) {
         if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
@@ -113,6 +174,8 @@ class mindEventsWooCommerce {
                
                 //Add event ID to event product meta
                 update_post_meta($product_id, 'wooLinkedEvent', $post_id);
+                update_post_meta($product_id, 'wooLinkedOccurance', $sub_event->ID);
+                update_post_meta($product_id, '_has_event', true);
 
             endforeach;
         endif;
