@@ -279,7 +279,6 @@ class mindEventsAjax {
   public function add_woo_product_to_cart() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'add_woo_product_to_cart'){
       $product_id = $_POST['product_id'];
-      $variation_id = $_POST['variation_id'];
       $quantity = $_POST['quantity'];
       $event_date = $_POST['event_date'];
 
@@ -289,16 +288,19 @@ class mindEventsAjax {
         'attribute_event-date' => $event_date,
       );
 
-      if($product_id && $quantity && $variation_id) :
-        $success = WC()->cart->add_to_cart($product_id, $quantity, $variation_id, $variation);
+      if($product_id && $quantity) :
+        $success = WC()->cart->add_to_cart($product_id, $quantity);
         $return['cart_url'] = wc_get_cart_url();
         $return['cart_count'] = WC()->cart->get_cart_contents_count();
-      endif;
+      endif; 
+
+      mapi_write_log($success);
 
       if($success) :
         wp_send_json_success($return);
       else :
         $error_messages = wc_get_notices('error');
+        mapi_write_log($error_messages);
         wp_send_json_error($error_messages);
       endif;
     }

@@ -263,12 +263,12 @@
               cursor: pointer;
               font-size: 13px;
               padding: 4px;
-              line-height: 1em;
+              line-height: 1.15em;
               background: #858585;
               color: #fff;
-              white-space: nowrap;
+              // white-space: nowrap;
               display: block;
-              height: 23px;
+              // height: 23px;
               max-width: 100%;
               &:hover {
                 @include transition(100ms);

@@ -14,6 +14,9 @@ class mindEventsWooCommerce {
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
 
 
+        //attendee management
+        add_action('woocommerce_checkout_order_created', array($this, 'add_attendee'), 10, 2);
+
 
     }
 

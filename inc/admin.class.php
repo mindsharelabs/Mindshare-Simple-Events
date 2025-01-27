@@ -47,16 +47,14 @@ class mindeventsAdmin {
   	);
 
 
-    // if($options['mindevents_enable_woocommerce'] == true && class_exists('woocommerce')) :
-    //   add_meta_box(
-    // 		'mindevents_woo_options',
-    // 		'WooCommerce Options',
-    // 		array('mindeventsAdmin', 'display_woo_options_metabox' ),
-    // 		'events',
-    // 		'side',
-    // 		'default'
-    // 	);
-    // endif;
+    add_meta_box(
+  		'mindevents_attendees',
+  		'Event Attendees',
+  		array('mindeventsAdmin', 'display_attendees_metabox' ),
+  		'events',
+  		'normal',
+  		'default'
+  	);
 
 
   }
@@ -137,25 +135,26 @@ class mindeventsAdmin {
     echo '</div>';
   }
 
-  static function display_woo_options_metabox() {
-    wp_nonce_field( basename( __FILE__ ), 'mindevents_event_meta_nonce' );
+  static function display_attendees_metabox($post) {
+    $attendees = get_post_meta($post->ID, 'event_attendees', true);
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
-      
-
-      echo '<div class="form-section">';
-        echo '<p class="label">';
-          echo '<input type="checkbox" name="woo_create_variations" id="woo_create_variations" value="1" ' . checked(get_post_meta(get_the_ID(), 'woo_create_variations', true), '1', false) . '>';
-          echo '<label for="woo_create_variations">Create Product Variation for Each event Occurance?</label>';
-        echo '</p>';
+      echo '<h3>Attendees</h3>';
+      echo '<div class="attendee-list">';
+        if($attendees) :
+          echo '<ul>';
+          foreach($attendees as $attendee) :
+            echo '<li>' . $attendee['name'] . '</li>';
+          endforeach;
+          echo '</ul>';
+        else :
+          echo '<p>No attendees yet.</p>';
+        endif;
       echo '</div>';
-
-
     echo '</div>';
-
   }
 
 
-
+  
   private function get_time_form() {
     $defaults = get_post_meta(get_the_ID(), 'event_defaults', true);
     $options = get_option( 'mindevents_support_settings' );

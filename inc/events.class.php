@@ -472,9 +472,9 @@ class mindEventCalendar {
           $color = '#858585';
         }
 
-        if (strlen($label) > 15) :
-          $label = substr($label, 0, 12) . '...';
-        endif;
+        // if (strlen($label) > 15) :
+        //   $label = substr($label, 0, 12) . '...';
+        // endif;
 
 
         $text_color = $this->getContrastColor($color);
@@ -592,6 +592,10 @@ class mindEventCalendar {
 
   private function build_offer_link($offer) {
 
+    if(!$offer['label']) :
+      $offer['label'] = 'Attend Event';
+    endif;
+
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
     $options = get_option( 'mindevents_support_settings' );
     $html = '<div class="meta-item">';
@@ -602,7 +606,6 @@ class mindEventCalendar {
           if($options['mindevents_enable_woocommerce']) :
             $html .= '<button 
               data-product_id="' . $offer['product_id'] . '"
-              data-variation_id="' . $offer['variation_id'] . '"
               data-quantity="' . $offer['quantity'] . '"
               data-event_date="' . $offer['event_date'] . '"
               class="button mindevents-add-to-cart" 
@@ -686,24 +689,21 @@ class mindEventCalendar {
         $html .= '</div>';
 
         if($meta['wooLinkedProduct'][0]) :
-          
+      
             $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-            $variation_sku = $this->get_variation_sku_from_date($event, $event_start_date->format('D, M d Y @ H:i'));
-            $variation_id = wc_get_product_id_by_sku( $variation_sku);
-            $variation = wc_get_product_object( 'variation', $variation_id );
+            $product = wc_get_product_object( 'simple', $meta['wooLinkedProduct'][0] );
 
             
-            if($variation) :
+            if($product) :
               $html .= '<div class="right-content">';
                 $html .= $this->build_offer_link(array(
                     'label' => $meta['wooLabel'][0],
-                    'price' => $variation->get_price(),
-                    'link' => $variation->get_permalink(), 
+                    'price' => $product->get_price(),
+                    'link' => $product->get_permalink(), 
                     'background' => $meta['eventColor'][0],
                     'color' => $this->getContrastColor($meta['eventColor'][0]),
                     'product_id' => $meta['wooLinkedProduct'][0],
                     'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-                    'variation_id' => $variation_id,
                     'quantity' => 1
                   ));
               $html .= '</div>';

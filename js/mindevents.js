@@ -118,7 +118,6 @@
 			var button = $(this);
 			var product_id = $(this).data('product_id');
 			var quantity = $(this).data('quantity');
-			var variation_id = $(this).data('variation_id');
 			var event_date = $(this).data('event_date');
 
 
@@ -129,7 +128,6 @@
 					action : 'mindevents_add_woo_product_to_cart',
 					product_id : product_id,
 					quantity : quantity,
-					variation_id : variation_id,
 					event_date : event_date
 				},
 				beforeSend: function() {
