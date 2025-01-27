@@ -69,17 +69,26 @@ class mindEventsWooCommerce {
         endif;
     }
 
-    private function remove_attendee($order) {
+    private function remove_attendee($order_id) {
+        $order = wc_get_order( $order_id );
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
                 $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
-                if($get_linked_event) :
+                $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
+                if($get_linked_event && $get_linked_occurance) :
                     $attendees = get_post_meta($get_linked_event, 'attendees', true);
                     if(!$attendees) :
                         $attendees = array();
                     endif;
-                    unset($attendees[$order->get_user_id()]);
+                    
+                    $quantity = $line_item->get_quantity();
+                    for($i = 0; $i < $quantity; $i++) :
+                        $attendees[$get_linked_occurance] = array_filter($attendees[$get_linked_occurance], function($attendee) use ($order) {
+                            return $attendee['order_id'] != $order->get_id();
+                        });
+                    endfor;
+
                     update_post_meta($get_linked_event, 'attendees', $attendees);
                 endif;
             endforeach;
