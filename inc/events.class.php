@@ -479,7 +479,7 @@ class mindEventCalendar {
 
         $text_color = $this->getContrastColor($color);
 
-        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
             $insideHTML .= $label;
           $insideHTML .= '</span>';
@@ -761,7 +761,7 @@ class mindEventCalendar {
         $color = get_post_meta($event->ID, 'eventColor', true);
         $text_color = $this->getContrastColor($color);
 
-        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .'" data-subid="' . $event->ID . '">';
             $insideHTML .= $starttime . ' - ' . $endtime;
           $insideHTML .= '</span>';

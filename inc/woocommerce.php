@@ -5,11 +5,8 @@
 class mindEventsWooCommerce {
     public function __construct() {
         add_action('woocommerce_init', array($this, 'add_event_options'));
-        add_action('save_post_events', array($this, 'save_event_options'), 999, 3);
+        add_action('save_post_events', array($this, 'save_event_options'), 500, 3);
 
-
-
-        add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 1, 3);
 
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
 
@@ -25,7 +22,7 @@ class mindEventsWooCommerce {
     }
 
     public function order_status_change($order, $from, $to) {
-        mapi_write_log('Order status changed from ' . $from . ' to ' . $to);
+        
         if($to == 'refunded' || $to == 'cancelled' || $to == 'failed' || $to == 'on-hold') :
             $this->remove_attendee($order);
         endif;
@@ -105,18 +102,50 @@ class mindEventsWooCommerce {
         if(wp_is_post_revision( $post_id )) return;
 
         $sub_events = $this->get_sub_events($post_id);
-        $update = false;
+
+
         if($sub_events) :
             $adding = array();
+            $sub_event_ids = array();
             foreach($sub_events as $sub_event) :
-                $adding[] = $sub_event->ID;
+                $sub_event_ids[] = $sub_event->ID;
+                $adding[$sub_event->ID] = $sub_event->ID;
             endforeach;
-            $update = update_post_meta($post_id, 'sub_events', $adding);
+
+            $attendees = get_post_meta($post_id, 'attendees', true);
+            if(!$attendees) :
+                $attendees = array();
+            endif;
+
+            foreach($sub_event_ids as $sub_event_id) :
+                if(!array_key_exists($sub_event_id, $attendees)) :
+                    $attendees[$sub_event_id] = array();
+                endif;
+            endforeach;
+
+            $attendees_ordered = array() ;
+
+            foreach (array_keys($adding) as $key) {
+                $attendees_ordered[$key] = $attendees[$key];
+            }
+
+
+            update_post_meta($post_id, 'attendees', $attendees_ordered);
+            update_post_meta($post_id, 'sub_events', $adding);
         endif;
 
     }
 
-
+    public function get_attendees($event_id) {
+        $attendees = get_post_meta($event_id, 'attendees', true);
+        if(!$attendees) :
+            $sub_events = $this->get_sub_events($event_id);
+            foreach($sub_events as $sub_event) :
+                $attendees[$sub_event->ID] = array();
+            endforeach;
+        endif;
+        return $attendees;
+    }
 
     public function create_woocommerce_event_product($post_id, $post, $update) {
         if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
@@ -134,6 +163,7 @@ class mindEventsWooCommerce {
 
         if($sub_events) :
             foreach($sub_events as $key => $sub_event) :
+                
                 $meta = get_post_meta($sub_event->ID);
                 $unique_key = $this->build_unique_key($sub_event->ID, $meta['event_start_time_stamp'][0]);
                 $product_id = $meta['wooLinkedProduct'][0];

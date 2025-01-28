@@ -23,7 +23,7 @@ class mindEvents {
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
     $this->define( 'MINDEVENTS_PLUGIN_VERSION', '0.1.4');
-    $this->define( 'MINDRETURNS_PREPEND', 'mindevents_' );
+    $this->define( 'MINDEVENTS_PREPEND', 'mindevents_' );
 
 
     $this->options = get_option( 'mindevents_support_settings' );
@@ -48,7 +48,7 @@ class mindEvents {
 
     add_action ('wp_head', array($this, 'generate_schema'));
 
-    $this->define( 'MINDRETURNS_IS_MOBILE', $mobile->isMobile() );
+    $this->define( 'MINDEVENTS_IS_MOBILE', $mobile->isMobile() );
     
 	}
   public static function get_instance() {

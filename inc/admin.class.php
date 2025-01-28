@@ -29,7 +29,7 @@ class mindeventsAdmin {
     $options = get_option( 'mindevents_support_settings' );
     // add_meta_box( $id, $title, $callback, $page, $context, $priority, $callback_args );
   	add_meta_box(
-  		'mindevents_calendar',
+  		MINDEVENTS_PREPEND . 'calendar',
   		'Calendar',
   		array('mindeventsAdmin', 'display_calendar_metabox' ),
   		'events',
@@ -38,7 +38,7 @@ class mindeventsAdmin {
   	);
 
     add_meta_box(
-  		'mindevents_event_options',
+  		MINDEVENTS_PREPEND . 'event_options',
   		'Calendar Options',
   		array('mindeventsAdmin', 'display_event_options_metabox' ),
   		'events',
@@ -48,7 +48,7 @@ class mindeventsAdmin {
 
 
     add_meta_box(
-  		'mindevents_attendees',
+  		MINDEVENTS_PREPEND . 'attendees',
   		'Event Attendees',
   		array('mindeventsAdmin', 'display_attendees_metabox' ),
   		'events',
@@ -137,92 +137,121 @@ class mindeventsAdmin {
 
   static function display_attendees_metabox($post) {
     $attendees = get_post_meta($post->ID, 'attendees', true);
+    mapi_write_log($attendees);
+    
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Attendees</h3>';
-      
-        if($attendees) :
-          
-          $columns = apply_filters('mindevents_attendee_columns', array(
-            'order_id' => 'Order ID',
-            'user_id' => 'Attendee',
-            'product' => 'Product',
-            'check_in' => 'Check In',
-          ));
 
-          
-          foreach($attendees as $occurance_id => $tickets) :
-            $event_start_time_stamp = new DateTimeImmutable(get_post_meta($occurance_id, 'event_start_time_stamp', true));
-            echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
-            echo '<table class="attendee-list widefat fixed">';
-              echo '<tbody>';
+        if(count($attendees) > 0) :          
+            $columns = apply_filters('mindevents_attendee_columns', array(
+              'order_id' => 'Order ID',
+              'user_id' => 'Attendee',
+              'product' => 'Product',
+              'check_in' => 'Check In',
+            ));
+            
+            
+            foreach($attendees as $occurance_id => $tickets) :
 
-                echo '<tr>';
-                  foreach($columns as $key => $column) :
-                    echo '<th>' . $column . '</th>';
-                  endforeach;
-                echo '</tr>';
+              $event_start_time_stamp = new DateTimeImmutable(get_post_meta($occurance_id, 'event_start_time_stamp', true));
+              echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
+              if(!empty($tickets)) :
+                echo '<table class="attendee-list widefat fixed">';
+                  echo '<tbody>';
 
+                    echo '<tr>';
+                      foreach($columns as $key => $column) :
+                        echo '<th>' . $column . '</th>';
+                      endforeach;
+                    echo '</tr>';
 
+                    foreach($tickets as $akey => $ticket) :
 
-                foreach($tickets as $akey => $ticket) :
-                  $ticket_data = apply_filters('mindevents_attendee_data', array(
-                    'order_id' => $ticket['order_id'],
-                    'user_id' => $ticket['user_id'],
-                    'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
-                    'checked_in' => $ticket['checked_in'],
-                  ));
-                  $user_info = get_userdata($ticket_data['user_id']);
+                        $ticket_data = apply_filters('mindevents_attendee_data', array(
+                          'order_id' => $ticket['order_id'],
+                          'user_id' => $ticket['user_id'],
+                          'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
+                          'checked_in' => $ticket['checked_in'],
+                        ));
+                        $user_info = get_userdata($ticket_data['user_id']);
 
-                  echo '<tr>';
-                   
-                    foreach($ticket_data as $key => $value) :
+                        echo '<tr>';
+                        
+                          foreach($ticket_data as $key => $value) :
 
-                      if($key == 'user_id') :
-                        $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
-                      elseif($key == 'product') :
-                        $product = wc_get_product($value);
-                        $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
-                      elseif($key == 'checked_in') :
-
-
-                        $checked_in = $value;
-                        $value = '<button class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . '" data-akey="' . $akey  . '" data-occurance="' . $occurance_id . '" data-user_id="' . $ticket_data['user_id'] . '">';
-
-                            $value .= ($checked_in ? 'Undo Check In' : 'Check In');
-                         
-                        $value .= '</button>';
+                            if($key == 'user_id') :
+                              $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
+                            elseif($key == 'product') :
+                              $product = wc_get_product($value);
+                              $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
+                            elseif($key == 'checked_in') :
 
 
-                      elseif($key == 'order_id') :
-                        $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
-                      
-                      endif;
+                              $checked_in = $value;
+                              $value = '<button class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . '" data-akey="' . $akey  . '" data-occurance="' . $occurance_id . '" data-user_id="' . $ticket_data['user_id'] . '">';
+
+                                  $value .= ($checked_in ? 'Undo Check In' : 'Check In');
+                              
+                              $value .= '</button>';
 
 
-                      echo '<td>' . apply_filters('mindevents_attendee_value', $value) . '</td>';
+                            elseif($key == 'order_id') :
+                              $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
+                            
+                            endif;
 
+
+                            echo '<td>' . apply_filters('mindevents_attendee_value', $value) . '</td>';
+
+                          endforeach;
+
+                        echo '</tr>';
+
+                  
                     endforeach;
-                    
-                    
-                    
-                  echo '</tr>';
-                endforeach;
+
+                  echo '</tbody>';
+                echo '</table>';
 
 
-
-              echo '</tbody>';
-            echo '</table>';
-          endforeach;
-          
-        else :
-          echo '<p>No attendees yet.</p>';
+              else :
+                echo '<p>No attendees yet.</p>';
+              endif;
+            endforeach;
+            
+        
         endif;
       
     echo '</div>';
   }
 
 
-  
+  /* Get All orders IDs for a given product ID.
+  *
+  * @param  integer  $product_id (required)
+  * @param  array    $order_status (optional) Default is 'wc-completed'
+  *
+  * @return array
+  */
+  private function get_orders_ids_by_product_id( $product_id, $order_status = array( 'wc-completed' ) ){
+     global $wpdb;
+ 
+     $results = $wpdb->get_col("
+         SELECT order_items.order_id
+         FROM {$wpdb->prefix}woocommerce_order_items as order_items
+         LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta as order_item_meta ON order_items.order_item_id = order_item_meta.order_item_id
+         LEFT JOIN {$wpdb->posts} AS posts ON order_items.order_id = posts.ID
+         WHERE posts.post_type = 'shop_order'
+         AND posts.post_status IN ( '" . implode( "','", $order_status ) . "' )
+         AND order_items.order_item_type = 'line_item'
+         AND order_item_meta.meta_key = '_product_id'
+         AND order_item_meta.meta_value = '$product_id'
+     ");
+ 
+     return $results;
+ }
+
+
   private function get_time_form() {
     $defaults = get_post_meta(get_the_ID(), 'event_defaults', true);
     $options = get_option( 'mindevents_support_settings' );

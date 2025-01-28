@@ -11,35 +11,35 @@ class mindEventsAjax {
     $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
 
     // add_action( 'wp_ajax_nopriv_mindevents_generate_label', array( $this, 'accept_review' ) );
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'selectday', array( $this, 'selectday' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'selectday', array( $this, 'selectday' ) );
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'clearevents', array( $this, 'clearevents' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'clearevents', array( $this, 'clearevents' ) );
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'deleteevent', array( $this, 'deleteevent' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'deleteevent', array( $this, 'deleteevent' ) );
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'editevent', array( $this, 'editevent' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'editevent', array( $this, 'editevent' ) );
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'updatesubevent', array( $this, 'updatesubevent' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'updatesubevent', array( $this, 'updatesubevent' ) );
 
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
-
-
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'checkin_toggle', array( $this, 'checkin_toggle' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
 
 
-    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
-
-    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'checkin_toggle', array( $this, 'checkin_toggle' ) );
 
 
-    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
+    add_action( 'wp_ajax_nopriv_' . MINDEVENTS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
+
+    add_action( 'wp_ajax_nopriv_' . MINDEVENTS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'move_archive_calendar', array( $this, 'move_archive_calendar' ) );
 
 
-    add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
-    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
+    add_action( 'wp_ajax_nopriv_' . MINDEVENTS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
+
+
+    add_action( 'wp_ajax_nopriv_' . MINDEVENTS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
+    add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
 
   }
   private function define( $name, $value ) {
@@ -49,7 +49,7 @@ class mindEventsAjax {
   }
 
   public function get_event_meta_html() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'get_event_meta_html'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'get_event_meta_html'){
       $id = $_POST['eventid'];
       $event = new mindEventCalendar();
       $html = $event->get_cal_meta_html($id);
@@ -65,7 +65,7 @@ class mindEventsAjax {
 
 
   public function deleteevent() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'deleteevent'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'deleteevent'){
       $eventID = $_POST['eventid'];
       do_action('mindreturns_before_sub_event_deleted', $eventID);
       wp_delete_post($eventID);
@@ -86,7 +86,7 @@ class mindEventsAjax {
 
 
   public function selectday() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'selectday'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'selectday'){
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
@@ -107,7 +107,7 @@ class mindEventsAjax {
       else :
         $added_events[] = $added_event_id;
 
-        $insideHTML = '<div class="event ' . (MINDRETURNS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';
@@ -131,7 +131,7 @@ class mindEventsAjax {
   }
 
   public function clearevents() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'clearevents'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'clearevents'){
       $eventID = $_POST['eventid'];
       $event = new mindEventCalendar($eventID);
       $return = $event->delete_sub_events();
@@ -145,7 +145,7 @@ class mindEventsAjax {
 
 
   public function move_pub_calendar() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'move_pub_calendar'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'move_pub_calendar'){
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];
@@ -236,12 +236,18 @@ class mindEventsAjax {
 
 
   public function updatesubevent() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'updatesubevent'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'updatesubevent'){
 
       $id = $_POST['eventid'];
       $event = new mindEventCalendar($_POST['parentid'], $_POST['meta']['event_date']);
       $meta = $this->reArrayMeta($_POST['meta']);
       $event->update_sub_event($id, $meta, $_POST['parentid']);
+
+      //TOOD: Update associated product
+        // Product name
+        // Product sku
+
+
       $return = array(
         'html' => $event->get_calendar()
       );
@@ -251,7 +257,7 @@ class mindEventsAjax {
   }
 
   public function movecalendar() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'movecalendar'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'movecalendar'){
       $direction = $_POST['direction'];
       $month = $_POST['month'];
       $year = $_POST['year'];
@@ -281,7 +287,7 @@ class mindEventsAjax {
 
 
   public function checkin_toggle() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'checkin_toggle'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'checkin_toggle'){
       
 
       $occurance = $_POST['occurance'];
@@ -289,14 +295,13 @@ class mindEventsAjax {
       $parentid = $_POST['parentid'];
 
       $attendee_info = get_post_meta($parentid, 'attendees', true);
-      mapi_write_log($attendee_info);
       if($attendee_info) :
         $attendee_info[$occurance][$akey]['checked_in'] = !$attendee_info[$occurance][$akey]['checked_in'];
         $new_status = $attendee_info[$occurance][$akey]['checked_in'];
         update_post_meta($parentid, 'attendees', $attendee_info);
       endif;
 
-
+      do_action( MINDEVENTS_PREPEND . 'after_checkin_toggled', $parentid, $occurance, $new_status);
     
 
       $return = array(
@@ -311,7 +316,7 @@ class mindEventsAjax {
 
   }
   public function add_woo_product_to_cart() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'add_woo_product_to_cart'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'add_woo_product_to_cart'){
       $product_id = $_POST['product_id'];
       $quantity = $_POST['quantity'];
       $event_date = $_POST['event_date'];
@@ -340,7 +345,7 @@ class mindEventsAjax {
 
 
   public function editevent() {
-    if($_POST['action'] == MINDRETURNS_PREPEND . 'editevent'){
+    if($_POST['action'] == MINDEVENTS_PREPEND . 'editevent'){
       $eventID = $_POST['eventid'];
       $return = array(
         'html' => $this->get_meta_form($eventID, $_POST['parentid'])

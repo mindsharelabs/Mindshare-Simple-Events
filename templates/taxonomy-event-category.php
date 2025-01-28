@@ -13,7 +13,7 @@ echo '<main role="main" aria-label="Content">';
 
     if(have_posts()) :
       $calendar = new mindEventCalendar();
-      $show_all = apply_filters(MINDRETURNS_PREPEND . 'events_archive_show_past_events', true);
+      $show_all = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
       $calendar->set_past_events_display($show_all);
 
       $queried = get_queried_object();
