@@ -7,8 +7,8 @@ class mindEventsAjax {
 
   function __construct() {
 
-    $this->options = get_option( 'mindevents_support_settings' );
-    $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
+    $this->options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
+    $this->token = (isset($this->options[MINDEVENTS_PREPEND . 'api_token']) ? $this->options[MINDEVENTS_PREPEND . 'api_token'] : false);
 
     // add_action( 'wp_ajax_nopriv_mindevents_generate_label', array( $this, 'accept_review' ) );
     add_action( 'wp_ajax_' . MINDEVENTS_PREPEND . 'selectday', array( $this, 'selectday' ) );

@@ -26,8 +26,8 @@ class mindEvents {
     $this->define( 'MINDEVENTS_PREPEND', 'mindevents_' );
 
 
-    $this->options = get_option( 'mindevents_support_settings' );
-    $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
+    $this->options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
+    $this->token = (isset($this->options[MINDEVENTS_PREPEND . 'api_token']) ? $this->options[MINDEVENTS_PREPEND . 'api_token'] : false);
 
 
     $this->includes();
@@ -72,7 +72,7 @@ class mindEvents {
     include MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
     include MINDEVENTS_ABSPATH . 'inc/front-end.php';
 
-    if($this->options['mindevents_enable_woocommerce']) :
+    if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
       include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
     endif;
 

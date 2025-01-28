@@ -10,13 +10,13 @@ class mindeventsAdmin {
   protected static $instance = NULL;
 
   public function __construct() {
-    $this->options = get_option( 'mindevents_support_settings' );
-    $this->token = (isset($this->options['mindevents_api_token']) ? $this->options['mindevents_api_token'] : false);
+    $this->options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
+    $this->token = (isset($this->options[MINDEVENTS_PREPEND . 'api_token']) ? $this->options[MINDEVENTS_PREPEND . 'api_token'] : false);
 
-    $this->default_start_time = (isset($this->options['mindevents_start_time']) ? $this->options['mindevents_start_time'] : '2:00 PM');
-    $this->default_end_time = (isset($this->options['mindevents_end_time']) ? $this->options['mindevents_end_time'] : '6:00 PM');
-    $this->default_event_color = (isset($this->options['mindevents_event_color']) ? $this->options['mindevents_event_color'] : '#43A0D9');
-    $this->default_event_cost = (isset($this->options['mindevents_event_cost']) ? $this->options['mindevents_event_cost'] : '25');
+    $this->default_start_time = (isset($this->options[MINDEVENTS_PREPEND . 'start_time']) ? $this->options[MINDEVENTS_PREPEND . 'start_time'] : '2:00 PM');
+    $this->default_end_time = (isset($this->options[MINDEVENTS_PREPEND . 'end_time']) ? $this->options[MINDEVENTS_PREPEND . 'end_time'] : '6:00 PM');
+    $this->default_event_color = (isset($this->options[MINDEVENTS_PREPEND . 'event_color']) ? $this->options[MINDEVENTS_PREPEND . 'event_color'] : '#43A0D9');
+    $this->default_event_cost = (isset($this->options[MINDEVENTS_PREPEND . 'event_cost']) ? $this->options[MINDEVENTS_PREPEND . 'event_cost'] : '25');
 
     add_action( 'add_meta_boxes', array($this, 'add_events_metaboxes' ));
 
@@ -26,7 +26,7 @@ class mindeventsAdmin {
 
 	}
   static function add_events_metaboxes() {
-    $options = get_option( 'mindevents_support_settings' );
+    $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     // add_meta_box( $id, $title, $callback, $page, $context, $priority, $callback_args );
   	add_meta_box(
   		MINDEVENTS_PREPEND . 'calendar',
@@ -67,7 +67,7 @@ class mindeventsAdmin {
       return $post_id;
 
     /* Verify the nonce before proceeding. */
-    if ( !isset( $_POST['mindevents_event_meta_nonce'] ) || !wp_verify_nonce( $_POST['mindevents_event_meta_nonce'], basename( __FILE__ ) ) )
+    if ( !isset( $_POST[MINDEVENTS_PREPEND . 'event_meta_nonce'] ) || !wp_verify_nonce( $_POST[MINDEVENTS_PREPEND . 'event_meta_nonce'], basename( __FILE__ ) ) )
       return $post_id;
 
     update_post_meta( $post_id, 'event_defaults', $_POST['event']);
@@ -89,7 +89,7 @@ class mindeventsAdmin {
   static function display_event_options_metabox() {
     $cal = get_post_meta(get_the_ID(), 'cal_display', true);
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
-    wp_nonce_field( basename( __FILE__ ), 'mindevents_event_meta_nonce' );
+    wp_nonce_field( basename( __FILE__ ), MINDEVENTS_PREPEND . 'event_meta_nonce' );
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<div class="form-section">';
         echo '<p class="label"><label for="event_meta[cal_display]">Calendar Display</label></p>';
@@ -143,7 +143,7 @@ class mindeventsAdmin {
       echo '<h3>Attendees</h3>';
 
         if(count($attendees) > 0) :          
-            $columns = apply_filters('mindevents_attendee_columns', array(
+            $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
               'order_id' => 'Order ID',
               'user_id' => 'Attendee',
               'product' => 'Product',
@@ -167,7 +167,7 @@ class mindeventsAdmin {
 
                     foreach($tickets as $akey => $ticket) :
 
-                        $ticket_data = apply_filters('mindevents_attendee_data', array(
+                        $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
                           'order_id' => $ticket['order_id'],
                           'user_id' => $ticket['user_id'],
                           'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
@@ -201,7 +201,7 @@ class mindeventsAdmin {
                             endif;
 
 
-                            echo '<td>' . apply_filters('mindevents_attendee_value', $value) . '</td>';
+                            echo '<td>' . apply_filters(MINDEVENTS_PREPEND . 'attendee_value', $value) . '</td>';
 
                           endforeach;
 
@@ -254,7 +254,7 @@ class mindeventsAdmin {
 
   private function get_time_form() {
     $defaults = get_post_meta(get_the_ID(), 'event_defaults', true);
-    $options = get_option( 'mindevents_support_settings' );
+    $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     echo '<fieldset id="defaultEventMeta" class="event-times mindevents-forms">';
       echo '<div class="time-block">';
         echo '<div class="form-section">';
@@ -276,7 +276,7 @@ class mindeventsAdmin {
           echo '<textarea type="text" name="event[eventDescription]" id="eventDescription" value="' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '" placeholder="">' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '</textarea>';
         echo '</div>';
         
-        if($options['mindevents_enable_woocommerce'] == true && class_exists('woocommerce')) :
+        if($options[MINDEVENTS_PREPEND . 'enable_woocommerce'] == true && class_exists('woocommerce')) :
             //add hiden inpuit
             echo '<input type="hidden" name="event[wooLinked]" id="wooLink" value="1">';
 

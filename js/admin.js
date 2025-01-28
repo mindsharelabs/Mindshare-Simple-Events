@@ -1,3 +1,5 @@
+const MINDEVENTS_PREPEND = 'mindevents_';
+
 (function( root, $, undefined ) {
 	"use strict";
 
@@ -103,7 +105,7 @@
 	  			url : mindeventsSettings.ajax_url,
 	  			type : 'post',
 	  			data : {
-	  				action : 'mindevents_selectday',
+	  				action : MINDEVENTS_PREPEND + 'selectday',
 	  				eventid : mindeventsSettings.post_id,
 					date : date,
 					meta : meta,
@@ -169,7 +171,7 @@
 			url : mindeventsSettings.ajax_url,
 			type : 'post',
 			data : {
-				action : 'mindevents_movecalendar',
+				action : MINDEVENTS_PREPEND + 'movecalendar',
 				direction : direction,
 				month : month,
 				year : year,
@@ -201,7 +203,7 @@
 			url : mindeventsSettings.ajax_url,
 			type : 'post',
 			data : {
-				action : 'mindevents_updatesubevent',
+				action : MINDEVENTS_PREPEND + 'updatesubevent',
 				eventid : subid,
 				parentid : mindeventsSettings.post_id,
 				meta : meta
@@ -248,7 +250,7 @@
 			url : mindeventsSettings.ajax_url,
 			type : 'post',
 			data : {
-				action : 'mindevents_checkin_toggle',
+				action : MINDEVENTS_PREPEND + 'checkin_toggle',
 				occurance : occurance,
 				user_id : user_id,
 				akey : akey,
@@ -290,7 +292,7 @@
 			url : mindeventsSettings.ajax_url,
 			type : 'post',
 			data : {
-				action : 'mindevents_editevent',
+				action : MINDEVENTS_PREPEND + 'editevent',
 				eventid : eventid,
 					parentid : mindeventsSettings.post_id,
 			},
@@ -320,7 +322,7 @@
 			url : mindeventsSettings.ajax_url,
 			type : 'post',
 			data : {
-				action : 'mindevents_deleteevent',
+				action : MINDEVENTS_PREPEND + 'deleteevent',
 				eventid : eventid,
 			},
 			success: function(response) {
@@ -358,7 +360,7 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-						action : 'mindevents_clearevents',
+						action : MINDEVENTS_PREPEND +'clearevents',
 					eventid : mindeventsSettings.post_id,
 				},
 				success: function(response) {

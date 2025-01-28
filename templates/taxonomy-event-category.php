@@ -6,10 +6,10 @@
 defined( 'ABSPATH' ) || exit;
 
 get_header('events');
-do_action('mindevents_before_main_content');
+do_action(MINDEVENTS_PREPEND . 'before_main_content');
 
 echo '<main role="main" aria-label="Content">';
-  do_action('mindevents_archive_loop_start');
+  do_action(MINDEVENTS_PREPEND . 'archive_loop_start');
 
     if(have_posts()) :
       $calendar = new mindEventCalendar();
@@ -20,12 +20,12 @@ echo '<main role="main" aria-label="Content">';
       $calendar->setEventCategories($queried->slug);
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
-        do_action('mindevents_archive_before_calendar_buttons');
+        do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
         echo '<div class="calendar-nav">';
           echo '<button data-dir="prev" data-cat="' . $queried->slug . '" class="calnav prev"><span>&#8592;</span></button>';
           echo '<button data-dir="next" data-cat="' . $queried->slug . '" class="calnav next"><span>&#8594;</span></button>';
         echo '</div>';
-        do_action('mindevents_archive_after_calendar_buttons');
+        do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
         echo '<div id="publicCalendar">';
           echo $calendar->get_front_calendar('archive');
         echo '</div>';
@@ -35,7 +35,7 @@ echo '<main role="main" aria-label="Content">';
 
 
 
-  do_action('mindevents_archive_loop_end');
+  do_action(MINDEVENTS_PREPEND . 'archive_loop_end');
 echo '</main>';
-do_action('mindevents_after_main_content');
+do_action(MINDEVENTS_PREPEND . 'after_main_content');
 get_footer('events');

@@ -3,8 +3,8 @@
 
 class mindEventsOptions {
   public function __construct() {
-    add_action( 'admin_menu', array($this,'mindevents_support_settings_page' ));
-    add_action( 'admin_init', array($this,'mindevents_api_settings_init' ));
+    add_action( 'admin_menu', array($this,MINDEVENTS_PREPEND . 'support_settings_page' ));
+    add_action( 'admin_init', array($this,MINDEVENTS_PREPEND . 'api_settings_init' ));
 	}
 
 
@@ -15,107 +15,107 @@ class mindEventsOptions {
         'Mindshare Events Plugin Settings',
         'manage_options', //permisions
         'mindevents-settings', //page slug
-        array('mindEventsOptions', 'mindevents_support_settings') //callback for display
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'support_settings') //callback for display
       );
   }
 
 
   static function mindevents_api_settings_init(  ) {
-      register_setting( 'mindeventsPlugin', 'mindevents_support_settings' );
-      $options = get_option( 'mindevents_support_settings' );
+      register_setting( 'mindeventsPlugin', MINDEVENTS_PREPEND . 'support_settings' );
+      $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
       add_settings_section(
-        'mindevents_api_settings_section', //section id
+        MINDEVENTS_PREPEND . 'api_settings_section', //section id
         'Mindshare Simple Events Options', //section title
-        array('mindEventsOptions', 'mindevents_support_settings_section_callback'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'support_settings_section_callback'), //display callback
         'mindeventsPlugin' //settings page
       );
 
 
       add_settings_field(
-        'mindevents_api_token', //setting id
+        MINDEVENTS_PREPEND . 'api_token', //setting id
         'API Token', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => '',
-          'field' => 'mindevents_api_token',
-          'value' => (isset($options['mindevents_api_token']) ? $options['mindevents_api_token'] : false),
+          'field' => MINDEVENTS_PREPEND . 'api_token',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'api_token']) ? $options[MINDEVENTS_PREPEND . 'api_token'] : false),
           'type' => 'password',
           'class' => ''
         ) //args
       );
 
       add_settings_field(
-        'mindevents_start_day', //setting id
+        MINDEVENTS_PREPEND . 'start_day', //setting id
         'Week Start Day', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Day the week starts on. ex: "Monday" or 0-6 where 0 is Sunday',
-          'field' => 'mindevents_start_day',
-          'value' => (isset($options['mindevents_start_day']) ? $options['mindevents_start_day'] : 'Monday'),
+          'field' => MINDEVENTS_PREPEND . 'start_day',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'start_day']) ? $options[MINDEVENTS_PREPEND . 'start_day'] : 'Monday'),
           'type' => 'text',
           'class' => ''
         ) //args
       );
 
       add_settings_field(
-        'mindevents_start_time', //setting id
+        MINDEVENTS_PREPEND . 'start_time', //setting id
         'Default Start Time', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Default start time for event occurances.',
-          'field' => 'mindevents_start_time',
-          'value' => (isset($options['mindevents_start_time']) ? $options['mindevents_start_time'] : '7:00 PM'),
+          'field' => MINDEVENTS_PREPEND . 'start_time',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'start_time']) ? $options[MINDEVENTS_PREPEND . 'start_time'] : '7:00 PM'),
           'type' => 'text',
           'class' => 'timepicker'
         ) //args
       );
 
       add_settings_field(
-        'mindevents_end_time', //setting id
+        MINDEVENTS_PREPEND . 'end_time', //setting id
         'Default End Time', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Default end time for event occurances.',
-          'field' => 'mindevents_end_time',
-          'value' => (isset($options['mindevents_end_time']) ? $options['mindevents_end_time'] : '10:00 PM'),
+          'field' => MINDEVENTS_PREPEND . 'end_time',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'end_time']) ? $options[MINDEVENTS_PREPEND . 'end_time'] : '10:00 PM'),
           'type' => 'text',
           'class' => 'timepicker'
         ) //args
       );
 
       add_settings_field(
-        'mindevents_event_cost', //setting id
+        MINDEVENTS_PREPEND . 'event_cost', //setting id
         'Default Event Cost', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Default cost for event occurances. (Do not include currency symbol)',
-          'field' => 'mindevents_event_cost',
-          'value' => (isset($options['mindevents_event_cost']) ? $options['mindevents_event_cost'] : ''),
+          'field' => MINDEVENTS_PREPEND . 'event_cost',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'event_cost']) ? $options[MINDEVENTS_PREPEND . 'event_cost'] : ''),
           'type' => 'text',
           'class' => ''
         ) //args
       );
 
       add_settings_field(
-        'mindevents_currency_symbol', //setting id
+        MINDEVENTS_PREPEND . 'currency_symbol', //setting id
         'Currency Symbol', //setting title
-        array('mindEventsOptions', 'mindevents_setting_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'setting_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Default currency symbol.',
-          'field' => 'mindevents_currency_symbol',
-          'value' => (isset($options['mindevents_currency_symbol']) ? $options['mindevents_currency_symbol'] : '$'),
+          'field' => MINDEVENTS_PREPEND . 'currency_symbol',
+          'value' => (isset($options[MINDEVENTS_PREPEND . 'currency_symbol']) ? $options[MINDEVENTS_PREPEND . 'currency_symbol'] : '$'),
           'type' => 'text',
           'class' => ''
         ) //args
@@ -123,17 +123,17 @@ class mindEventsOptions {
 
 
       add_settings_field(
-        'mindevents_enable_woocommerce', //setting id
+        MINDEVENTS_PREPEND . 'enable_woocommerce', //setting id
         'Enable WooCommerce Integration', //setting title
-        array('mindEventsOptions', 'mindevents_checkbox_field'), //display callback
+        array('mindEventsOptions', MINDEVENTS_PREPEND . 'checkbox_field'), //display callback
         'mindeventsPlugin', //setting page
-        'mindevents_api_settings_section', //setting section
+        MINDEVENTS_PREPEND . 'api_settings_section', //setting section
         array(
           'message' => 'Enable WooCommerce Integration.',
           'label' => 'Check here to enable WooCommerce integration.',
-          'field' => 'mindevents_enable_woocommerce',
-          //'value' => (isset($options['mindevents_enable_woocommerce']) ? $options['mindevents_enable_woocommerce'] : false),
-          'checked' => (isset($options['mindevents_enable_woocommerce']) ? true : false),
+          'field' => MINDEVENTS_PREPEND . 'enable_woocommerce',
+          //'value' => (isset($options[MINDEVENTS_PREPEND . 'enable_woocommerce']) ? $options[MINDEVENTS_PREPEND . 'enable_woocommerce'] : false),
+          'checked' => (isset($options[MINDEVENTS_PREPEND . 'enable_woocommerce']) ? true : false),
           'type' => 'checkbox',
           'class' => ''
         ) //args

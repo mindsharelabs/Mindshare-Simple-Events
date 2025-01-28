@@ -21,7 +21,7 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-					action : 'mindevents_get_event_meta_html',
+					action : MINDEVENTS_PREPEND . 'get_event_meta_html',
 					eventid : eventid
 				},
 				success: function(response) {
@@ -57,7 +57,7 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-					action : 'mindevents_move_pub_calendar',
+					action : MINDEVENTS_PREPEND . 'move_pub_calendar',
 					direction : direction,
 					month : month,
 					year : year,
@@ -94,7 +94,7 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-					action : 'mindevents_move_archive_calendar',
+					action : MINDEVENTS_PREPEND . 'move_archive_calendar',
 					direction : direction,
 					month : month,
 					year : year,
@@ -125,7 +125,7 @@
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
 				data : {
-					action : 'mindevents_add_woo_product_to_cart',
+					action : MINDEVENTS_PREPEND . 'add_woo_product_to_cart',
 					product_id : product_id,
 					quantity : quantity,
 					event_date : event_date

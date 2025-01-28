@@ -50,7 +50,7 @@ class mindEventCalendar {
       $this->setDate(get_post_meta($id, 'first_event_date', true));
     endif;
 
-    $this->options = get_option( 'mindevents_support_settings' );
+    $this->options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     $this->eventID = $id;
     $this->wp_post = get_post($id);
 
@@ -61,8 +61,8 @@ class mindEventCalendar {
     $date->modify('first day of next month');
     $this->next_month = $date->format('m');
 
-    $this->currency_symbol = (isset($this->options['mindevents_currency_symbol']) ? $this->options['mindevents_currency_symbol'] : '$');
-    $this->calendar_start_day = (isset($this->options['mindevents_start_day']) ? $this->options['mindevents_start_day'] : 'Monday');
+    $this->currency_symbol = (isset($this->options[MINDEVENTS_PREPEND . 'currency_symbol']) ? $this->options[MINDEVENTS_PREPEND . 'currency_symbol'] : '$');
+    $this->calendar_start_day = (isset($this->options[MINDEVENTS_PREPEND . 'start_day']) ? $this->options[MINDEVENTS_PREPEND . 'start_day'] : 'Monday');
 
 
   }
@@ -561,7 +561,7 @@ class mindEventCalendar {
 
         if($meta['event_date'][0]) :
           $html .= '<div class="meta_item starttime">';
-            $html .= '<span class="label">' . apply_filters('mindevents_start_time_label', 'Start Time') . '</span>';
+            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
             $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
           $html .= '</div>';
         endif;
@@ -597,13 +597,13 @@ class mindEventCalendar {
     endif;
 
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
-    $options = get_option( 'mindevents_support_settings' );
+    $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     $html = '<div class="meta-item">';
         $html .= '<div class="offer-link">';
-          $html .= '<span class="label">' . apply_filters('mindevents_cost_label', $offer['label']) . '</span>';
+          $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
     
     
-          if($options['mindevents_enable_woocommerce']) :
+          if($options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
             $html .= '<button 
               data-product_id="' . $offer['product_id'] . '"
               data-quantity="' . $offer['quantity'] . '"
@@ -820,7 +820,7 @@ class mindEventCalendar {
 
       // $meta['linked_product'] = $meta['linked_product'];
 
-      do_action('mindevents_before_add_sub_event', $eventID, $meta);
+      do_action(MINDEVENTS_PREPEND . 'before_add_sub_event', $eventID, $meta);
       
       $defaults = array(
         'post_author'           => get_current_user_id(),
@@ -838,7 +838,7 @@ class mindEventCalendar {
       );
       $args = wp_parse_args($args, $defaults);
       $return = wp_insert_post($args);
-      do_action('mindevents_after_add_sub_event', $eventID, $return, $meta);
+      do_action(MINDEVENTS_PREPEND . 'after_add_sub_event', $eventID, $return, $meta);
       else :
         $return = false;
       endif;
@@ -862,9 +862,9 @@ class mindEventCalendar {
       $sub_events = $this->get_sub_events();
       if (is_array($sub_events) && count($sub_events) > 0) {
         foreach($sub_events as $event){
-          do_action('mindevents_before_delete_sub_event', $event->ID);
+          do_action(MINDEVENTS_PREPEND . 'before_delete_sub_event', $event->ID);
           $return = wp_delete_post($event->ID);
-          do_action('mindevents_after_delete_sub_event', $event->ID);
+          do_action(MINDEVENTS_PREPEND . 'after_delete_sub_event', $event->ID);
         }
         return true;
       }
