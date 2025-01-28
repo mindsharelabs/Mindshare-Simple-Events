@@ -27,7 +27,7 @@ class mindEventsWooCommerce {
             $this->remove_attendee($order);
         endif;
 
-        if($to == 'completed') :
+        if($to == 'completed' || $to == 'processing') :
             $this->add_attendee($order);
         endif;
 

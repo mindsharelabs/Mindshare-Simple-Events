@@ -137,14 +137,17 @@ class mindeventsAdmin {
 
   static function display_attendees_metabox($post) {
     $attendees = get_post_meta($post->ID, 'attendees', true);
-    mapi_write_log($attendees);
-    
+    $today = new DateTime();
+    $today = $today->format('Y-m-d');
+
+
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Attendees</h3>';
 
         if(count($attendees) > 0) :          
             $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
               'order_id' => 'Order ID',
+              'status' => 'Status',
               'user_id' => 'Attendee',
               'product' => 'Product',
               'check_in' => 'Check In',
@@ -152,72 +155,93 @@ class mindeventsAdmin {
             
             
             foreach($attendees as $occurance_id => $tickets) :
-
               $event_start_time_stamp = new DateTimeImmutable(get_post_meta($occurance_id, 'event_start_time_stamp', true));
-              echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
-              if(!empty($tickets)) :
-                echo '<table class="attendee-list widefat fixed">';
-                  echo '<tbody>';
+              $event_start_day = $event_start_time_stamp->format('Y-m-d');
+              echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . '">';
+                
+                echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
+                if(!empty($tickets)) :
+                  echo '<table class="attendee-list wp-list-table widefat fixed striped">';
+                    echo '<thead>';
+                      echo '<tr>';
+                        foreach($columns as $key => $value) :
+                          echo '<th>' . $value . '</th>';
+                        endforeach;
+                      echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody>';
 
-                    echo '<tr>';
-                      foreach($columns as $key => $column) :
-                        echo '<th>' . $column . '</th>';
-                      endforeach;
-                    echo '</tr>';
+                      
 
-                    foreach($tickets as $akey => $ticket) :
+                      foreach($tickets as $akey => $ticket) :
+                          $order = wc_get_order($ticket['order_id']);
+                          $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
+                            'order_id' => $ticket['order_id'],
+                            'status' => $order->get_status(),
+                            'user_id' => $ticket['user_id'],
+                            'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
+                            'checked_in' => $ticket['checked_in'],
+                          ));
+                          $user_info = get_userdata($ticket_data['user_id']);
 
-                        $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
-                          'order_id' => $ticket['order_id'],
-                          'user_id' => $ticket['user_id'],
-                          'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
-                          'checked_in' => $ticket['checked_in'],
-                        ));
-                        $user_info = get_userdata($ticket_data['user_id']);
+                          echo '<tr>';
+                          
+                            foreach($ticket_data as $key => $value) :
 
-                        echo '<tr>';
-                        
-                          foreach($ticket_data as $key => $value) :
-
-                            if($key == 'user_id') :
-                              $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
-                            elseif($key == 'product') :
-                              $product = wc_get_product($value);
-                              $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
-                            elseif($key == 'checked_in') :
-
-
-                              $checked_in = $value;
-                              $value = '<button class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . '" data-akey="' . $akey  . '" data-occurance="' . $occurance_id . '" data-user_id="' . $ticket_data['user_id'] . '">';
-
-                                  $value .= ($checked_in ? 'Undo Check In' : 'Check In');
+                              if($key == 'user_id') :
+                                $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
+                              elseif($key == 'product') :
+                                $product = wc_get_product($value);
+                                $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
                               
-                              $value .= '</button>';
+                              elseif($key == 'status') :
+                                $value = '<span class="status ' . $value . '">' . wc_get_order_status_name($value) . '</span>';
+                              elseif($key == 'checked_in') :
+                                
+                                
+                                $checked_in = $value;
+                                $value = '<button 
+                                  class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . ' ' . ($order->get_status() != 'completed' ? 'disabled' : '') . '" 
+                                  data-akey="' . $akey  . '" 
+                                  data-occurance="' . $occurance_id . '" 
+                                  data-user_id="' . $ticket_data['user_id'] . '" ' . 
+                                  ($order->get_status() != 'completed' ? 'disabled' : '') . '>';
 
 
-                            elseif($key == 'order_id') :
-                              $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
-                            
-                            endif;
+                                    if($order->get_status() == 'completed') :
+                                      $value .= '<span class="check-in-status">' . ($checked_in ? 'Undo Checkin' : 'Checkin') . '</span>';
+                                    else :
+                                      $value .= '<span class="check-in-status">Order not completed</span>';
+                                    endif;
+                                    
+                                $value .= '</button>';
+
+                              
+                              elseif($key == 'order_id') :
+                                $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
+                              
+                              endif;
 
 
-                            echo '<td>' . apply_filters(MINDEVENTS_PREPEND . 'attendee_value', $value) . '</td>';
+                              echo '<td>' . apply_filters(MINDEVENTS_PREPEND . 'attendee_value', $value) . '</td>';
 
-                          endforeach;
+                            endforeach;
 
-                        echo '</tr>';
+                          echo '</tr>';
 
-                  
-                    endforeach;
+                    
+                      endforeach;
 
-                  echo '</tbody>';
-                echo '</table>';
+                    echo '</tbody>';
+                  echo '</table>';
 
 
-              else :
-                echo '<p>No attendees yet.</p>';
-              endif;
+                else :
+                  echo '<p>No attendees yet.</p>';
+                endif;
+              echo '</div>';
             endforeach;
+            
             
         
         endif;
