@@ -176,21 +176,27 @@ class mindEventsWooCommerce {
                     continue;
                 endif;
 
-                
+                $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+                $event_end_date = new DateTimeImmutable($meta['event_end_time_stamp'][0]);
+
+
+
                 if($product_id) :
                     $product = wc_get_product($product_id);
+                    $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y') . ' - ' . $event_end_date->format('D, M d Y');
                     if(!$product) :
                         $product = new WC_Product_Simple();
                     endif;
                 else :
                     $product = new WC_Product_Simple();
+                    $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i'); 
                 endif;
 
               
-                $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+                
 
                 // Create a new product
-                $product->set_name($post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i'));
+                $product->set_name($title);
                 $product->set_sku($unique_key); 
                 $product->set_description($post->post_excerpt);
                 $product->set_short_description($post->post_excerpt);

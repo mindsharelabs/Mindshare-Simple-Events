@@ -91,6 +91,8 @@ class mindeventsAdmin {
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
     wp_nonce_field( basename( __FILE__ ), MINDEVENTS_PREPEND . 'event_meta_nonce' );
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
+
+    
       echo '<div class="form-section">';
         echo '<p class="label"><label for="event_meta[cal_display]">Calendar Display</label></p>';
         echo '<div class="select-wrap">';
@@ -110,6 +112,8 @@ class mindeventsAdmin {
           echo '</select>';
         echo '</div>';
       echo '</div>';
+
+
     echo '</div>';
   }
 
@@ -144,7 +148,7 @@ class mindeventsAdmin {
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
       echo '<h3>Attendees</h3>';
 
-        if(count($attendees) > 0) :          
+        if($attendees) :          
             $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
               'order_id' => 'Order ID',
               'status' => 'Status',

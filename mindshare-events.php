@@ -64,6 +64,7 @@ class mindEvents {
   }
   private function includes() {
     //General
+    include MINDEVENTS_ABSPATH . 'inc/utilities.php';
     include MINDEVENTS_ABSPATH . 'inc/mobile-detect.php';
     include MINDEVENTS_ABSPATH . 'inc/events.class.php';
     include MINDEVENTS_ABSPATH . 'inc/options.php';

@@ -52,14 +52,6 @@ function mindevents_single_datespan($id) {
 }
 
 
-add_action(MINDEVENTS_PREPEND . 'single_thumb', function ($id) {
-  if(has_post_thumbnail()) :
-    echo '<div class="featured-image-wrap">';
-      echo get_the_post_thumbnail($id, array(400, 400));
-    echo '</div>';
-  endif;
-}, 10, 1);
-
 //
 add_action(MINDEVENTS_PREPEND . 'single_content', function ($id) {
   echo '<div class="content-wrap">';

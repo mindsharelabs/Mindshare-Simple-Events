@@ -140,15 +140,23 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					
 				},
 				success: function(response) {
-					console.log(response);
 
 					if(response.success) {
 						button.prop('disabled', false);
-						button.html('Add 1 more (+1)');
+						button.html('Added!');
+						setTimeout(function() {
+							button.html('Add 1 more (+1)');
+						}, 1500);
+
+				
 					} else {
-						console.log(response.data.errors);
-						button.html('Error!');
-						button.prop('disabled', false);
+						console.log(response.data);
+						response.data.forEach(function(item) {
+							$('#cartErrorContainer').append('<p>' + item.notice + '</p>');
+						});
+
+						button.hide();
+						// button.prop('disabled', false);
 					}
 					
 					// window.location.href = response.data.cart_url;

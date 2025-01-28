@@ -39,7 +39,7 @@
     position: inherit;
   }
   table.mindEventCalendar {
-  	font-family: monospace;
+  	
   	width: 100%;
     thead {
       border: 1px solid rgb(217, 67, 160);
@@ -254,19 +254,19 @@
           width: 100%;
           flex-direction: column;
           div.event {
-            font-family: monospace;
+             
             position: relative;
-            text-align: center;
+            text-align: left;
             flex-grow: 1;
             margin: 2px;
-            span {
+            .sub-event-toggle {
               cursor: pointer;
               font-size: 13px;
               padding: 4px;
               line-height: 1.15em;
               background: #858585;
               color: #fff;
-              // white-space: nowrap;
+              font-weight: bold;
               display: block;
               // height: 23px;
               max-width: 100%;
@@ -274,6 +274,45 @@
                 @include transition(100ms);
                 transform: scale(1.05);
               }
+
+              .event-label-container {
+                display: flex;
+                flex-direction: column;
+                .event-meta {
+                  .event-title {
+                    font-size: 1em;
+                    font-weight: bold;
+                    // padding: 0 5px;
+                    margin: 0;
+                    display: block;
+                  }
+                  .event-time {
+                    font-size: .8em;
+                    // padding: 0 5px;
+                    margin: 0;
+                    display: block;
+                  }
+                  .event-excerpt {
+                    font-size: .8em;
+                    padding: 5px 0;
+                    margin: 0;
+                    display: block;
+  
+                  }
+                }
+                
+                .event-thumb {
+                  width: 100%;
+                  margin-bottom: 5px;
+                  border: 2px solid #fff;
+                  img {
+                    width: 100%;
+                  }
+                }
+              }
+
+
+
             }
             &.mobile {
               overflow: hidden;
@@ -322,10 +361,25 @@
         @include button-link;
       }
     }
+    .featured-image {
+      margin-right: 15px;
+      min-width: 25%;
+      img {
+        border: 5px solid #fff;
+      }
+      
+    }
     .left-content, .right-content {
       display: flex;
       flex-direction: column;
       justify-content: space-around;
+    }
+    .left-content {
+      margin-right: 15px;
+      max-width: 70%;
+    }
+    .right-content {
+      min-width: 20%;
     }
     .meta-item {
       .offer-link {
@@ -341,13 +395,16 @@
           @include button-link;
         }
       }
-      
+      .errors {
+        font-size: .8em;
+      }
     }
   }
 }
 #archiveContainer, #singleEventContainer {
-  max-width: 1000px;
+  // max-width: 1000px;
   margin: 0 auto;
+  padding: 20px;
   .events-wrap, .content-wrap {
     margin-bottom: 2em;
   }

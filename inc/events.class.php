@@ -456,33 +456,22 @@ class mindEventCalendar {
     $eventDates = $this->get_sub_events();
     if($eventDates) :
       foreach ($eventDates as $key => $event) :
-        $starttime = get_post_meta($event->ID, 'starttime', true);
-        $endtime = get_post_meta($event->ID, 'endtime', true);
+        // $starttime = get_post_meta($event->ID, 'starttime', true);
+        // $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = get_post_meta($event->ID, 'eventColor', true);
 
-
-        if($place == 'archive') {
-          $label = get_the_title($event->post_parent);
-        } else {
-          $label = $starttime;
-        }
-
         if(!$color){
-          $color = '#858585';
+          $color = '#858585'; 
         }
-
-        // if (strlen($label) > 15) :
-        //   $label = substr($label, 0, 12) . '...';
-        // endif;
 
 
         $text_color = $this->getContrastColor($color);
 
         $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
-          $insideHTML .= '<span class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
-            $insideHTML .= $label;
-          $insideHTML .= '</span>';
+          $insideHTML .= '<div class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
+            $insideHTML .= $this->get_event_label($event);
+          $insideHTML .= '</div>';
         $insideHTML .= '</div>';
 
 
@@ -493,6 +482,24 @@ class mindEventCalendar {
     return $this->render();;
   }
 
+
+  private function get_event_label($event) {
+
+    $html = '';
+    $starttime = get_post_meta($event->ID, 'starttime', true);
+    $endtime = get_post_meta($event->ID, 'endtime', true);
+    $thumb = get_the_post_thumbnail($event->post_parent, 'cal-thumb');
+    $html .= '<div class="event-label-container">';
+        if($thumb) :
+            $html .= '<div class="event-thumb">' . $thumb . '</div>';
+        endif;
+        $html .= '<div class="event-meta">';
+          $html .= '<span class="event-title">' . get_the_title($event->post_parent) . '</span>';
+          $html .= '<span class="event-time">' . $starttime . ' - ' . $endtime . '</span>';
+        $html .= '</div>';
+    $html .= '</div>';
+    return $html;
+  }
 
 
   public function get_front_list($calDate = '') {
@@ -600,7 +607,7 @@ class mindEventCalendar {
     $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     $html = '<div class="meta-item">';
         $html .= '<div class="offer-link">';
-          $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
+          // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
     
     
           if($options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
@@ -611,7 +618,7 @@ class mindEventCalendar {
               class="button mindevents-add-to-cart" 
               style="' . $style_str . '"
               >';
-              $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
+              $html .= $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
             $html .= '</button>';
 
           else :
@@ -621,6 +628,11 @@ class mindEventCalendar {
             $html .= '</a>';
               
           endif;
+
+
+          $html .= '<div id="cartErrorContainer" class="errors"></div>';
+
+
           $html .= '</div>';
         $html .= '</div>';
     return $html;
@@ -638,6 +650,7 @@ class mindEventCalendar {
     $meta = get_post_meta($event);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
+    $image = get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') );
 
 
     if($meta) :
@@ -648,6 +661,13 @@ class mindEventCalendar {
       endif;
 
       $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
+       
+        if($image) :
+          $html .= '<div class="featured-image">';
+            $html .= $image;
+          $html .= '</div>';
+        endif;
+      
         $html .= '<div class="left-content">';
 
           if($sub_event_obj->post_parent) :
