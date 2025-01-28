@@ -277,7 +277,7 @@
 
               .event-label-container {
                 display: flex;
-                flex-direction: column;
+                flex-direction: row;
                 .event-meta {
                   .event-title {
                     font-size: 1em;
@@ -302,8 +302,8 @@
                 }
                 
                 .event-thumb {
-                  width: 100%;
-                  margin-bottom: 5px;
+                  width: 100px;
+                  margin-right: 5px;
                   border: 2px solid #fff;
                   img {
                     width: 100%;
