@@ -296,11 +296,16 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 				eventid : eventid,
 					parentid : mindeventsSettings.post_id,
 			},
+			beforeSend: function() {
+				calendarContainer.prepend('<div id="editBox"></div>');
+				$('#editBox').html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+			},
 			success: function(response) {
-					calendarContainer.prepend('<div id="editBox"></div>');
-					$('#editBox').html(response.data.html);
-					initTimePicker();
-					initDatePicker();
+				console.log(response);
+				// calendarContainer.prepend('<div id="editBox"></div>');
+				$('#editBox').html(response.data.html);
+				initTimePicker();
+				initDatePicker();
 			},
 			error: function (response) {
 				console.log('An error occurred.');

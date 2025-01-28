@@ -802,7 +802,7 @@ class mindEventCalendar {
     $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['endtime']) );
     $meta['unique_event_key'] = $unique;
-
+    mapi_write_log($meta);
     foreach ($meta as $key => $value) :
       update_post_meta($sub_event, $key, $value);
     endforeach;
@@ -925,10 +925,10 @@ class mindEventCalendar {
       );
       if($sub_events) :
         foreach ($sub_events as $key => $event) :
-
+          $offer_array = array();
           $offers = get_post_meta($event->ID, 'offers', true);
           if($offers) :
-            $offer_array = array();
+           
             foreach ($offers as $key => $offer) :
               $offer_array[] = array(
                 '@type' => 'Offer',

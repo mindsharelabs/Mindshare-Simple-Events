@@ -198,9 +198,6 @@ class mindEventsAjax {
     $meta['offers'] = array();
 
     $meta = array_merge($meta, $metaStart);
-    
-    
-
     if(isset($metaStart['event'])) :
       foreach ($metaStart['event']['offerlabel'] as $key => $label) :
         $meta['offers'][$key]['label'] = $label;
@@ -213,11 +210,7 @@ class mindEventsAjax {
       foreach ($metaStart['event']['offerlink'] as $key => $link) :
         $meta['offers'][$key]['link'] = $link;
       endforeach;
-    elseif($metaStart['wooLinked']) :
-      $meta['offers'][0]['label'] = (isset($meta['wooLabel']) ? $meta['wooLabel'] : 'Get Tickets');
-      $meta['offers'][0]['link'] = get_permalink($meta['wooLinkedProduct']);
-      $meta['offers'][0]['price'] = ($metaStart['wooPrice'] ? $meta['wooPrice'] : '');
-    else :
+    elseif(isset($metaStart['offerlabel'])) :
       foreach ($metaStart['offerlabel'] as $key => $label) :
         $meta['offers'][$key]['label'] = $label;
       endforeach;
@@ -242,10 +235,6 @@ class mindEventsAjax {
       $event = new mindEventCalendar($_POST['parentid'], $_POST['meta']['event_date']);
       $meta = $this->reArrayMeta($_POST['meta']);
       $event->update_sub_event($id, $meta, $_POST['parentid']);
-
-      //TOOD: Update associated product
-        // Product name
-        // Product sku
 
 
       $return = array(
@@ -358,6 +347,7 @@ class mindEventsAjax {
 
   private function get_meta_form($sub_event_id, $parentID) {
     $values = get_post_meta($sub_event_id);
+    
     $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
@@ -379,6 +369,11 @@ class mindEventsAjax {
         $html .= '<div class="form-section">';
           $html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
           $html .= '<input type="text" class="field-color" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
+        $html .= '</div>';
+
+        $html .= '<div class="form-section">';
+          $html .= '<p class="label"><label for="wooLinkedProduct">Linked Product ID</label></p>';
+          $html .= '<input type="number" class="linked-product" name="wooLinkedProduct" id="wooLinkedProduct" value="' . $values['wooLinkedProduct'][0] . '" placeholder="">';
         $html .= '</div>';
 
         $html .= '<div class="form-section full">';

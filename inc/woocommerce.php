@@ -37,6 +37,7 @@ class mindEventsWooCommerce {
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
+                mapi_write_log($product_id);
                 $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
                 $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
 
@@ -73,6 +74,10 @@ class mindEventsWooCommerce {
                 $product_id = $line_item->get_product_id();
                 $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
                 $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
+
+                mapi_write_log($get_linked_event);
+                mapi_write_log($get_linked_occurance);
+
                 if($get_linked_event && $get_linked_occurance) :
                     $attendees = get_post_meta($get_linked_event, 'attendees', true);
                     if(!$attendees) :
@@ -163,41 +168,46 @@ class mindEventsWooCommerce {
 
         if($sub_events) :
             foreach($sub_events as $key => $sub_event) :
-                
                 $meta = get_post_meta($sub_event->ID);
                 $unique_key = $this->build_unique_key($sub_event->ID, $meta['event_start_time_stamp'][0]);
-                $product_id = $meta['wooLinkedProduct'][0];
 
-
-                
                 //if the unique key already exists, skip this iteration
                 if(in_array($unique_key, $unique_keys)) :
                     unset($unique_keys[array_search($unique_key, $unique_keys)]);
                     continue;
                 endif;
 
+
+                
                 $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
                 $event_end_date = new DateTimeImmutable($meta['event_end_time_stamp'][0]);
 
 
+                $product_id = $meta['wooLinkedProduct'][0];
 
+
+                
+                $new_product = false;
                 if($product_id) :
                     $product = wc_get_product($product_id);
-                    $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y') . ' - ' . $event_end_date->format('D, M d Y');
+                    
                     if(!$product) :
                         $product = new WC_Product_Simple();
+                        $new_product = true;
                     endif;
                 else :
+                    // Create a new product
                     $product = new WC_Product_Simple();
-                    $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i'); 
+                    $new_product = true;
+                endif;
+                
+                if($new_product) :
+                    $product->set_sku($unique_key);
                 endif;
 
-              
-                
+                $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i') . ' - ' . $event_end_date->format('H:i');
 
-                // Create a new product
                 $product->set_name($title);
-                $product->set_sku($unique_key); 
                 $product->set_description($post->post_excerpt);
                 $product->set_short_description($post->post_excerpt);
                 $product->set_regular_price($meta['wooPrice'][0]); 
@@ -214,16 +224,7 @@ class mindEventsWooCommerce {
                     
                 $product_id = $product->save();
                 
-                //Add product ID to event post meta
-                update_post_meta($sub_event->ID, 'wooLinkedProduct', $product_id);
-
-                //Add unique key to event post meta, this matches the SKU of the product
-                update_post_meta($sub_event->ID, 'wooUniqueKey', $product_id);
-               
-                //Add event ID to event product meta
-                update_post_meta($product_id, 'wooLinkedEvent', $post_id);
-                update_post_meta($product_id, 'wooLinkedOccurance', $sub_event->ID);
-                update_post_meta($product_id, '_has_event', true);
+                $this->sync_meta($sub_event->ID, $product_id);
 
             endforeach;
         endif;
@@ -242,7 +243,19 @@ class mindEventsWooCommerce {
 
     }
 
+    private function sync_meta($sub_event_id, $product_id) {
+        $post = get_post($sub_event_id);
+        //Add product ID to event post meta
+        update_post_meta($sub_event_id, 'wooLinkedProduct', $product_id);
 
+        //Add unique key to event post meta, this matches the SKU of the product
+        update_post_meta($sub_event_id, 'wooUniqueKey', $product_id);
+       
+        //Add event ID to event product meta
+        update_post_meta($product_id, 'wooLinkedEvent', $post->post_parent);
+        update_post_meta($product_id, 'wooLinkedOccurance', $sub_event_id);
+        update_post_meta($product_id, '_has_event', true);
+    }
 
     public function get_sub_events($post_id) {
         $defaults = array(
