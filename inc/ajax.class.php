@@ -24,6 +24,9 @@ class mindEventsAjax {
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'movecalendar', array( $this, 'movecalendar' ) );
 
 
+    add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'checkin_toggle', array( $this, 'checkin_toggle' ) );
+
+
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'move_pub_calendar', array( $this, 'move_pub_calendar' ) );
 
@@ -33,7 +36,6 @@ class mindEventsAjax {
 
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
     add_action( 'wp_ajax_' . MINDRETURNS_PREPEND . 'get_event_meta_html', array( $this, 'get_event_meta_html' ) );
-
 
 
     add_action( 'wp_ajax_nopriv_' . MINDRETURNS_PREPEND . 'add_woo_product_to_cart', array( $this, 'add_woo_product_to_cart' ) );
@@ -276,6 +278,38 @@ class mindEventsAjax {
 
   }
 
+
+
+  public function checkin_toggle() {
+    if($_POST['action'] == MINDRETURNS_PREPEND . 'checkin_toggle'){
+      
+
+      $occurance = $_POST['occurance'];
+      $akey = $_POST['akey'];
+      $parentid = $_POST['parentid'];
+
+      $attendee_info = get_post_meta($parentid, 'attendees', true);
+      mapi_write_log($attendee_info);
+      if($attendee_info) :
+        $attendee_info[$occurance][$akey]['checked_in'] = !$attendee_info[$occurance][$akey]['checked_in'];
+        $new_status = $attendee_info[$occurance][$akey]['checked_in'];
+        update_post_meta($parentid, 'attendees', $attendee_info);
+      endif;
+
+
+    
+
+      $return = array(
+        'success' => true,
+        'new_status' => $new_status,
+        'html' => ($new_status ? 'Undo Checkin' : 'Checkin'),
+      );
+      wp_send_json_success($return);
+    }
+
+   
+
+  }
   public function add_woo_product_to_cart() {
     if($_POST['action'] == MINDRETURNS_PREPEND . 'add_woo_product_to_cart'){
       $product_id = $_POST['product_id'];
@@ -293,8 +327,6 @@ class mindEventsAjax {
         $return['cart_url'] = wc_get_cart_url();
         $return['cart_count'] = WC()->cart->get_cart_contents_count();
       endif; 
-
-      mapi_write_log($success);
 
       if($success) :
         wp_send_json_success($return);

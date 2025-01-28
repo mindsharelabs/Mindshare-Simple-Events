@@ -164,7 +164,7 @@ class mindeventsAdmin {
 
 
 
-                foreach($tickets as $ticket) :
+                foreach($tickets as $akey => $ticket) :
                   $ticket_data = apply_filters('mindevents_attendee_data', array(
                     'order_id' => $ticket['order_id'],
                     'user_id' => $ticket['user_id'],
@@ -183,11 +183,16 @@ class mindeventsAdmin {
                         $product = wc_get_product($value);
                         $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
                       elseif($key == 'checked_in') :
-                        if($value) : //if is true
-                          $value = '<button class="check-in" data-occurance="' . $occurance_id . '" data-user="' . $ticket_data['user_id'] . '">Undo Check In</button>';
-                        else :
-                          $value = '<button class="check-in" data-occurance="' . $occurance_id . '" data-user="' . $ticket_data['user_id'] . '">Check In</button>';
-                        endif;
+
+
+                        $checked_in = $value;
+                        $value = '<button class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . '" data-akey="' . $akey  . '" data-occurance="' . $occurance_id . '" data-user_id="' . $ticket_data['user_id'] . '">';
+
+                            $value .= ($checked_in ? 'Undo Check In' : 'Check In');
+                         
+                        $value .= '</button>';
+
+
                       elseif($key == 'order_id') :
                         $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
                       
@@ -266,7 +271,7 @@ class mindeventsAdmin {
             echo '<div class="form-section">';
               echo '<p class="label"><label for="wooStock">Event Stock</label></p>';
               echo '<input type="number" name="event[wooStock]" id="wooStock" value="' . (isset($defaults['wooStock']) ? $defaults['wooStock'] : '4') . '" placeholder="4">';
-              echo '<p class="description">This will be the stock limit for the associated product variation, it will be ignored for simple products.</p>';
+              echo '<p class="description">This will be the stock limit for the associated product, it will be ignored for simple products.</p>';
             echo '</div>';
             
           

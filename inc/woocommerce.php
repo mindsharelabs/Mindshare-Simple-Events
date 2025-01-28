@@ -149,6 +149,9 @@ class mindEventsWooCommerce {
                 
                 if($product_id) :
                     $product = wc_get_product($product_id);
+                    if(!$product) :
+                        $product = new WC_Product_Simple();
+                    endif;
                 else :
                     $product = new WC_Product_Simple();
                 endif;

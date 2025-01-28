@@ -230,6 +230,56 @@
 
 
 
+
+
+	$(document).on('click', 'button.atendee-check-in', function (event) {
+		event.preventDefault();
+		var button = $(this);
+		var occurance = $(this).data('occurance');
+		var user_id = $(this).data('user_id');
+		var akey = $(this).data('akey');
+
+		console.log(occurance);
+		console.log(user_id);
+		console.log(mindeventsSettings.post_id);
+		console.log(button);
+
+		$.ajax({
+			url : mindeventsSettings.ajax_url,
+			type : 'post',
+			data : {
+				action : 'mindevents_checkin_toggle',
+				occurance : occurance,
+				user_id : user_id,
+				akey : akey,
+				parentid : mindeventsSettings.post_id,
+			},
+			beforeSend: function() {
+				button.html('Updating...').disabled = true;
+			},
+			success: function(response) {
+				if(response.data.success) {
+					if(response.data.new_status == true) {
+						button.html('Checked In').addClass('checked-in');
+					} else {
+						button.html('Check In').removeClass('checked-in');
+					}
+					button.html(response.data.html);
+				}
+			},
+			error: function (response) {
+				console.log('An error occurred.');
+				console.log(response);
+			},
+		});
+
+
+	});
+
+
+
+
+
 	$(document).on('click', 'td .event span.edit', function (event) {
 		event.preventDefault();
 		var thisEvent = $(this).parent('.event');

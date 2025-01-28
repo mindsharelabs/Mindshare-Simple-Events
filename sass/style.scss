@@ -22,6 +22,11 @@
     &.clear-occurances {
       margin-top: 5px;
     }
+    &.button-success {
+      color: #fff;
+      background: $success; 
+      border: color.adjust($danger, $lightness: -10%)
+    }
     &.button-danger {
       color: #fff;
       background: $danger;
@@ -35,6 +40,11 @@
     &.button-white {
       background: #fff;
       color: $dark;
+    }
+    &.checked-in {
+      background: #cccccc;
+      color: #353535;
+      border-color: #a6a6a6;
     }
   }
   h3 {
