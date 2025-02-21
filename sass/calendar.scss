@@ -248,6 +248,10 @@
             background: color.adjust($primary, $lightness: 40%);
           }
         }
+        &.past-date {
+          background-color: rgba(214, 214, 214, 0.4);
+          opacity: .5;
+        }
   			&.SCsuffix, &.SCprefix {
           background: rgba(200, 200, 200, .1);
   			}
@@ -261,6 +265,9 @@
             text-align: left;
             flex-grow: 1;
             margin: 2px;
+            &.past-event {
+              opacity: .5;
+            }
             .sub-event-toggle {
               cursor: pointer;
               font-size: 13px;
@@ -374,11 +381,21 @@
     .left-content, .right-content {
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
+      justify-content: center;
     }
     .left-content {
       margin-right: 15px;
       max-width: 70%;
+      .past-event-label {
+        font-size: .8em;
+        font-weight: bold;
+        text-transform: uppercase;
+        // color: $light;
+        background-color: rgba(255,255,255,.3);
+        border: 1px solid $light;
+        padding: 10px 20px;
+        border-radius: 20px;
+      }
     }
     .right-content {
       min-width: 20%;

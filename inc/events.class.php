@@ -28,6 +28,7 @@ class mindEventCalendar {
 		'today'        => 'today',
 		'event'        => 'event',
 		'events'       => 'events',
+    'past'         => 'past-date',
 	];
 
   private $dailyHtml = [];
@@ -266,13 +267,16 @@ class mindEventCalendar {
         $date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
 
         $isToday = false;
+        $isPast = false;
         if( $this->today !== null ) {
           $isToday = $i == $today['mday']
             && $today['mon'] == $date->format('n')
             && $today['year'] == $date->format('Y');
+          
+          $isPast = $this->today->format('Y-m-d') > $date->format('Y-m-d');
         }
 
-        $out .= '<td' . ($isToday ? ' class="' . $this->classes['today'] . '"' : '') . '>';
+        $out .= '<td class="' . ($isToday ? $this->classes['today'] : '') . ' ' . ($isPast ? $this->classes['past'] : '') . '">';
 
         $out .= sprintf('<time class="calendar-day" datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
 
@@ -456,8 +460,7 @@ class mindEventCalendar {
     $eventDates = $this->get_sub_events();
     if($eventDates) :
       foreach ($eventDates as $key => $event) :
-        // $starttime = get_post_meta($event->ID, 'starttime', true);
-        // $endtime = get_post_meta($event->ID, 'endtime', true);
+        $is_past = $this->today->format('Y-m-d') > get_post_meta($event->ID, 'event_date', true) ? true : false;
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = get_post_meta($event->ID, 'eventColor', true);
 
@@ -468,7 +471,7 @@ class mindEventCalendar {
 
         $text_color = $this->getContrastColor($color);
 
-        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . ' ' . ($is_past ? 'past-event' : '') . '">';
           $insideHTML .= '<div class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
             $insideHTML .= $this->get_event_label($event);
           $insideHTML .= '</div>';
@@ -600,7 +603,7 @@ class mindEventCalendar {
   private function build_offer_link($offer) {
 
     if(!$offer['label']) :
-      $offer['label'] = 'Add to Cart';
+      $offer['label'] = __('Add to Cart', 'makesantafe');
     endif;
 
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
@@ -651,8 +654,8 @@ class mindEventCalendar {
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
     $image = get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') );
-
-
+    $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
+    
     if($meta) :
       $style_str = array();
       if($meta['eventColor']) :
@@ -660,8 +663,8 @@ class mindEventCalendar {
         $style_str['color'] = 'color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
       endif;
 
-      $html = '<div class="meta_inner_container" style="' . implode(' ', $style_str) . '">';
-       
+      $html = '<div class="meta_inner_container ' . ($is_past ? 'past-event' : '') . '" style="' . implode(' ', $style_str) . '">';
+        
         if($image) :
           $html .= '<div class="featured-image">';
             $html .= $image;
@@ -669,11 +672,15 @@ class mindEventCalendar {
         endif;
       
         $html .= '<div class="left-content">';
-
+          if($is_past) :
+            $html .= '<div class="past-event-label">This event has passed.</div>';
+          endif;
           if($sub_event_obj->post_parent) :
             $html .= '<div class="meta-item">';
               $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
                 $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+                
+                
               $html .= '</a>';
             $html .= '</div>';
           endif;
@@ -708,40 +715,47 @@ class mindEventCalendar {
           
         $html .= '</div>';
 
-        if($meta['wooLinkedProduct'][0]) :
-      
-            $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-            $product = wc_get_product_object( 'simple', $meta['wooLinkedProduct'][0] );
+        $html .= '<div class="right-content">';
+          if($meta['wooLinkedProduct'][0]) :
+        
+              $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+              $product = wc_get_product_object( 'simple', $meta['wooLinkedProduct'][0] );
 
-            
-            if($product) :
-              $html .= '<div class="right-content">';
-                $html .= $this->build_offer_link(array(
-                    'label' => $meta['wooLabel'][0],
-                    'price' => $product->get_price(),
-                    'link' => $product->get_permalink(), 
-                    'background' => $meta['eventColor'][0],
-                    'color' => $this->getContrastColor($meta['eventColor'][0]),
-                    'product_id' => $meta['wooLinkedProduct'][0],
-                    'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-                    'quantity' => 1
-                  ));
-              $html .= '</div>';
-            endif;
+              
+              if($product) :
+              
+                  $html .= $this->build_offer_link(array(
+                      'label' => $meta['wooLabel'][0],
+                      'price' => $product->get_price(),
+                      'link' => $product->get_permalink(), 
+                      'background' => $meta['eventColor'][0],
+                      'color' => $this->getContrastColor($meta['eventColor'][0]),
+                      'product_id' => $meta['wooLinkedProduct'][0],
+                      'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                      'quantity' => 1
+                    ));
+                
+              endif;
 
 
-        elseif($meta['offers']) :
-            $offers = unserialize ($meta['offers'][0]);
-            $html .= '<div class="right-content">';
-            
-             foreach ($offers as $key => $offer) :
-                $offer['background'] = $meta['eventColor'][0];
-                $offer['color'] = $this->getContrastColor($meta['eventColor'][0]);
-                $html .= $this->build_offer_link($offer);
-              endforeach;
-            $html .= '</div>';
-        endif;
+          elseif($meta['offers']) :
+              $offers = unserialize ($meta['offers'][0]);
 
+              
+              foreach ($offers as $key => $offer) :
+                  $offer['background'] = $meta['eventColor'][0];
+                  $offer['color'] = $this->getContrastColor($meta['eventColor'][0]);
+                  $html .= $this->build_offer_link($offer);
+                endforeach;
+
+                
+
+          endif;
+          //add read more button
+          $html .= '<div class="meta-item">';
+            $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
+          $html .= '</div>';
+        $html .= '</div>';
 
 
         
