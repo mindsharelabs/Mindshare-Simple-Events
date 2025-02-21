@@ -22,13 +22,16 @@ class mindEventsWooCommerce {
     }
 
     public function order_status_change($order, $from, $to) {
-        
         if($to == 'refunded' || $to == 'cancelled' || $to == 'failed' || $to == 'on-hold') :
             $this->remove_attendee($order);
         endif;
 
-        if($to == 'completed' || $to == 'processing') :
+        if($to == 'processing') :
             $this->add_attendee($order);
+        endif;
+
+        if($to == 'completed') :
+            $this->schedule_hook($order);
         endif;
 
     }
@@ -37,7 +40,7 @@ class mindEventsWooCommerce {
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
-                mapi_write_log($product_id);
+                
                 $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
                 $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
 
@@ -67,6 +70,21 @@ class mindEventsWooCommerce {
         endif;
     }
 
+
+    private function schedule_hook($order_id) {
+        $order = wc_get_order( $order_id );
+        if($order->get_items()) :
+            foreach($order->get_items() as $line_item) :
+                $product_id = $line_item->get_product_id();
+                $event_start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
+                wp_schedule_single_event(strtotime($event_start_date) - DAY_IN_SECONDS * 3, 'woo_event_start', array(
+                    'order_id' => $order_id,
+                    'user_id' => $order->get_user_id(),
+                    'product_id' => $product_id,
+                ));
+            endforeach;
+        endif;
+    }
     private function remove_attendee($order_id) {
         $order = wc_get_order( $order_id );
         if($order->get_items()) :
@@ -75,9 +93,7 @@ class mindEventsWooCommerce {
                 $get_linked_event = get_post_meta($product_id, 'wooLinkedEvent', true);
                 $get_linked_occurance = get_post_meta($product_id, 'wooLinkedOccurance', true);
 
-                mapi_write_log($get_linked_event);
-                mapi_write_log($get_linked_occurance);
-
+         
                 if($get_linked_event && $get_linked_occurance) :
                     $attendees = get_post_meta($get_linked_event, 'attendees', true);
                     if(!$attendees) :
@@ -162,73 +178,134 @@ class mindEventsWooCommerce {
         if(wp_is_post_revision( $post_id )) return;
 
 
-        $unique_keys = (get_post_meta($post_id, 'wooUniqueKey', true) ? get_post_meta($post_id, 'wooUniqueKey', true) : array());
+        $event_type = get_post_meta($post_id, 'event_type', true);
+   
+        
+        if($event_type == 'single-event') :
+            $unique_keys = array();
+            $meta = get_post_meta($post_id);
 
-        $sub_events = $this->get_sub_events($post_id);
-
-        if($sub_events) :
-            foreach($sub_events as $key => $sub_event) :
-                $meta = get_post_meta($sub_event->ID);
-                $unique_key = $this->build_unique_key($sub_event->ID, $meta['event_start_time_stamp'][0]);
-
-                //if the unique key already exists, skip this iteration
-                if(in_array($unique_key, $unique_keys)) :
-                    unset($unique_keys[array_search($unique_key, $unique_keys)]);
-                    continue;
-                endif;
+            $start_date = new DateTimeImmutable($meta['first_event_date'][0]);
+            $end_date = new DateTimeImmutable($meta['last_event_date'][0]);
+            $meta['event_start_time_stamp'] = array($start_date->getTimestamp());
 
 
+            $unique_key = $this->build_unique_key($post_id, $meta['first_event_date'][0]);
+            $unique_keys[] = $unique_key;
+            $product_id = (isset($meta['wooLinkedProduct'][0]) ? $meta['wooLinkedProduct'][0] : false);
+            update_post_meta($post_id, 'wooUniqueKey', $unique_keys);
+       
+
+            $new_product = false;
+            if($product_id) :
+                $product = wc_get_product($product_id);
                 
-                $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-                $event_end_date = new DateTimeImmutable($meta['event_end_time_stamp'][0]);
-
-
-                $product_id = $meta['wooLinkedProduct'][0];
-
-
-                
-                $new_product = false;
-                if($product_id) :
-                    $product = wc_get_product($product_id);
-                    
-                    if(!$product) :
-                        $product = new WC_Product_Simple();
-                        $new_product = true;
-                    endif;
-                else :
-                    // Create a new product
+                if(!$product) :
                     $product = new WC_Product_Simple();
                     $new_product = true;
                 endif;
-                
-                if($new_product) :
-                    $product->set_sku($unique_key);
-                endif;
+            else :
+                // Create a new product
+                $product = new WC_Product_Simple();
+                $new_product = true;
+            endif;
 
-                $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i') . ' - ' . $event_end_date->format('H:i');
+            if($new_product) :
+                $product->set_sku($unique_key);
+            endif;
 
-                $product->set_name($title);
-                $product->set_description($post->post_excerpt);
-                $product->set_short_description($post->post_excerpt);
-                $product->set_regular_price($meta['wooPrice'][0]); 
+            $title = get_the_title($post_id) . ' - ' . $start_date->format('d-m-Y') . ' - ' . $end_date->format('d-m-Y');
 
-                if($meta['wooStock'][0]) :
-                    $product->set_manage_stock(true); 
-                    $product->set_stock_quantity($meta['wooStock'][0]);
-                else :
-                    $product->set_manage_stock(false);
-                endif; 
-                $product->set_catalog_visibility('hidden');
-                $product->set_virtual(true);
-                $product->set_status('publish');
+            $product->set_name($title);
+            $product->set_description($post->post_excerpt);
+            $product->set_short_description($post->post_excerpt);
+            $product->set_regular_price($meta['ticket_price'][0]); 
+
+            if($meta['ticket_stock'][0]) :
+                $product->set_manage_stock(true); 
+                $product->set_stock_quantity($meta['ticket_stock'][0]);
+            else :
+                $product->set_manage_stock(false);
+            endif; 
+            
+            $product->set_catalog_visibility('hidden');
+            $product->set_virtual(true);
+            $product->set_status('publish');
+
+            $product_id = $product->save();
                     
-                $product_id = $product->save();
-                
-                $this->sync_meta($sub_event->ID, $product_id);
+            $this->sync_meta($post_id, $product_id);
 
-            endforeach;
+
+
+        elseif($event_type == 'multiple-events') :
+            $unique_keys = (get_post_meta($post_id, 'wooUniqueKey', true) ? get_post_meta($post_id, 'wooUniqueKey', true) : array());
+            $sub_events = $this->get_sub_events($post_id);
+
+            if($sub_events) :
+                foreach($sub_events as $key => $sub_event) :
+
+                    //if has ticket
+                        //create ticket product for event
+
+
+                    $meta = get_post_meta($sub_event->ID);
+                    $unique_key = $this->build_unique_key($sub_event->ID, $meta['event_start_time_stamp'][0]);
+
+                    //if the unique key already exists, skip this iteration
+                    if(in_array($unique_key, $unique_keys)) :
+                        unset($unique_keys[array_search($unique_key, $unique_keys)]);
+                        continue;
+                    endif;
+
+
+                    $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+                    $event_end_date = new DateTimeImmutable($meta['event_end_time_stamp'][0]);
+
+                    $product_id = $meta['wooLinkedProduct'][0];
+
+                    $new_product = false;
+                    if($product_id) :
+                        $product = wc_get_product($product_id);
+                        
+                        if(!$product) :
+                            $product = new WC_Product_Simple();
+                            $new_product = true;
+                        endif;
+                    else :
+                        // Create a new product
+                        $product = new WC_Product_Simple();
+                        $new_product = true;
+                    endif;
+                    
+                    if($new_product) :
+                        $product->set_sku($unique_key);
+                    endif;
+
+                    $title = $post->post_title . ' - ' . $event_start_date->format('D, M d Y @ H:i') . ' - ' . $event_end_date->format('H:i');
+
+                    $product->set_name($title);
+                    $product->set_description($post->post_excerpt);
+                    $product->set_short_description($post->post_excerpt);
+                    $product->set_regular_price($meta['wooPrice'][0]); 
+
+                    if($meta['wooStock'][0]) :
+                        $product->set_manage_stock(true); 
+                        $product->set_stock_quantity($meta['wooStock'][0]);
+                    else :
+                        $product->set_manage_stock(false);
+                    endif; 
+                    $product->set_catalog_visibility('hidden');
+                    $product->set_virtual(true);
+                    $product->set_status('publish');
+                        
+                    $product_id = $product->save();
+                    
+                    $this->sync_meta($sub_event->ID, $product_id);
+
+                endforeach;
+            endif;
         endif;
-
 
         //Delete any products that are no longer needed
         if(!empty($unique_keys)) :
@@ -245,13 +322,17 @@ class mindEventsWooCommerce {
 
     private function sync_meta($sub_event_id, $product_id) {
         $post = get_post($sub_event_id);
+        $meta = get_post_meta($sub_event_id);
         //Add product ID to event post meta
         update_post_meta($sub_event_id, 'wooLinkedProduct', $product_id);
 
-        //Add unique key to event post meta, this matches the SKU of the product
-        update_post_meta($sub_event_id, 'wooUniqueKey', $product_id);
-       
         //Add event ID to event product meta
+        if($meta['event_start_time_stamp'][0]) :
+            update_post_meta($product_id, 'linkedEventStartDate', $meta['event_start_time_stamp'][0]);
+        else :
+            update_post_meta($product_id, 'linkedEventStartDate', $meta['first_event_date'][0]);
+        endif;
+
         update_post_meta($product_id, 'wooLinkedEvent', $post->post_parent);
         update_post_meta($product_id, 'wooLinkedOccurance', $sub_event_id);
         update_post_meta($product_id, '_has_event', true);

@@ -40,6 +40,45 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 
 
+
+		$(document).on('change', '#event_meta_event_type', function (e) {
+			if(e.target.value == 'single-event') {
+				$('.multiple-option').hide();
+				$('.single-option').show();
+			} else if(e.target.value == 'multiple-events') {
+				$('.multiple-option').show();
+				$('.single-option').hide();
+			}
+		});
+
+
+		$(document).on('change', '#event_meta_has_tickets', function (e) {
+			if(e.target.value === '1') {
+				console.log('show');
+				$('.ticket-option').show();
+			} else if(e.target.value === '0') {
+				console.log('hide');
+				$('.ticket-option').hide();
+			}
+		});
+
+
+		$(document).on('load', function() {
+			if($('#event_meta_event_type').val() == 'single-event') {
+				$('.multiple-option').hide();
+				$('.single-option').show();
+			} else if($('#event_meta_event_type').val() == 'multiple-events') {
+				$('.multiple-option').show();
+				$('.single-option').hide();
+			}
+			if($('#event_meta_has_tickets').val() === '1') {
+				$('.ticket-option').show();
+			} else {
+				$('.ticket-option').hide();
+			}
+		});
+
+
 		
 
 

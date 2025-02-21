@@ -87,16 +87,69 @@ class mindeventsAdmin {
 
 
   static function display_event_options_metabox() {
+    $global_options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
+
     $cal = get_post_meta(get_the_ID(), 'cal_display', true);
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
+    $ticket_stock = (get_post_meta(get_the_ID(), 'ticket_stock', true) ? get_post_meta(get_the_ID(), 'ticket_stock', true) : 4);
+    $ticket_price = (get_post_meta(get_the_ID(), 'ticket_price', true) ? get_post_meta(get_the_ID(), 'ticket_price', true) : 0);
+    $event_type = get_post_meta(get_the_ID(), 'event_type', true);
+    $has_tickets = get_post_meta(get_the_ID(), 'has_tickets', true);
+
+
+
+    
     wp_nonce_field( basename( __FILE__ ), MINDEVENTS_PREPEND . 'event_meta_nonce' );
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
 
     
       echo '<div class="form-section">';
-        echo '<p class="label"><label for="event_meta[cal_display]">Calendar Display</label></p>';
+        echo '<p class="label"><label for="event_meta_event_type">Event Type</label></p>';
         echo '<div class="select-wrap">';
-          echo '<select name="event_meta[cal_display]" id="event_meta[cal_display]">';
+          echo '<select name="event_meta[event_type]" id="event_meta_event_type">';
+            echo '<option value="multiple-events" disabled selected>(Select Type)</option>';
+            echo '<option value="multiple-events" ' . selected($event_type, 'multiple-events', false) . '>Multiple Unique Events</option>';
+            echo '<option value="single-event" ' . selected($event_type, 'single-event', false) . '>Single Recurring Event</option>';
+          echo '</select>';
+        echo '</div>';
+      echo '</div>';
+
+      echo '<div class="form-section">';
+        echo '<p class="label"><label for="event_meta_has_tickets">Has Tickets?</label></p>';
+        echo '<div class="select-wrap">';
+          echo '<select name="event_meta[has_tickets]" id="event_meta_has_tickets">';
+            echo '<option value="1" ' . selected($has_tickets, '1', false) . '>Yes</option>';
+            echo '<option value="0" ' . selected($has_tickets, '0', false) . '>No</option>';
+          echo '</select>';
+        echo '</div>';
+      echo '</div>';
+
+
+      //if woocommerce is enabled
+      if($global_options[MINDEVENTS_PREPEND . 'enable_woocommerce'] == true && class_exists('woocommerce')) :
+        echo '<div class="form-section ticket-option single-option">';
+          echo '<p class="label"><label for="event_meta_ticket_stock">Available Tickets</label></p>';
+          echo '<div class="input-wrap">';
+            echo '<input type="number" name="event_meta[ticket_stock]" id="event_meta_ticket_stock" value="' . $ticket_stock . '">';
+            echo '<p class="description">This will be the total stock for the event ticket.</p>';
+           echo '</div>';
+        echo '</div>';
+
+
+        echo '<div class="form-section ticket-option single-option">';
+          echo '<p class="label"><label for="event_meta_ticket_price">Ticket Price</label></p>';
+          echo '<div class="input-wrap">';
+            echo '<input type="number" name="event_meta[ticket_price]" id="event_meta_ticket_price" value="' . $ticket_price . '">';
+            echo '<p class="description">This will be the ticket price for this event.</p>';
+           echo '</div>';
+        echo '</div>';
+      endif;
+
+
+      echo '<div class="form-section">';
+        echo '<p class="label"><label for="event_meta_cal_display">Calendar Display</label></p>';
+        echo '<div class="select-wrap">';
+          echo '<select name="event_meta[cal_display]" id="event_meta_cal_display">';
             echo '<option value="calendar" ' . selected($cal, 'calendar', false) . '>Calendar</option>';
             echo '<option value="list" ' . selected($cal, 'list', false) . '>List</option>';
           echo '</select>';
@@ -104,9 +157,9 @@ class mindeventsAdmin {
       echo '</div>';
 
       echo '<div class="form-section">';
-        echo '<p class="label"><label for="event_meta[show_past_events]">Show Past Events?</label></p>';
+        echo '<p class="label"><label for="event_meta_show_past_events">Show Past Events?</label></p>';
         echo '<div class="select-wrap">';
-          echo '<select name="event_meta[show_past_events]" id="event_meta[show_past_events]">';
+          echo '<select name="event_meta[show_past_events]" id="event_meta_show_past_events">';
             echo '<option value="1" ' . selected($show_past_events, '1', false) . '>Show all events</option>';
             echo '<option value="0" ' . selected($show_past_events, '0', false) . '>Show only future events</option>';
           echo '</select>';
@@ -285,6 +338,7 @@ class mindeventsAdmin {
     $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
     echo '<fieldset id="defaultEventMeta" class="event-times mindevents-forms">';
       echo '<div class="time-block">';
+
         echo '<div class="form-section">';
           echo '<p class="label"><label for="starttime">Event Occurence Start</label></p>';
           echo '<input type="text" class="timepicker required" name="event[starttime]" id="starttime" value="' . (isset($defaults['starttime']) ? $defaults['starttime'] : $this->default_start_time) . '" placeholder="">';
@@ -308,33 +362,34 @@ class mindeventsAdmin {
             //add hiden inpuit
             echo '<input type="hidden" name="event[wooLinked]" id="wooLink" value="1">';
 
-            echo '<div class="form-section">';
+            echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventProductID">Ticket Button Text</label></p>';
               echo '<input type="text" name="event[wooLabel]" id="eventLinkedProduct" value="' . (isset($defaults['wooLabel']) ? $defaults['wooLabel'] : '') . '" placeholder="">';
             echo '</div>';
 
-            echo '<div class="form-section">';
+            echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventProductID">Linked Product</label></p>';
               echo '<input type="number" name="event[wooLinkedProduct]" id="eventLinkedProduct" value="' . (isset($defaults['wooLinkedProduct']) ? $defaults['wooLinkedProduct'] : '') . '" placeholder="">';
               echo '<p class="description">If left blank a new product will be created.</p>';
             echo '</div>';
             
-            echo '<div class="form-section">';
+            echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
               echo '<input type="number" name="event[wooPrice]" id="eventCost" value="' . (isset($defaults['wooPrice']) ? $defaults['wooPrice'] : '') . '" placeholder="100">';
               echo '<p class="description">This will be the default cost for all tickets, it can be changed on the WooCommerce product.</p>';
             echo '</div>';
 
-            echo '<div class="form-section">';
+            echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="wooStock">Event Stock</label></p>';
               echo '<input type="number" name="event[wooStock]" id="wooStock" value="' . (isset($defaults['wooStock']) ? $defaults['wooStock'] : '4') . '" placeholder="4">';
               echo '<p class="description">This will be the stock limit for the associated product, it will be ignored for simple products.</p>';
             echo '</div>';
             
-          
         else : 
-          echo '<h3 class="offers-title">Tickets</h3>';
-          echo '<div class="offer-options" id="allOffers">';
+         
+          echo '<div class="offer-options ticket-option" id="allOffers">';
+            echo '<h3 class="offers-title">Tickets</h3>';
+
             echo '<div class="single-offer">';
               echo '<div class="form-section">';
                 echo '<p class="label"><label for="eventLinkLabel">Ticket Label</label></p>';
@@ -355,8 +410,6 @@ class mindeventsAdmin {
                 echo '<span>+</span>';
               echo '</div>';
             echo '</div>';
-
-
 
           echo '</div>';
         endif;

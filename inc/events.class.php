@@ -600,7 +600,7 @@ class mindEventCalendar {
   private function build_offer_link($offer) {
 
     if(!$offer['label']) :
-      $offer['label'] = 'Attend Event';
+      $offer['label'] = 'Add to Cart';
     endif;
 
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';

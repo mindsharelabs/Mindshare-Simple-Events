@@ -91,6 +91,7 @@ class mindEventsAjax {
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
 
+
       $meta = $this->reArrayMeta($_POST['meta']['event']);
       $event = new mindEventCalendar($eventID);
 
@@ -116,9 +117,6 @@ class mindEventsAjax {
           endif;
         $insideHTML .= '</div>';
       endif;
-
-
-      do_action('mindreturns_after_sub_event_added', $added_event_id, $eventID, $meta);
 
       $return = array(
         'html' => $insideHTML,
