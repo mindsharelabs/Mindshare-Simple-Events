@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   button.calnav, button.archive-calnav{
-    font-size: 14px;
+    font-size: 25px; 
     line-height: 24px;
     cursor: pointer;
     border: 1px solid color.adjust(rgb(67, 160, 217), $lightness: -10%);
@@ -243,7 +243,9 @@
         &.today {
           background: color.adjust($primary, $lightness: 40%);
           // background: color.adjust($primary, $lightness: 40%);
-          
+          .calendar-day {
+            color: $primary;
+          }
           time {
             background: color.adjust($primary, $lightness: 40%);
           }
@@ -426,6 +428,11 @@
   padding: 20px;
   .events-wrap, .content-wrap {
     margin-bottom: 2em;
+    h3 {
+      text-align: center;
+      margin-bottom: 20px;
+      margin-top: 40px;
+    }
   }
   section.content{
     display: flex;

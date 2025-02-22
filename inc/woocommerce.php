@@ -22,11 +22,20 @@ class mindEventsWooCommerce {
     }
 
     public function order_status_change($order, $from, $to) {
-        if($to == 'refunded' || $to == 'cancelled' || $to == 'failed' || $to == 'on-hold') :
+        if(
+            $to == 'refunded' || 
+            $to == 'cancelled' || 
+            $to == 'failed' || 
+            $to == 'on-hold' || 
+            $to == 'pending'
+            ) :
             $this->remove_attendee($order);
         endif;
 
-        if($to == 'processing') :
+        if(
+            $to == 'processing' || 
+            $from != 'processing' && $to == 'completed'
+            ) :
             $this->add_attendee($order);
         endif;
 
@@ -179,7 +188,7 @@ class mindEventsWooCommerce {
 
 
         $event_type = get_post_meta($post_id, 'event_type', true);
-   
+       
         
         if($event_type == 'single-event') :
             $unique_keys = array();
@@ -240,14 +249,11 @@ class mindEventsWooCommerce {
 
         elseif($event_type == 'multiple-events') :
             $unique_keys = (get_post_meta($post_id, 'wooUniqueKey', true) ? get_post_meta($post_id, 'wooUniqueKey', true) : array());
+            
             $sub_events = $this->get_sub_events($post_id);
 
             if($sub_events) :
                 foreach($sub_events as $key => $sub_event) :
-
-                    //if has ticket
-                        //create ticket product for event
-
 
                     $meta = get_post_meta($sub_event->ID);
                     $unique_key = $this->build_unique_key($sub_event->ID, $meta['event_start_time_stamp'][0]);
@@ -308,6 +314,7 @@ class mindEventsWooCommerce {
         endif;
 
         //Delete any products that are no longer needed
+        mapi_write_log($unique_keys);
         if(!empty($unique_keys)) :
             foreach($unique_keys as $key => $unique_key) :
                 $product_id = wc_get_product_id_by_sku($unique_key);

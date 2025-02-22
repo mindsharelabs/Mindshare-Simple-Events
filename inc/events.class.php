@@ -248,7 +248,7 @@ class mindEventCalendar {
     $daysInMonth  = cal_days_in_month(CAL_GREGORIAN, $now['mon'], $now['year']);
 
 
-      $out .= '<h3 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h3>';
+      $out .= '<h4 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h4>';
       $out .= '<table id="mindEventCalendar" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" cellpadding="0" cellspacing="0" class=" ' . $this->classes['calendar'] . '"><thead><tr>';
         foreach( $daysOfWeek as $dayName ) {
           $out .= '<th>' . $dayName . '</th>';
@@ -706,6 +706,8 @@ class mindEventCalendar {
           endif;
 
           $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
+          
+
           
           if(is_post_type_archive('events')) :
             $html .= '<div class="meta-item">';
