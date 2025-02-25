@@ -92,10 +92,15 @@ class mindEvents {
     else :
       $postID = get_the_ID();
     endif;
-    wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
+
+    $data = array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),
-      'post_id' => $postID
-    ) );
+      'post_id' => $postID,
+    );
+    if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
+      $data['cart_url'] = wc_get_cart_url();
+    endif;
+    wp_localize_script( 'mindevents-js', 'mindeventsSettings', $data);
   }
 
 

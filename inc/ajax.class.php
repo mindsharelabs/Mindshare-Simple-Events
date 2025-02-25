@@ -159,13 +159,13 @@ class mindEventsAjax {
 
       $cat = (isset($_POST['category']) ? $_POST['category'] : false);
 
+  
+
       if($cat) :
         $eventID = 'archive';
       else :
         $eventID = $_POST['eventid'];
-        $event = get_post($eventID);
       endif;
-
 
 
       $calendar = new mindEventCalendar($eventID, $new_date);
@@ -324,7 +324,6 @@ class mindEventsAjax {
         wp_send_json_success($return);
       else :
         $error_messages = wc_get_notices('error');
-        mapi_write_log($error_messages);
         wp_send_json_error($error_messages);
       endif;
     }
@@ -345,7 +344,6 @@ class mindEventsAjax {
 
   private function get_meta_form($sub_event_id, $parentID) {
     $values = get_post_meta($sub_event_id);
-    mapi_write_log($values);
     
     $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';

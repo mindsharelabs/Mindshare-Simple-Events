@@ -40,6 +40,7 @@ echo '<main role="main" aria-label="Content">';
 
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
+        echo '<div id="cartErrorContainer"></div>';
         do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
         echo '<div class="calendar-nav">';
         echo '<button data-dir="prev" class="calnav prev"><span><i class="fas fa-arrow-left"></i> Last Month</span></button>';

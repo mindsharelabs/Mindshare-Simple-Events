@@ -119,6 +119,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		$(document).on('click', 'button.mindevents-add-to-cart', function (event) {
 			event.preventDefault();
 			var button = $(this);
+			var buttonParent = button.parent();
 			var product_id = $(this).data('product_id');
 			var quantity = $(this).data('quantity');
 			var event_date = $(this).data('event_date');
@@ -140,12 +141,14 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					
 				},
 				success: function(response) {
-
+					console.log( mindeventsSettings.cart_url);
 					if(response.success) {
 						button.prop('disabled', false);
 						button.html('Added!');
 						setTimeout(function() {
 							button.html('Add 1 more (+1)');
+							buttonParent.append('<a href="' + mindeventsSettings.cart_url + '" class="button go-to-cart">Go to cart.</a>');
+							
 						}, 1500);
 
 				

@@ -403,7 +403,7 @@
     .right-content {
       min-width: 20%;
     }
-    .meta-item {
+    .meta_item {
       .offer-link {
         span {
           display: inline-block;
@@ -477,6 +477,26 @@
     }
   }
 }
+#cartErrorContainer {
+  p {
+    flex-basis: 20%;
+    color: $danger;
+    border: 1px solid $danger;
+    background-color: color.adjust($danger, $lightness: 40%);
+    padding: 5px;
+    border-radius: 20px;
+    text-align: left;
+    font-size: .8em;
+    line-height: 1.1em; 
+    a.button {
+      @include button-link;
+      color: $danger;
+      border-color: $danger;
+      max-width: 150px;
+      margin-top: 5px;
+    } 
+  }
+}
 
 #mindCalanderList.event-list {
   display: flex;
@@ -521,8 +541,9 @@
           flex-basis: 18%;
         }
         &.description {
-          flex-basis: 52%;
+          // flex-basis: 52%;
         }
+        
         &.link {
           flex-basis: 20%;
           align-items: center;
@@ -530,7 +551,15 @@
           display: flex;
           a.button{
             @include button-link;
+            &.go-to-cart {
+              background: $success;
+              border-color: color.adjust($success, $lightness: -20%);
+              &:hover {
+                background: color.adjust($success, $lightness: -20%);
+              }
+            }
           }
+
         }
         &.offers {
           display: flex;
@@ -540,6 +569,7 @@
             margin: 0 8px 5px 8px;
           }
         }
+        
       }
 
     }

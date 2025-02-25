@@ -407,9 +407,10 @@ class mindEventCalendar {
   }
 
   public function get_sub_events($args = array()) {
+    
     $defaults = array(
       'meta_query' => array(
-        // 'relation' => 'AND',
+        'relation' => 'AND',
         'start_clause' => array(
           'key' => 'starttime',
           'compare' => 'EXISTS',
@@ -448,16 +449,19 @@ class mindEventCalendar {
     }
 
     $args = wp_parse_args($args, $defaults);
+    
     return get_posts($args);
 
   }
 
 
 
-  public function get_front_calendar($place = '') {
+  public function get_front_calendar() {
 
     $this->setStartOfWeek($this->calendar_start_day);
     $eventDates = $this->get_sub_events();
+  
+
     if($eventDates) :
       foreach ($eventDates as $key => $event) :
         $is_past = $this->today->format('Y-m-d') > get_post_meta($event->ID, 'event_date', true) ? true : false;
@@ -507,11 +511,19 @@ class mindEventCalendar {
 
   public function get_front_list($calDate = '') {
     $eventDates = $this->get_sub_events();
+    $event_type = get_post_meta(get_the_id(), 'event_type', true);
+
+   $i = 0;
+
     if(count($eventDates) > 0) :
 
       foreach ($eventDates as $key => $event) :
+        $display_link = ($event_type == 'single-event' && $i < 1) ? true : false;
+
+
         $startDate = get_post_meta($event->ID, 'event_date', true);
-        $this->addDailyHtml($this->get_list_item_html($event->ID), $startDate);
+        $this->addDailyHtml($this->get_list_item_html($event->ID, $display_link), $startDate);
+        $i++;
       endforeach;
       $html = $this->renderList();
     else :
@@ -520,6 +532,9 @@ class mindEventCalendar {
 
     return $html;
   }
+
+
+
 
 
   /**
@@ -554,11 +569,9 @@ class mindEventCalendar {
     return $out;
   }
 
-  public function get_list_item_html($event = '') {
+
+  public function get_list_item_html($event = '', $display_link = true) {
     $meta = get_post_meta($event);
-    $sub_event_obj = get_post($event);
-
-
 
     if($meta) :
       $style_str = array();
@@ -584,13 +597,37 @@ class mindEventCalendar {
           $html .= '</div>';
         endif;
 
-        if($meta['offers'][0]) :
-          $offers = unserialize($meta['offers'][0]);
-          $html .= '<div class="offers meta_item">';
-          foreach ($offers as $key => $offer) :
-            $html .= $this->build_offer_link($offer);
-          endforeach;
-          $html .= '</div>';
+        
+        if($display_link) : //hide individual links because if this is a series
+          if($meta['linked_product'][0]) :
+          
+            $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+            $product = wc_get_product_object( 'simple', $meta['linked_product'][0] );
+
+            
+            if($product) :
+            
+                $html .= $this->build_offer_link(array(
+                    'label' => $meta['wooLabel'][0],
+                    'price' => $product->get_price(),
+                    'link' => $product->get_permalink(), 
+                    'background' => $meta['eventColor'][0],
+                    'color' => $this->getContrastColor($meta['eventColor'][0]),
+                    'product_id' => $meta['linked_product'][0],
+                    'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                    'quantity' => 1
+                  ));
+              
+            endif;
+
+          elseif($meta['offers'][0]) :
+            $offers = unserialize($meta['offers'][0]);
+            $html .= '<div class="offers meta_item">';
+            foreach ($offers as $key => $offer) :
+              $html .= $this->build_offer_link($offer);
+            endforeach;
+            $html .= '</div>';
+          endif;
         endif;
 
       $html .= '</div>';
@@ -608,7 +645,7 @@ class mindEventCalendar {
 
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
     $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
-    $html = '<div class="meta-item">';
+    $html = '<div class="meta_item link">';
         $html .= '<div class="offer-link">';
           // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
     
@@ -633,8 +670,7 @@ class mindEventCalendar {
           endif;
 
 
-          $html .= '<div id="cartErrorContainer" class="errors"></div>';
-
+          
 
           $html .= '</div>';
         $html .= '</div>';
@@ -658,7 +694,6 @@ class mindEventCalendar {
 
 
     $parent_event_type = get_post_meta($parentID, 'event_type', true);
-    mapi_write_log($parent_event_type);
     if($parent_event_type == 'single-event') :
       $series_start_date = get_post_meta($parentID, 'first_event_date', true);
       $series_end_date = get_post_meta($parentID, 'last_event_date', true);
@@ -837,7 +872,6 @@ class mindEventCalendar {
     $meta['event_start_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['starttime']) );
     $meta['event_end_time_stamp'] = date ( 'Y-m-d H:i:s', strtotime ($meta['event_date'] . ' ' . $meta['endtime']) );
     $meta['unique_event_key'] = $unique;
-    mapi_write_log($meta);
     foreach ($meta as $key => $value) :
       update_post_meta($sub_event, $key, $value);
     endforeach;

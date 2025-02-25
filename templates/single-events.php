@@ -45,6 +45,7 @@ echo '<main role="main" aria-label="Content">';
           do_action(MINDEVENTS_PREPEND . 'single_before_events', get_the_ID());
           
           echo '<div class="events-wrap">';
+            echo '<div id="cartErrorContainer"></div>';
             if($display_type == 'calendar') :
               echo apply_filters(MINDEVENTS_PREPEND . 'calednar_label', '<h3 class="event-schedule">Event Schedule</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
