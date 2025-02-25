@@ -307,7 +307,7 @@ class mindeventsAdmin {
   }
 
 
-  private function save_meta_info( $post_id, $post ) {
+  static function save_meta_info( $post_id, $post ) {
 
     /* Make sure this is our post type. */
     if($post->post_type != 'events')

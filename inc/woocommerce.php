@@ -237,7 +237,6 @@ class mindEventsWooCommerce {
             if($sub_events) :
                 foreach($sub_events as $key => $sub_event) :
                     $meta = get_post_meta($sub_event->ID);
-                    mapi_write_log($meta['linked_product']);
                     $product_id = $this->build_product($post_id, $meta);
             
                     $this->sync_meta($sub_event->ID, $product_id);
