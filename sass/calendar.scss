@@ -293,13 +293,13 @@
                   .event-title {
                     font-size: 1em;
                     font-weight: bold;
-                    // padding: 0 5px;
-                    margin: 0;
+
+                    margin: 10px 0 0 0;
                     display: block;
                   }
                   .event-time {
                     font-size: .8em;
-                    // padding: 0 5px;
+
                     margin: 0;
                     display: block;
                   }
@@ -483,7 +483,8 @@
     color: $danger;
     border: 1px solid $danger;
     background-color: color.adjust($danger, $lightness: 40%);
-    padding: 5px;
+    padding: 0px 15px;
+    margin-bottom: 0;
     border-radius: 20px;
     text-align: left;
     font-size: .8em;

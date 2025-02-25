@@ -88,8 +88,6 @@ class mindeventsAdmin {
 
   static function display_event_options_metabox() {
     $global_options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
-    mapi_write_log($global_options);
-
     $cal = get_post_meta(get_the_ID(), 'cal_display', true);
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
     $ticket_stock = (get_post_meta(get_the_ID(), 'ticket_stock', true) ? get_post_meta(get_the_ID(), 'ticket_stock', true) : 4);
@@ -110,7 +108,7 @@ class mindeventsAdmin {
           echo '<select name="event_meta[event_type]" id="event_meta_event_type">';
             echo '<option value="multiple-events" disabled selected>(Select Type)</option>';
             echo '<option value="multiple-events" ' . selected($event_type, 'multiple-events', false) . '>Multiple Unique Events</option>';
-            echo '<option value="single-event" ' . selected($event_type, 'single-event', false) . '>Single Recurring Event</option>';
+            echo '<option value="single-event" ' . selected($event_type, 'single-event', false) . '>One Event Multiple Dates</option>';
           echo '</select>';
         echo '</div>';
       echo '</div>';

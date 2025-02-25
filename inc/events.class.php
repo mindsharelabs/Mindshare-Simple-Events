@@ -721,11 +721,13 @@ class mindEventCalendar {
             $html .= '<div class="past-event event-notice">This event has passed.</div>';
           endif;
 
-          if($series_started && !$series_ended) :
-              $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
-          endif;
-          if($series_ended) :
-              $html .= '<div class="series-ended event-notice"><strong>This event has passed.</strong></div>';
+          if($parent_event_type == 'single-event') :
+            if($series_started && !$series_ended) :
+                $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
+            endif;
+            if($series_ended) :
+                $html .= '<div class="series-ended event-notice"><strong>This event has passed.</strong></div>';
+            endif;
           endif;
 
 
@@ -762,12 +764,7 @@ class mindEventCalendar {
           $style_str['border-color'] = 'border-color:' . $this->getContrastColor($meta['eventColor'][0]) . ';';
           
 
-          
-          if(is_post_type_archive('events')) :
-            $html .= '<div class="meta-item">';
-              $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
-            $html .= '</div>';
-          endif;
+        
           
         $html .= '</div>';
 
@@ -807,10 +804,7 @@ class mindEventCalendar {
                 
 
           endif;
-          //add read more button
-          $html .= '<div class="meta-item">';
-            $html .= '<a style="' . implode(' ', $style_str) . '" class="button button-link" href="' . get_permalink($parentID) . '">More Info</a>';
-          $html .= '</div>';
+
         $html .= '</div>';
 
 

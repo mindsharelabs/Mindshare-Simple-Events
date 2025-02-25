@@ -135,6 +135,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					event_date : event_date
 				},
 				beforeSend: function() {
+					$('.go-to-cart').remove();
 					button.prop('disabled', true);
 				},
 				afterSend: function() {
@@ -156,15 +157,13 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 						console.log(response.data);
 						response.data.forEach(function(item) {
 							$('#cartErrorContainer').append('<p>' + item.notice + '</p>');
+
 						});
 
 						button.hide();
-						// button.prop('disabled', false);
+						scrollIntoView('#cartErrorContainer');
 					}
 					
-					// window.location.href = response.data.cart_url;
-					
-
 				},
 				error: function (response) {
 					console.log('An error occurred.');
@@ -176,5 +175,15 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		});
 
   });
+
+  function scrollIntoView($target) {
+	var target = $($target);
+    if (target.length)
+        {
+            var top = target.offset().top + -300;
+            $('html,body').animate({scrollTop: top}, 1000);
+            return false;
+        }
+  }
 
 } ( this, jQuery ));

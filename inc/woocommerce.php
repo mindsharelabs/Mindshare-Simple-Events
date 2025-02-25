@@ -219,7 +219,7 @@ class mindEventsWooCommerce {
         
         $event_type = get_post_meta($post_id, 'event_type', true);
        
-
+        
         //a Single event means this event will only have one ticket, but span multiple dayes. 
         if($event_type == 'single-event') :
             $meta = get_post_meta($post_id);
@@ -237,7 +237,7 @@ class mindEventsWooCommerce {
             if($sub_events) :
                 foreach($sub_events as $key => $sub_event) :
                     $meta = get_post_meta($sub_event->ID);
-
+                    mapi_write_log($meta['linked_product']);
                     $product_id = $this->build_product($post_id, $meta);
             
                     $this->sync_meta($sub_event->ID, $product_id);
@@ -256,11 +256,12 @@ class mindEventsWooCommerce {
 
 
         $product_id = (isset($meta['linked_product'][0]) ? $meta['linked_product'][0] : false);
+        
         if(!$product_id) :
             $parent_event = get_post_parent( $post);
             $product_id = get_post_meta($parent_event, 'linked_product', true);
         endif;
-       
+
 
         $start_date = new DateTimeImmutable($start_date);
         $start_date = $start_date->setTimezone(new DateTimeZone(wp_timezone_string()));
@@ -286,9 +287,10 @@ class mindEventsWooCommerce {
         endif;
 
 
-        $title = get_the_title($post_id) . ' - ' . $start_date->format('m-d-Y') . ' - ' . $end_date->format('m-d-Y');
+        $title = get_the_title($post_id) . ' - ' . $start_date->format('D, M j') . ' - ' . $end_date->format('D, M j');
 
-
+     
+        
         if($new_product) :
             $product->set_sku($sku);
             $product->set_name($title);
@@ -345,6 +347,8 @@ class mindEventsWooCommerce {
     private function sync_meta($sub_event_id, $product_id) {
         $post = get_post($sub_event_id);
         $meta = get_post_meta($sub_event_id);
+        $parent_id = $post->post_parent;
+        $event_type = get_post_meta($parent_id, 'event_type', true);
        
         $start_date = (isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : $meta['first_event_date'][0]);
         $end_date = (isset($meta['event_end_time_stamp'][0]) ? $meta['event_end_time_stamp'][0] : $meta['last_event_date'][0]);
@@ -352,13 +356,17 @@ class mindEventsWooCommerce {
         //Add product ID to event post meta
         update_post_meta($sub_event_id, 'linked_product', $product_id);
 
-        //get all sub events and link the product them
-        $sub_events = $this->get_sub_events($post);
-        if($sub_events) :
-            foreach($sub_events as $sub_event) :
-                update_post_meta($sub_event->ID, 'linked_product', $product_id);
-            endforeach;
+        //if this is a series, get all sub events and link the product them
+        if($event_type == 'single-event') :
+            $sub_events = $this->get_sub_events($parent_id);
+            if($sub_events) :
+                foreach($sub_events as $sub_event) :
+                    update_post_meta($sub_event->ID, 'linked_product', $product_id);
+                endforeach;
+            endif;
         endif;
+        
+
 
        
         update_post_meta($product_id, 'linkedEventStartDate', $start_date );
