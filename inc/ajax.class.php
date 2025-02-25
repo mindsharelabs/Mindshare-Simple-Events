@@ -109,7 +109,7 @@ class mindEventsAjax {
         $added_events[] = $added_event_id;
 
         $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
-          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new">';
+          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';
           if(is_admin()) :
@@ -345,6 +345,7 @@ class mindEventsAjax {
 
   private function get_meta_form($sub_event_id, $parentID) {
     $values = get_post_meta($sub_event_id);
+    mapi_write_log($values);
     
     $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';
@@ -370,8 +371,8 @@ class mindEventsAjax {
         $html .= '</div>';
 
         $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="wooLinkedProduct">Linked Product ID</label></p>';
-          $html .= '<input type="number" class="linked-product" name="wooLinkedProduct" id="wooLinkedProduct" value="' . $values['wooLinkedProduct'][0] . '" placeholder="">';
+          $html .= '<p class="label"><label for="linked_product">Linked Product ID</label></p>';
+          $html .= '<input type="number" class="linked-product" name="linked_product" id="linked_product" value="' . $values['linked_product'][0] . '" placeholder="">';
         $html .= '</div>';
 
         $html .= '<div class="form-section full">';

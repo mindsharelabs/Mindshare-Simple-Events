@@ -388,10 +388,11 @@
     .left-content {
       margin-right: 15px;
       max-width: 70%;
-      .past-event-label {
+      .event-notice {
         font-size: .8em;
         font-weight: bold;
         text-transform: uppercase;
+        margin-top: 6px;
         // color: $light;
         background-color: rgba(255,255,255,.3);
         border: 1px solid $light;
@@ -429,7 +430,7 @@
   .events-wrap, .content-wrap {
     margin-bottom: 2em;
     h3 {
-      text-align: center;
+      // text-align: center;
       margin-bottom: 20px;
       margin-top: 40px;
     }

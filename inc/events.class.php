@@ -655,6 +655,16 @@ class mindEventCalendar {
     $sub_event_obj = get_post($event);
     $image = get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') );
     $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
+
+
+    $parent_event_type = get_post_meta($parentID, 'event_type', true);
+    mapi_write_log($parent_event_type);
+    if($parent_event_type == 'single-event') :
+      $series_start_date = get_post_meta($parentID, 'first_event_date', true);
+      $series_end_date = get_post_meta($parentID, 'last_event_date', true);
+      $series_started = $this->today->format('Y-m-d') > $series_start_date ? true : false;
+      $series_ended = $this->today->format('Y-m-d') > $series_end_date ? true : false;
+    endif;
     
     if($meta) :
       $style_str = array();
@@ -673,8 +683,17 @@ class mindEventCalendar {
       
         $html .= '<div class="left-content">';
           if($is_past) :
-            $html .= '<div class="past-event-label">This event has passed.</div>';
+            $html .= '<div class="past-event event-notice">This event has passed.</div>';
           endif;
+
+          if($series_started && !$series_ended) :
+              $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
+          endif;
+          if($series_ended) :
+              $html .= '<div class="series-ended event-notice"><strong>This event has passed.</strong></div>';
+          endif;
+
+
           if($sub_event_obj->post_parent) :
             $html .= '<div class="meta-item">';
               $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
@@ -718,10 +737,10 @@ class mindEventCalendar {
         $html .= '</div>';
 
         $html .= '<div class="right-content">';
-          if($meta['wooLinkedProduct'][0]) :
+          if($meta['linked_product'][0]) :
         
               $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-              $product = wc_get_product_object( 'simple', $meta['wooLinkedProduct'][0] );
+              $product = wc_get_product_object( 'simple', $meta['linked_product'][0] );
 
               
               if($product) :
@@ -732,7 +751,7 @@ class mindEventCalendar {
                       'link' => $product->get_permalink(), 
                       'background' => $meta['eventColor'][0],
                       'color' => $this->getContrastColor($meta['eventColor'][0]),
-                      'product_id' => $meta['wooLinkedProduct'][0],
+                      'product_id' => $meta['linked_product'][0],
                       'event_date' => $event_start_date->format('D, M d Y @ H:i'),
                       'quantity' => 1
                     ));

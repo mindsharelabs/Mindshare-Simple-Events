@@ -118,6 +118,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 
     $(document).on('click', '.calendar-day', function (event) {
+		console.log('click');
 
 		var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
 				return $(this).val() == "";

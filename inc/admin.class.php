@@ -88,11 +88,12 @@ class mindeventsAdmin {
 
   static function display_event_options_metabox() {
     $global_options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
+    mapi_write_log($global_options);
 
     $cal = get_post_meta(get_the_ID(), 'cal_display', true);
     $show_past_events = get_post_meta(get_the_ID(), 'show_past_events', true);
     $ticket_stock = (get_post_meta(get_the_ID(), 'ticket_stock', true) ? get_post_meta(get_the_ID(), 'ticket_stock', true) : 4);
-    $ticket_price = (get_post_meta(get_the_ID(), 'ticket_price', true) ? get_post_meta(get_the_ID(), 'ticket_price', true) : 0);
+    $ticket_price = (get_post_meta(get_the_ID(), 'ticket_price', true) ? get_post_meta(get_the_ID(), 'ticket_price', true) : 120);
     $event_type = get_post_meta(get_the_ID(), 'event_type', true);
     $has_tickets = get_post_meta(get_the_ID(), 'has_tickets', true);
 
@@ -197,10 +198,10 @@ class mindeventsAdmin {
     $today = new DateTime();
     $today = $today->format('Y-m-d');
 
+    $event_type = get_post_meta($post->ID, 'event_type', true);
 
+    
     echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
-      echo '<h3>Attendees</h3>';
-
         if($attendees) :          
             $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
               'order_id' => 'Order ID',
@@ -209,15 +210,23 @@ class mindeventsAdmin {
               'product' => 'Product',
               'check_in' => 'Check In',
             ));
-            
-            
+
+
             foreach($attendees as $occurance_id => $tickets) :
-              $event_start_time_stamp = new DateTimeImmutable(get_post_meta($occurance_id, 'event_start_time_stamp', true));
+              if(!empty($tickets)) :
+              $meta_start_date = get_post_meta($occurance_id, 'event_start_time_stamp', true);
+              
+              if(!$meta_start_date) :
+                $meta_start_date = get_post_meta($post->ID, 'first_event_date', true);
+              endif;
+
+              $event_start_time_stamp = new DateTimeImmutable($meta_start_date);
               $event_start_day = $event_start_time_stamp->format('Y-m-d');
+
               echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . '">';
                 
-                echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
-                if(!empty($tickets)) :
+                echo '<h3>' . ($meta_start_date ? $event_start_time_stamp->format('F j, Y') : 'Series Attendees') . '</h3>';
+                
                   echo '<table class="attendee-list wp-list-table widefat fixed striped">';
                     echo '<thead>';
                       echo '<tr>';
@@ -236,10 +245,11 @@ class mindeventsAdmin {
                             'order_id' => $ticket['order_id'],
                             'status' => $order->get_status(),
                             'user_id' => $ticket['user_id'],
-                            'product' => get_post_meta($occurance_id, 'wooLinkedProduct', true),
+                            'product' => get_post_meta($occurance_id, 'linked_product', true),
                             'checked_in' => $ticket['checked_in'],
                           ));
                           $user_info = get_userdata($ticket_data['user_id']);
+                          
 
                           echo '<tr>';
                           
@@ -250,7 +260,7 @@ class mindeventsAdmin {
                               elseif($key == 'product') :
                                 $product = wc_get_product($value);
                                 $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
-                              
+                
                               elseif($key == 'status') :
                                 $value = '<span class="status ' . $value . '">' . wc_get_order_status_name($value) . '</span>';
                               elseif($key == 'checked_in') :
@@ -291,12 +301,8 @@ class mindeventsAdmin {
 
                     echo '</tbody>';
                   echo '</table>';
-
-
-                else :
-                  echo '<p>No attendees yet.</p>';
-                endif;
               echo '</div>';
+              endif;
             endforeach;
             
             
@@ -305,7 +311,6 @@ class mindeventsAdmin {
       
     echo '</div>';
   }
-
 
   /* Get All orders IDs for a given product ID.
   *
@@ -369,19 +374,19 @@ class mindeventsAdmin {
 
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventProductID">Linked Product</label></p>';
-              echo '<input type="number" name="event[wooLinkedProduct]" id="eventLinkedProduct" value="' . (isset($defaults['wooLinkedProduct']) ? $defaults['wooLinkedProduct'] : '') . '" placeholder="">';
+              echo '<input type="number" name="event[linked_product]" id="eventLinkedProduct" value="' . (isset($defaults['linked_product']) ? $defaults['linked_product'] : '') . '" placeholder="">';
               echo '<p class="description">If left blank a new product will be created.</p>';
             echo '</div>';
             
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
-              echo '<input type="number" name="event[wooPrice]" id="eventCost" value="' . (isset($defaults['wooPrice']) ? $defaults['wooPrice'] : '') . '" placeholder="100">';
+              echo '<input type="number" name="event[ticket_price]" id="eventCost" value="' . (isset($defaults['ticket_price']) ? $defaults['ticket_price'] : '') . '" placeholder="100">';
               echo '<p class="description">This will be the default cost for all tickets, it can be changed on the WooCommerce product.</p>';
             echo '</div>';
 
             echo '<div class="form-section ticket-option multiple-option">';
-              echo '<p class="label"><label for="wooStock">Event Stock</label></p>';
-              echo '<input type="number" name="event[wooStock]" id="wooStock" value="' . (isset($defaults['wooStock']) ? $defaults['wooStock'] : '4') . '" placeholder="4">';
+              echo '<p class="label"><label for="ticket_stock">Event Stock</label></p>';
+              echo '<input type="number" name="event[ticket_stock]" id="ticket_stock" value="' . (isset($defaults['ticket_stock']) ? $defaults['ticket_stock'] : '4') . '" placeholder="4">';
               echo '<p class="description">This will be the stock limit for the associated product, it will be ignored for simple products.</p>';
             echo '</div>';
             
