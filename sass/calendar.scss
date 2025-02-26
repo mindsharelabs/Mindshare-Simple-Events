@@ -414,6 +414,9 @@
     }
     .meta_item {
       .offer-link {
+        button {
+          display: block;
+        }
         span {
           display: inline-block;
           &.label {
@@ -549,7 +552,7 @@
           }
         }
         &.starttime {
-          flex-basis: 10%;
+          flex-basis: 20%;
         }
         &.cost {
           flex-basis: 18%;
@@ -563,9 +566,11 @@
           align-items: center;
           justify-content: flex-end;
           display: flex;
-          a.button{
+          a.button, button{
+            display: block;
             @include button-link;
             &.go-to-cart {
+              margin-top: 10px;
               background: $success;
               border-color: color.adjust($success, $lightness: -20%);
               &:hover {

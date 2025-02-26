@@ -513,12 +513,12 @@ class mindEventCalendar {
     $eventDates = $this->get_sub_events();
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
-   $i = 0;
+    $i = 0;
 
     if(count($eventDates) > 0) :
 
       foreach ($eventDates as $key => $event) :
-        $display_link = ($event_type == 'single-event' && $i < 1) ? true : false;
+        $display_link = ($event_type == 'single-event' && $i < 1) ? false : true;
 
 
         $startDate = get_post_meta($event->ID, 'event_date', true);
@@ -598,8 +598,6 @@ class mindEventCalendar {
             $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
           $html .= '</div>';
         endif;
-
-        
         if($display_link) : //hide individual links because if this is a series
           if($meta['linked_product'][0]) :
           
