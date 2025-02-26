@@ -586,6 +586,8 @@ class mindEventCalendar {
           $html .= '<div class="meta_item starttime">';
             $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
             $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
+            $html .= '<span class="label mt-2">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
+            $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
           $html .= '</div>';
         endif;
 
@@ -758,6 +760,7 @@ class mindEventCalendar {
           if($meta['eventDescription'][0]) :
             $html .= '<div class="meta-item">';
               $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
+              $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link">Read More</span></a>';
             $html .= '</div>';
           endif;
 

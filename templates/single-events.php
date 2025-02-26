@@ -47,7 +47,7 @@ echo '<main role="main" aria-label="Content">';
           echo '<div class="events-wrap">';
             echo '<div id="cartErrorContainer"></div>';
             if($display_type == 'calendar') :
-              echo apply_filters(MINDEVENTS_PREPEND . 'calednar_label', '<h3 class="event-schedule">Event Schedule</h3>');
+              echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
               echo '<div class="calendar-nav">';
                 echo '<button data-dir="prev" class="calnav prev"><span><i class="fas fa-arrow-left"></i></span></button>';
@@ -59,7 +59,7 @@ echo '<main role="main" aria-label="Content">';
               do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
 
             elseif($display_type == 'list') :
-              echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Events</h3>');
+              echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
               echo '<div id="mindEventList" class="mindevents-list">';
                 echo $calendar->get_front_list();

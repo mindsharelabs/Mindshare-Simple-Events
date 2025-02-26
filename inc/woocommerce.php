@@ -3,7 +3,14 @@
 
 
 class mindEventsWooCommerce {
-    public function __construct() {
+
+
+    public $event = '';
+    public $event_type = '';
+
+
+
+    public function __construct($event = false) {
         add_action('woocommerce_init', array($this, 'add_event_options'));
         add_action('save_post_events', array($this, 'save_event_options'), 500, 3);
 
@@ -14,7 +21,8 @@ class mindEventsWooCommerce {
         //attendee management
         add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
 
-
+        $this->event = ($event ? $event : false);
+        $this->event_type = get_post_meta($this->event, 'event_type', true);
     }
 
     public function add_event_options() {
@@ -60,7 +68,7 @@ class mindEventsWooCommerce {
         endif;
     }
     
-    private function add_attendee($order_id) { 
+    public function add_attendee($order_id) { 
         $order = wc_get_order( $order_id );
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
@@ -76,7 +84,7 @@ class mindEventsWooCommerce {
                         $attendees = array();
                     endif;
 
-                    //TODO: add/remove attendees to all occurances of event_type == single-event
+                    
                     for($i = 0; $i < $quantity; $i++) :
                         $attendees[$get_linked_occurance][] = array(
                             'order_id' => $order->get_id(),
@@ -95,7 +103,7 @@ class mindEventsWooCommerce {
         endif;
     }
     
-    private function remove_attendee($order_id) {
+    public function remove_attendee($order_id) {
         $order = wc_get_order( $order_id );
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
@@ -139,16 +147,16 @@ class mindEventsWooCommerce {
      * @param WP_Post $post    The post object being saved.
      * @param bool    $update  Whether this is an existing post being updated or not.
      */
-    public function save_event_options($post_id, $post, $update) {
+    public function save_event_options($event_id, $post, $update) {
         if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
         if($post->post_type != 'events') return;
-        if(!current_user_can('edit_post', $post_id)) return;
+        if(!current_user_can('edit_post', $event_id)) return;
         if($post->post_status == 'auto-draft') return;
         if(defined( 'REST_REQUEST' ) && REST_REQUEST ) return;
-        if(wp_is_post_autosave( $post_id )) return;
-        if(wp_is_post_revision( $post_id )) return;
+        if(wp_is_post_autosave( $event_id )) return;
+        if(wp_is_post_revision( $event_id )) return;
 
-        $sub_events = $this->get_sub_events($post_id);
+        $sub_events = $this->get_sub_events($event_id);
 
 
         if($sub_events) :
@@ -159,7 +167,7 @@ class mindEventsWooCommerce {
                 $adding[$sub_event->ID] = $sub_event->ID;
             endforeach;
 
-            $attendees = get_post_meta($post_id, 'attendees', true);
+            $attendees = get_post_meta($event_id, 'attendees', true);
             if(!$attendees) :
                 $attendees = array();
             endif;
@@ -177,8 +185,8 @@ class mindEventsWooCommerce {
             }
 
 
-            update_post_meta($post_id, 'attendees', $attendees_ordered);
-            update_post_meta($post_id, 'sub_events', $adding);
+            update_post_meta($event_id, 'attendees', $attendees_ordered);
+            update_post_meta($event_id, 'sub_events', $adding);
         endif;
 
     }
