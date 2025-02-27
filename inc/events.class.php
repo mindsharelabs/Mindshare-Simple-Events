@@ -649,20 +649,46 @@ class mindEventCalendar {
     
     
           if($options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
+
+            //check if product is in stock
+            $product = wc_get_product( $offer['product_id'] );
+            if(!$product->is_in_stock()) :
+              $stock = false;
+            else :
+              $stock = $product->get_stock_quantity();
+            endif;
+
             $html .= '<button 
               data-product_id="' . $offer['product_id'] . '"
               data-quantity="' . $offer['quantity'] . '"
               data-event_date="' . $offer['event_date'] . '"
               class="button mindevents-add-to-cart" 
               style="' . $style_str . '"
+              ' . ($stock ? '' : 'disabled') . '
               >';
-              $html .= $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
-            $html .= '</button>';
 
+
+              if( in_array( $offer['product_id'], array_column( WC()->cart->get_cart(), 'product_id' ) ) ) :
+                $html .= '<span class="in-cart">Item In Cart</span>';
+              else :
+                if($stock) :
+                  $html .= $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
+                  if($stock > 0) :
+                    $html .= ' (' . $stock . ' Available)';
+                  endif;
+                else :
+                  $html .= 'Out of Stock';
+                endif;
+              endif;
+
+            $html .= '</button>';
+            
           else :
             
             $html .= '<a href="' . $offer['link'] . '" class="button" target="_blank" style="' . $style_str . '">';
+            
               $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
+              
             $html .= '</a>';
               
           endif;
