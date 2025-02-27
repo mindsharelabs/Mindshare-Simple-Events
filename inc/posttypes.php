@@ -110,7 +110,7 @@ class mindEventsCPTS {
       // 'rest_base'             => 'events',
   	);
     register_post_type( 'sub_event', $sub_event_args );
-  	register_post_type( 'event', $event_args );
+  	register_post_type( 'events', $event_args );
 
 
 

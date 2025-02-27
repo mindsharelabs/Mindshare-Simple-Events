@@ -602,7 +602,7 @@ class mindEventCalendar {
           if($meta['linked_product'][0]) :
           
             $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-            $product = wc_get_product_object( 'simple', $meta['linked_product'][0] );
+            $product = wc_get_product( $meta['linked_product'][0] );
 
             
             if($product) :
@@ -773,8 +773,8 @@ class mindEventCalendar {
           if($meta['linked_product'][0]) :
         
               $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-              $product = wc_get_product_object( 'simple', $meta['linked_product'][0] );
-
+              $product = wc_get_product( $meta['linked_product'][0] );
+              mapi_write_log($product);
               
               if($product) :
               
