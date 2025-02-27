@@ -690,13 +690,22 @@ class mindEventCalendar {
     if(!$color) :
       //get event category
       $event_categories = get_the_terms($eventID, 'event_category');
+      if(!$event_categories) :
+        $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
+      endif;
 
-      foreach ($event_categories as $key => $term) :
-        $color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
-        if($color) :
-          break;
-        endif;
-      endforeach;
+
+
+      if($event_categories) :
+        foreach ($event_categories as $key => $term) :
+          $color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
+          if($color) :
+            break;
+          endif;
+        endforeach;
+      endif;
+
+      
       if(!$color) :
         $color = '#858585';
       endif;
@@ -710,7 +719,9 @@ class mindEventCalendar {
     $meta = get_post_meta($event);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
-    $image = get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') );
+
+    //add a filter for event image
+    $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') ), $event);
     $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
 
     
