@@ -214,9 +214,25 @@ class mindeventsAdmin {
               $event_start_time_stamp = new DateTimeImmutable($meta_start_date);
               $event_start_day = $event_start_time_stamp->format('Y-m-d');
               echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . '">';
-                if(!empty($tickets)) :
-                  
-                    
+              
+              
+              
+              
+              $linked_product = get_post_meta($occurance_id, 'linked_product', true);
+              //get orders for product
+              
+             
+              $orders = self::get_orders_ids_by_product_id($linked_product, array('wc-completed'));
+              
+              foreach($orders as $order_id) :
+                $events = new mindEventsWooCommerce();
+                $events->add_attendee($order_id);
+              endforeach;
+
+
+
+
+                if(!empty($tickets)) : 
                     echo '<h3>' . ($meta_start_date ? $event_start_time_stamp->format('F j, Y') : 'Series Attendees') . '</h3>';
                     
                       echo '<table class="attendee-list wp-list-table widefat fixed striped">';
@@ -228,9 +244,6 @@ class mindeventsAdmin {
                           echo '</tr>';
                         echo '</thead>';
                         echo '<tbody>';
-
-                          
-
                           foreach($tickets as $akey => $ticket) :
                               $order = wc_get_order($ticket['order_id']);
                               $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
@@ -340,7 +353,7 @@ class mindeventsAdmin {
   *
   * @return array
   */
-  private function get_orders_ids_by_product_id( $product_id, $order_status = array( 'wc-completed' ) ){
+  static function get_orders_ids_by_product_id( $product_id, $order_status = array( 'wc-completed' ) ){
      global $wpdb;
  
      $results = $wpdb->get_col("
@@ -353,6 +366,7 @@ class mindeventsAdmin {
          AND order_items.order_item_type = 'line_item'
          AND order_item_meta.meta_key = '_product_id'
          AND order_item_meta.meta_value = '$product_id'
+         LIMIT 5000
      ");
  
      return $results;
@@ -376,7 +390,8 @@ class mindeventsAdmin {
 
         echo '<div class="form-section">';
           echo '<p class="label"><label for="eventColor">Occurence Color</label></p>';
-          echo '<input type="text" class="field-color" name="event[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '#23B38C') . '" placeholder="">';
+          echo '<input type="text" class="field-color" name="event[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '') . '" placeholder="">';
+          echo '<p class="description">If left blank this will default to event category color.</p>';
         echo '</div>';
 
         echo '<div class="form-section full">';
@@ -390,7 +405,7 @@ class mindeventsAdmin {
 
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventProductID">Ticket Button Text</label></p>';
-              echo '<input type="text" name="event[wooLabel]" id="eventLinkedProduct" value="' . (isset($defaults['wooLabel']) ? $defaults['wooLabel'] : '') . '" placeholder="">';
+              echo '<input type="text" name="event[wooLabel]" id="eventLinkedProduct" value="' . (isset($defaults['wooLabel']) ? $defaults['wooLabel'] : '') . '" placeholder="Attend Event">';
             echo '</div>';
 
             echo '<div class="form-section ticket-option multiple-option">';
@@ -401,14 +416,14 @@ class mindeventsAdmin {
             
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventCost">Event Cost</label></p>';
-              echo '<input type="number" name="event[ticket_price]" id="eventCost" value="' . (isset($defaults['ticket_price']) ? $defaults['ticket_price'] : '') . '" placeholder="100">';
+              echo '<input type="number" name="event[ticket_price]" id="eventCost" value="' . (isset($defaults['ticket_price']) ? $defaults['ticket_price'] : '100') . '" >';
               echo '<p class="description">This will be the default cost for all tickets, it can be changed on the WooCommerce product.</p>';
             echo '</div>';
 
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="ticket_stock">Event Stock</label></p>';
               echo '<input type="number" name="event[ticket_stock]" id="ticket_stock" value="' . (isset($defaults['ticket_stock']) ? $defaults['ticket_stock'] : '4') . '" placeholder="4">';
-              echo '<p class="description">This will be the stock limit for the associated product, it will be ignored for simple products.</p>';
+              echo '<p class="description">This will be the stock limit for the associated product, it will be ignored for events without products.</p>';
             echo '</div>';
             
         else : 

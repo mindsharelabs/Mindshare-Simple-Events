@@ -224,3 +224,43 @@ class mindEvents {
 }//end of class
 
 new mindEvents();
+
+
+
+
+
+
+
+//temportary program to build meta information for products
+
+
+
+// add_action('init', function() {
+//   $products = get_posts(array(
+//     'post_type' => 'product',
+//     'posts_per_page' => -1,
+//     'post_status' => array('publish'),
+//     'meta_query' => array(
+//       array(
+//         'key' => '_tribe_wooticket_for_event',
+//         'compare' => 'EXISTS'
+//       ),
+//     )
+//   ));
+//   $i = 0;
+//   foreach ($products as $key => $product) :
+//     $event = get_post_meta($product->ID, '_tribe_wooticket_for_event', true);
+//     $event = get_post($event);
+//     if(!$event) :
+//       continue;
+//     endif;
+
+//     $i++;
+//     //get event date
+//     $_EventStartDate = get_post_meta($event->ID, '_EventStartDate', true);
+//     mapi_write_log('Event Start Date: ' . $_EventStartDate);
+//     mapi_write_log('Count: ' . $i);
+//     //save event date to meta on product
+//     update_post_meta($product->ID, '_EventStartDate', $_EventStartDate);
+//   endforeach;
+// });

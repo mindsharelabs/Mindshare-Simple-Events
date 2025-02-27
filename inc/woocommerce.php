@@ -39,13 +39,8 @@ class mindEventsWooCommerce {
             $this->remove_attendee($order);
         endif;
 
-        if( $to == 'processing' || 
-            $from != 'processing' && $to == 'completed'
-            ) :
+        if( $to == 'completed' ) :
             $this->add_attendee($order);
-        endif;
-
-        if($to == 'completed') :
             $this->schedule_hook($order);
         endif;
 
@@ -226,6 +221,10 @@ class mindEventsWooCommerce {
 
         
         $event_type = get_post_meta($post_id, 'event_type', true);
+        $has_tickets = get_post_meta($post_id, 'has_tickets', true);
+        if(!$has_tickets) :
+            return;
+        endif;
        
         
         //a Single event means this event will only have one ticket, but span multiple dayes. 
@@ -310,7 +309,18 @@ class mindEventsWooCommerce {
             $product->set_description($post->post_excerpt);
             $product->set_short_description($post->post_excerpt);
         else :
-            $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);    
+            $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);
+
+            //get all orders for product
+            $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
+            //add attendees
+            if($orders) :
+                foreach($orders as $order) :
+                    mapi_write_log('Adding attendee for order: ' . $order);
+                    $this->add_attendee($order);
+                endforeach;
+            endif;
+
         endif;
 
         $product->set_regular_price($meta['ticket_price'][0]); 

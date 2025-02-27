@@ -54,9 +54,12 @@ function mindevents_single_datespan($id) {
 
 //
 add_action(MINDEVENTS_PREPEND . 'single_content', function ($id) {
-  echo '<div class="content-wrap">';
-    the_excerpt();
-  echo '</div>';
+  $excerpt = get_the_excerpt($id);
+  if($excerpt) :
+    echo '<div class="content-wrap excerpt">';
+      echo $excerpt;
+    echo '</div>';
+  endif;
 }, 10, 1);
 
 
