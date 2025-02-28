@@ -264,7 +264,12 @@ class mindeventsAdmin {
                                     $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
                                   elseif($key == 'product') :
                                     $product = wc_get_product($value);
-                                    $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
+                                    if($product) :
+                                      $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
+                                    else :
+                                      $value = '<strong>Product not found</strong>';
+                                    endif;
+                                    
                     
                                   elseif($key == 'status') :
                                     $value = '<span class="status ' . $value . '">' . wc_get_order_status_name($value) . '</span>';

@@ -302,7 +302,7 @@ class mindEventsWooCommerce {
 
 
         $title = get_the_title($post_id) . ' - ' . $start_date->format('D, M j') . ' - ' . $end_date->format('D, M j');
-
+        $price = $product->get_regular_price();
      
         
         if($new_product) :
@@ -318,7 +318,7 @@ class mindEventsWooCommerce {
             $product->set_short_description($post->post_excerpt);
         else :
             $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);
-
+            
             //get all orders for product
             $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
             //add attendees
@@ -331,7 +331,9 @@ class mindEventsWooCommerce {
 
         endif;
 
-        $product->set_regular_price($meta['ticket_price'][0]); 
+        if(!$price) :
+            $product->set_regular_price(($meta['ticket_price'][0] ? $meta['ticket_price'][0] : 100));
+        endif;
         $product->set_catalog_visibility('hidden');
         $product->set_virtual(true);
         $product->set_status('publish');

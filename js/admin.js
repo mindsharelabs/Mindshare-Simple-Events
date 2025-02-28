@@ -361,6 +361,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					eventid : eventid,
 				},
 				success: function(response) {
+					console.log(response);
+					if(response.success == true) {
 						thisEvent.fadeOut();
 						errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
 						setTimeout(function() {
@@ -368,6 +370,14 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 								$(this).remove();
 							});
 						}, 3000);
+					} else {
+						errorBox.prepend('<span class="error-item-'+ eventid +'">' + response.data + '</span>').addClass('show');
+						setTimeout(function() {
+							$('.error-item-'+ eventid +'').fadeOut(400, function() {
+								$(this).remove();
+							});
+						}, 5000);
+					}
 
 				},
 				error: function (response) {

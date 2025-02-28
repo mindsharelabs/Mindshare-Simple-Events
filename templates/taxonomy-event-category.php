@@ -19,6 +19,31 @@ echo '<main role="main" aria-label="Content">';
       $queried = get_queried_object();
       $calendar->setEventCategories($queried->slug);
 
+      echo '<div class="event-category-header container">';
+        echo '<div class="row">';
+          echo '<div class="col-12">';
+          //display category title
+            echo '<h1 class="event-category-title">';
+              echo 'Category: ' . $queried->name;
+            echo '</h1>';
+
+             //display category description
+            if($queried->description) {
+              echo '<div class="event-category-description">';
+                echo $queried->description;
+              echo '</div>';
+            }
+
+
+
+
+          echo '</div>';
+        echo '</div>';
+      echo '</div>';
+      
+     
+
+
       echo '<div id="archiveContainer" class="calendar-wrap">';
         do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
         echo '<div class="calendar-nav">';

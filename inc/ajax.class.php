@@ -67,10 +67,22 @@ class mindEventsAjax {
   public function deleteevent() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'deleteevent'){
       $eventID = $_POST['eventid'];
-      do_action('mindreturns_before_sub_event_deleted', $eventID);
-      wp_delete_post($eventID);
-      do_action('mindreturns_after_sub_event_deleted', $eventID);
-      wp_send_json_success();
+
+      //get partent
+      $parent = get_post($eventID);
+      $parentID = $parent->post_parent;
+      //check if event has attendees
+      $attendees = get_post_meta($parentID, 'attendees', true);
+      mapi_write_log($attendees[$eventID]);
+      if($attendees[$eventID]) :
+        wp_send_json_error('This event has attendees, please reschedule or remove the attendees before deleting the event.');
+      endif;
+
+
+      // do_action('mindreturns_before_sub_event_deleted', $eventID);
+      // wp_delete_post($eventID);
+      // do_action('mindreturns_after_sub_event_deleted', $eventID);
+      // wp_send_json_success();
     }
     wp_send_json_error();
   }

@@ -1017,6 +1017,11 @@ class mindEventCalendar {
     }
 
 
+    public function get_archive_url() {
+      return get_post_type_archive_link('events');
+    }
+
+
 
     public function generate_schema() {
       $sub_events = $this->get_sub_events();
