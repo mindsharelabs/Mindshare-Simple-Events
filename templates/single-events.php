@@ -46,7 +46,15 @@ echo '<main role="main" aria-label="Content">';
           
           echo '<div class="events-wrap">';
             echo '<div id="cartErrorContainer"></div>';
-            if($display_type == 'calendar') :
+            mapi_write_log(MINDEVENTS_IS_MOBILE);
+            if($display_type == 'list' || MINDEVENTS_IS_MOBILE) :
+              echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
+              do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
+              echo '<div id="mindEventList" class="mindevents-list">';
+                echo $calendar->get_front_list();
+              echo '</div>';
+              do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());
+            elseif($display_type == 'calendar') :
               echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
               echo '<div class="calendar-nav">';
@@ -57,14 +65,6 @@ echo '<main role="main" aria-label="Content">';
                 echo $calendar->get_front_calendar();
               echo '</div>';
               do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
-
-            elseif($display_type == 'list') :
-              echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
-              do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
-              echo '<div id="mindEventList" class="mindevents-list">';
-                echo $calendar->get_front_list();
-              echo '</div>';
-              do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());
             endif;
           echo '</div>';
 

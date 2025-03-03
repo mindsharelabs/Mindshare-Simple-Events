@@ -1,11 +1,10 @@
 
 @use "sass:color";
 @use 'utilities' as *;  
-@use 'mobile' as *; 
 @use 'loading' as *;
 @use 'forms-main' as *;
 @use 'calendar' as *;
-
+@use 'mobile' as *; 
 
 
 .mindevents_meta_box { 

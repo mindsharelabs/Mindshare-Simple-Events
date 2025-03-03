@@ -8,6 +8,39 @@
     .list_day_container {
       .item_meta_container {
         flex-direction: column;
+        .meta-item {
+          &.description {
+            margin-left: 0 !important; 
+            font-size: .9em;
+            line-height: 1.2em;
+          }
+          &.link {
+            width: 100%;
+            .offer-link {
+              width: 100%;
+              a, button {
+                display: block;
+                width: 100%;
+              }
+            }
+            
+          }
+          &.time-span {
+            display: flex;
+            flex-direction: row !important;
+            justify-content: space-between;
+            .endtime {
+              margin-top: 0px !important;
+            }
+        }
+          
+        }
+        .featured-image {
+          width: 100%;
+          img {
+            width: 100%;
+          }
+        }
       }
     }
   }

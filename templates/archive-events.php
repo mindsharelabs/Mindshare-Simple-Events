@@ -40,16 +40,31 @@ echo '<main role="main" aria-label="Content">';
 
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
-        echo '<div id="cartErrorContainer"></div>';
-        do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
-        echo '<div class="calendar-nav">';
-        echo '<button data-dir="prev" class="calnav prev"><i class="fas fa-arrow-left"></i><span>Last Month</span></button>';
-        echo '<button data-dir="next" class="calnav next"><span>Next Month</span><i class="fas fa-arrow-right"></i></button>';
+      echo '<div id="cartErrorContainer"></div>';
+      mapi_write_log(MINDEVENTS_IS_MOBILE);
+      if(MINDEVENTS_IS_MOBILE) :
+
+        
+        echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
+        do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
+        echo '<div id="mindEventList" class="mindevents-list">';
+          echo $calendar->get_front_list('archive');
         echo '</div>';
-        do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
+        do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());
+
+
+      else :
+        echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
+        do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
+        echo '<div class="calendar-nav">';
+          echo '<button data-dir="prev" class="calnav prev"><span><i class="fas fa-arrow-left"></i></span></button>';
+          echo '<button data-dir="next" class="calnav next"><span><i class="fas fa-arrow-right"></i></span></button>';
+        echo '</div>';
         echo '<div id="publicCalendar">';
           echo $calendar->get_front_calendar('archive');
         echo '</div>';
+        do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
+      endif;
       echo '</div>';
 
 

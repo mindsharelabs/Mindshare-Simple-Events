@@ -20,6 +20,8 @@ class mindEventCalendar {
 
   private $event_categories = false;
 
+  private $is_archive = false;
+
 
   private $classes = [
 		'calendar'     => 'mindEventCalendar',
@@ -505,6 +507,10 @@ class mindEventCalendar {
 
 
   public function get_front_list($calDate = '') {
+    if($calDate == 'archive') :
+      $this->is_archive = true;
+      $this->show_past_events = false;
+    endif;
     $eventDates = $this->get_sub_events();
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
@@ -514,8 +520,6 @@ class mindEventCalendar {
 
       foreach ($eventDates as $key => $event) :
         $display_link = ($event_type == 'single-event' && $i < 1) ? false : true;
-
-
         $startDate = get_post_meta($event->ID, 'event_date', true);
         $this->addDailyHtml($this->get_list_item_html($event->ID, $display_link), $startDate);
         $i++;
@@ -538,7 +542,7 @@ class mindEventCalendar {
    * @return string
    */
   public function renderList() {
-    $now   = getdate($this->now->getTimestamp());
+    $now = getdate($this->now->getTimestamp());
     $out = '<div id="mindCalanderList" class="event-list ' . $this->classes['calendar'] . '">';
       if(is_array($this->dailyHtml)) :
         $number_of_years = count($this->dailyHtml);
@@ -566,7 +570,25 @@ class mindEventCalendar {
 
 
   public function get_list_item_html($event = '', $display_link = true) {
+
+
+    
+
+
     $meta = get_post_meta($event);
+    $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') ), $event);
+    $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
+    $parentID = wp_get_post_parent_id($event);
+    $sub_event_obj = get_post($event);
+
+    $parent_event_type = get_post_meta($parentID, 'event_type', true);
+    if($parent_event_type == 'single-event') :
+      $series_start_date = get_post_meta($parentID, 'first_event_date', true);
+      $series_end_date = get_post_meta($parentID, 'last_event_date', true);
+      $series_started = $this->today->format('Y-m-d') > $series_start_date ? true : false;
+      $series_ended = $this->today->format('Y-m-d') > $series_end_date ? true : false;
+    endif;
+    
 
     if($meta) :
       $style_str = array();
@@ -578,20 +600,56 @@ class mindEventCalendar {
       endif;
 
       $html = '<div class="item_meta_container">';
+        if($is_past) :
+          $html .= '<div class="past-event event-notice">This event has passed.</div>';
+        endif;
+
+        if($parent_event_type == 'single-event') :
+          if($series_started && !$series_ended) :
+              $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
+          endif;
+          if($series_ended) :
+              $html .= '<div class="series-ended event-notice"><strong>This series has ended.</strong></div>';
+          endif;
+        endif;
+        mapi_write_log($this->is_archive);
+        if($this->is_archive) :
+          if($sub_event_obj->post_parent) :
+            $html .= '<div class="meta-item">';
+              $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+              $html .= '</a>';
+            $html .= '</div>';
+          endif;
+
+          
+          if($image) :
+            $html .= '<div class="featured-image">';
+              $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                $html .= $image;
+              $html .= '</a>';
+            $html .= '</div>';
+          endif;
+        endif;
 
         if($meta['event_date'][0]) :
-          $html .= '<div class="meta_item starttime">';
-            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
-            $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
-            $html .= '<span class="label mt-2">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
-            $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
+          $html .= '<div class="meta-item time-span">';
+            $html .= '<div class="starttime">';
+              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
+              $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
+            $html .= "</div>";
+
+            $html .= '<div class="endtime">';  
+              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
+              $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
+            $html .= '</div>';
           $html .= '</div>';
         endif;
 
 
 
         if($meta['eventDescription'][0]) :
-          $html .= '<div class="meta_item description">';
+          $html .= '<div class="meta-item description">';
             $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt( get_post_parent($event) ));
             $html .= '<span class="value eventdescription">' . $description . '</span>';
           $html .= '</div>';
@@ -620,7 +678,7 @@ class mindEventCalendar {
 
           elseif($meta['offers'][0]) :
             $offers = unserialize($meta['offers'][0]);
-            $html .= '<div class="offers meta_item">';
+            $html .= '<div class="offers meta-item">';
             foreach ($offers as $key => $offer) :
               $html .= $this->build_offer_link($offer);
             endforeach;
@@ -643,7 +701,7 @@ class mindEventCalendar {
 
     $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
     $options = get_option( MINDEVENTS_PREPEND . 'support_settings' );
-    $html = '<div class="meta_item link">';
+    $html = '<div class="meta-item link">';
         $html .= '<div class="offer-link">';
           // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
     
@@ -913,6 +971,9 @@ class mindEventCalendar {
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = $this->get_event_color($event->ID);
         $text_color = $this->getContrastColor($color);
+
+        
+
 
         $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .'" data-subid="' . $event->ID . '">';
