@@ -652,6 +652,7 @@ class mindEventCalendar {
 
             //check if product is in stock
             $product = wc_get_product( $offer['product_id'] );
+            $in_cart = in_array( $offer['product_id'], array_column( WC()->cart->get_cart(), 'product_id' ) );
             if(!$product->is_in_stock()) :
               $stock = false;
             else :
@@ -668,8 +669,8 @@ class mindEventCalendar {
               >';
 
 
-              if( in_array( $offer['product_id'], array_column( WC()->cart->get_cart(), 'product_id' ) ) ) :
-                $html .= '<span class="in-cart">Item In Cart</span>';
+              if($in_cart) :
+                $html .= '<span class="in-cart">Item In Cart, Add more (+1)</span>';
               else :
                 if($stock) :
                   $html .= $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
@@ -682,7 +683,10 @@ class mindEventCalendar {
               endif;
 
             $html .= '</button>';
-            
+
+            if($in_cart ) :
+              $html .= '<a href="' . wc_get_cart_url() . '" style="' . $style_str . '" class="button go-to-cart">Go to cart.</a>';
+            endif;
           else :
             
             $html .= '<a href="' . $offer['link'] . '" class="button" target="_blank" style="' . $style_str . '">';
@@ -772,9 +776,14 @@ class mindEventCalendar {
 
       $html = '<div class="meta_inner_container ' . ($is_past ? 'past-event' : '') . '" style="' . implode(' ', $style_str) . '">';
         
+        $html .= '<button class="event-meta-close"><i class="fas fa-times"></i></button>';
+
+
         if($image) :
           $html .= '<div class="featured-image">';
-            $html .= $image;
+            $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+              $html .= $image;
+            $html .= '</a>';
           $html .= '</div>';
         endif;
       
@@ -797,8 +806,6 @@ class mindEventCalendar {
             $html .= '<div class="meta-item">';
               $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
                 $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-                
-                
               $html .= '</a>';
             $html .= '</div>';
           endif;

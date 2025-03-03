@@ -36,6 +36,8 @@ class mindEventsWooCommerce {
             $to == 'on-hold' || 
             $to == 'pending'
             ) :
+            mapi_write_log($from . ' to ' . $to);
+            mapi_write_log('Removing Attendee');
             $this->remove_attendee($order);
         endif;
 

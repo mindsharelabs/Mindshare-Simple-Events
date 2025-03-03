@@ -373,6 +373,18 @@
     flex-direction: row;
     padding: 25px;
     justify-content: space-between;
+    button {
+      &.event-meta-close {
+        background: none;
+        border: none;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        font-size: 29px;
+        padding: 3px 15px;
+      }
+      
+    }
     a.button{
       &.button-link {
         @include button-link;

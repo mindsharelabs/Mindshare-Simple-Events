@@ -73,16 +73,16 @@ class mindEventsAjax {
       $parentID = $parent->post_parent;
       //check if event has attendees
       $attendees = get_post_meta($parentID, 'attendees', true);
-      mapi_write_log($attendees[$eventID]);
+      
       if($attendees[$eventID]) :
         wp_send_json_error('This event has attendees, please reschedule or remove the attendees before deleting the event.');
       endif;
 
 
-      // do_action('mindreturns_before_sub_event_deleted', $eventID);
-      // wp_delete_post($eventID);
-      // do_action('mindreturns_after_sub_event_deleted', $eventID);
-      // wp_send_json_success();
+      do_action('mindreturns_before_sub_event_deleted', $eventID);
+      wp_delete_post($eventID);
+      do_action('mindreturns_after_sub_event_deleted', $eventID);
+      wp_send_json_success();
     }
     wp_send_json_error();
   }
@@ -318,7 +318,6 @@ class mindEventsAjax {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'add_woo_product_to_cart'){
       $product_id = $_POST['product_id'];
       $quantity = $_POST['quantity'];
-      $event_date = $_POST['event_date'];
 
       $success = false;
 

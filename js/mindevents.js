@@ -12,6 +12,12 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			});
 		}
 
+
+		$(document).on('click', '.event-meta-close', function (event) {
+			closeAllEventMeta();
+		});
+
+
 		$(document).on('click', '.sub-event-toggle', function (event) {
 			closeAllEventMeta();
 			var eventid = $(this).data('eventid');
@@ -142,15 +148,14 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					
 				},
 				success: function(response) {
-					console.log( mindeventsSettings.cart_url);
+					
 					if(response.success) {
 						button.prop('disabled', false);
-						button.html('Added!');
-						setTimeout(function() {
-							button.html('Add 1 more (+1)');
-							buttonParent.append('<a href="' + mindeventsSettings.cart_url + '" class="button go-to-cart">Go to cart.</a>');
-							
-						}, 1500);
+						//get current style string of button
+						var style = button.attr('style');
+						//hide button
+						button.hide();
+						buttonParent.append('<a class="button go-to-cart" style="' + style + '" href="' + mindeventsSettings.cart_url + '">Success! Go to Cart.</a>');
 
 				
 					} else {
