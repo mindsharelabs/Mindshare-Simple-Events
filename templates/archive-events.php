@@ -41,7 +41,6 @@ echo '<main role="main" aria-label="Content">';
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
       echo '<div id="cartErrorContainer"></div>';
-      mapi_write_log(MINDEVENTS_IS_MOBILE);
       if(MINDEVENTS_IS_MOBILE) :
 
         

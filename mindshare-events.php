@@ -72,11 +72,26 @@ class mindEvents {
     include MINDEVENTS_ABSPATH . 'inc/posttypes.php';
     include MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
     include MINDEVENTS_ABSPATH . 'inc/front-end.php';
+    
 
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
+
+      
+
+
       include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
     endif;
 
+
+    add_filter( 'automatewoo/triggers',function ( $triggers ) {
+
+      include MINDEVENTS_ABSPATH . 'inc/automate-woo-trigger.php';
+      // set a unique name for the trigger and then the class name
+      $triggers['mind_events_trigger'] = 'Class_Reminder_Trigger';
+    
+      return $triggers;
+    } );
+    
 
   }
 
@@ -235,7 +250,9 @@ new mindEvents();
 
 
 
-// add_action('init', function() {
+add_action('init', function() {
+
+
 //   $products = get_posts(array(
 //     'post_type' => 'product',
 //     'posts_per_page' => -1,
@@ -263,4 +280,4 @@ new mindEvents();
 //     //save event date to meta on product
 //     update_post_meta($product->ID, '_EventStartDate', $_EventStartDate);
 //   endforeach;
-// });
+});

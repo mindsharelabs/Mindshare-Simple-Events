@@ -36,16 +36,11 @@ class mindEventsWooCommerce {
             $to == 'on-hold' || 
             $to == 'pending'
             ) :
-            mapi_write_log($from . ' to ' . $to);
-            mapi_write_log('Removing Attendee');
             $this->remove_attendee($order);
         endif;
 
         if( $to == 'completed' || $to == 'processing') :
             if($from == 'completed' && $to == 'processing') :
-                return;
-            endif;
-            if($from == 'processing' && $to == 'completed') :
                 return;
             endif;
             
@@ -63,10 +58,9 @@ class mindEventsWooCommerce {
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
                 $event_start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
-                
-                wp_schedule_single_event(strtotime($event_start_date) - DAY_IN_SECONDS * 3, 'woo_event_start', array(
+
+                wp_schedule_single_event(strtotime($event_start_date) - DAY_IN_SECONDS * 3, 'woo_event_three_days_before', array(
                     'order_id' => $order_id,
-                    'user_id' => $order->get_user_id(),
                     'product_id' => $product_id,
                 ));
             endforeach;

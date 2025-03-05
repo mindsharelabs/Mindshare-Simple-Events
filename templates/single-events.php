@@ -46,7 +46,6 @@ echo '<main role="main" aria-label="Content">';
           
           echo '<div class="events-wrap">';
             echo '<div id="cartErrorContainer"></div>';
-            mapi_write_log(MINDEVENTS_IS_MOBILE);
             if($display_type == 'list' || MINDEVENTS_IS_MOBILE) :
               echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());

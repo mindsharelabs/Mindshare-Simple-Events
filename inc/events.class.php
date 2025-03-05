@@ -612,7 +612,6 @@ class mindEventCalendar {
               $html .= '<div class="series-ended event-notice"><strong>This series has ended.</strong></div>';
           endif;
         endif;
-        mapi_write_log($this->is_archive);
         if($this->is_archive) :
           if($sub_event_obj->post_parent) :
             $html .= '<div class="meta-item">';

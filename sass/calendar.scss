@@ -513,8 +513,7 @@
   }
 }
 #cartErrorContainer {
-  p {
-    color: $danger;
+  color: $danger;
     border: 1px solid $danger;
     background-color: color.adjust($danger, $lightness: 40%);
     padding: 0px 15px;
@@ -524,7 +523,7 @@
     line-height: 1.1em; 
     display: block;
     font-weight: bold;
-    margin-bottom: 8px;
+  p {
     a.button {
       @include button-link;
       color: $danger;
