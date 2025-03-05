@@ -514,7 +514,6 @@
 }
 #cartErrorContainer {
   p {
-    flex-basis: 20%;
     color: $danger;
     border: 1px solid $danger;
     background-color: color.adjust($danger, $lightness: 40%);
@@ -522,8 +521,10 @@
     margin-bottom: 0;
     border-radius: 20px;
     text-align: left;
-    font-size: .8em;
     line-height: 1.1em; 
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
     a.button {
       @include button-link;
       color: $danger;

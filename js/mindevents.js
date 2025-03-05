@@ -156,7 +156,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 						//hide button
 						button.hide();
 						buttonParent.append('<a class="button go-to-cart" style="' + style + '" href="' + mindeventsSettings.cart_url + '">Success! Go to Cart.</a>');
-
+						//increment cart icon count
+						$('.cart-contents-count').find('svg').attr('data-icon', 'circle-' + response.data.cart_count);
 				
 					} else {
 						console.log(response.data);
