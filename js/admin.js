@@ -185,6 +185,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		$(document).on('click', '.calendar-nav .calnav', function (event) {
 
 			event.preventDefault();
+			var button = event.currentTarget;
 			var eventsCalendar = $('#eventsCalendar');
 			var calendarTable = $('#mindEventCalendar');
 			var month = calendarTable.data('month');
@@ -192,30 +193,38 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			var direction = $(this).data('dir');
 
 
-			var height = eventsCalendar.height();
-			var width = eventsCalendar.width();
-			eventsCalendar.height(height).width(width);
-			eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+			if(month && year) {
 
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : MINDEVENTS_PREPEND + 'movecalendar',
-					direction : direction,
-					month : month,
-					year : year,
-					eventid : mindeventsSettings.post_id
-				},
-				success: function(response) {
-					eventsCalendar.attr('style', false);
-					eventsCalendar.html(response.html);
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
-			});
+				var height = eventsCalendar.height();
+				var width = eventsCalendar.width();
+				eventsCalendar.height(height).width(width);
+				
+
+				$.ajax({
+					url : mindeventsSettings.ajax_url,
+					type : 'post',
+					data : {
+						action : MINDEVENTS_PREPEND + 'movecalendar',
+						direction : direction,
+						month : month,
+						year : year,
+						eventid : mindeventsSettings.post_id
+					},
+					beforeSend: function() {
+						eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+					},
+					success: function(response) {
+
+						eventsCalendar.attr('style', false);
+						eventsCalendar.html(response.html);
+						$(button).disabled = false;
+					},
+					error: function (response) {
+						console.log('An error occurred.');
+						console.log(response);
+					},
+				});
+			}
 
 		})
 

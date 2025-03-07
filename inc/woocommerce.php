@@ -198,14 +198,11 @@ class mindEventsWooCommerce {
                 //get linked product
                 $product_id = get_post_meta($sub_event->ID, 'linked_product', true);
                 //get all orders for this product
-                $orders = get_orders_ids_by_product_id($product_id);
+                $orders = $this->get_orders_ids_by_product_id($product_id);
                 //foreach order
                 foreach($orders as $order) :
                     add_attendee($order->ID);
                 endforeach;
-
-
-
 
                 $attendees[$sub_event->ID] = array();
             endforeach;
@@ -449,7 +446,7 @@ class mindEventsWooCommerce {
     private function get_orders_ids_by_product_id( $product_id, $order_status = array( 'wc-completed' ) ){
         global $wpdb;
 
-        $results = $wpdb->get_col("
+        $results =$wpdb->get_col("
             SELECT order_items.order_id
             FROM {$wpdb->prefix}woocommerce_order_items as order_items
             LEFT JOIN {$wpdb->prefix}woocommerce_order_itemmeta as order_item_meta ON order_items.order_item_id = order_item_meta.order_item_id
@@ -458,7 +455,8 @@ class mindEventsWooCommerce {
             AND posts.post_status IN ( '" . implode( "','", $order_status ) . "' )
             AND order_items.order_item_type = 'line_item'
             AND order_item_meta.meta_key = '_product_id'
-            AND order_item_meta.meta_value = '$product_id'
+            AND order_item_meta.meta_value = '".$product_id."'
+            ORDER BY order_items.order_id DESC
         ");
 
         return $results;

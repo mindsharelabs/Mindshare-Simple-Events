@@ -25,6 +25,9 @@
       font-weight: bold;
       margin: 0 8px;
     }
+    &.loading {
+      display: none;
+    }
     &:hover {
       @include transition(200ms);
       background: color.adjust(rgb(67, 160, 217), $lightness: -10%)
