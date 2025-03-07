@@ -506,6 +506,45 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		}
 
 
+		function colorAttendeeNumbers() {
+			const rows = document.querySelectorAll('.event-attendees tbody tr');
+			let attendeeCounts = [];
+		
+			// Collect all attendee counts
+			rows.forEach(row => {
+				const attendeeCell = row.querySelector('td:nth-child(4)');
+				if (attendeeCell) {
+					const attendeeCount = parseInt(attendeeCell.getAttribute('data-count'), 10);
+					attendeeCounts.push(attendeeCount);
+				}
+			});
+		
+			// Determine the min and max attendee counts
+			const minCount = Math.min(...attendeeCounts);
+			const maxCount = Math.max(...attendeeCounts);
+		
+			// Color the attendee counts based on the min and max values
+			rows.forEach(row => {
+				const attendeeCell = row.querySelector('td:nth-child(4)');
+				if (attendeeCell) {
+					const attendeeCount = parseInt(attendeeCell.getAttribute('data-count'), 10);	
+					if (attendeeCount === minCount) {
+						attendeeCell.style.ackgroundColor = `rgba(255, 0, 0, .3)`;
+					} else if (attendeeCount === maxCount) {
+						attendeeCell.style.backgroundColor = `rgba(0, 255, 0, .3)`;
+						attendeeCell.style.fontWeight = 'bold';
+					} else {
+						// Calculate a gradient color between red and green based on the count
+						const ratio = (attendeeCount - minCount) / (maxCount - minCount);
+						const red = Math.round(255 * (1 - ratio));
+						const green = Math.round(255 * ratio);
+						attendeeCell.style.backgroundColor = `rgba(${red}, ${green}, 0, .3)`;
+					}
+
+				}
+			});
+		};
+		colorAttendeeNumbers();
 
   });
 
