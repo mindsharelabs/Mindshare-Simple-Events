@@ -32,7 +32,32 @@
   }
 }
 
-
+table.event-attendees {
+  width: 100%;
+  thead {
+    background: rgba(220,220,220, 1);
+    th {
+      padding: 5px;
+      border: 1px solid rgba(200, 200, 200, .3);
+    }
+  }
+  tbody {
+    tr {
+      border: 1px solid rgba(200, 200, 200, .3);
+      td {
+        padding: 5px;
+        border: 1px solid rgba(200, 200, 200, .3);
+        &.event-actions {
+          
+        }
+        &.attendee-count {
+          text-align: center;
+          max-width: 40px;
+        }
+      }
+    }
+  }
+}
 
 
 #eventsCalendar {

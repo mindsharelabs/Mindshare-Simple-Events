@@ -41,8 +41,8 @@ class MindEventsAdminOverview {
 
         echo '<div class="wrap">';
             echo '<h1>Upcoming Events</h1>';
-            echo '<table class="wp-list-table widefat fixed striped event-attendees">';
-            echo '<thead><tr><th>Event</th><th>Actions</th><th>Date</th><th>Attendees</th></tr></thead>';
+            echo '<table class="wp-list-table widefat striped event-attendees">';
+            echo '<thead><tr><th>Event</th><th>Actions</th><th>Date</th><th>Attendees</th><th>Orders</th></tr></thead>';
                 echo '<tbody>';
 
                 if ($events->have_posts()) :
@@ -60,19 +60,36 @@ class MindEventsAdminOverview {
 
 
                         echo '<tr>';
-                        echo '<td>';
-                            echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
+                            echo '<td class="event-title">';
+                                echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
+                                
+                            echo '</td>';
+                            echo '<td class="event-actions">';
+                                echo '<div class="button-group">';
+                                    echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
+                                    echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
+                                echo '</div>';
                             
-                        echo '</td>';
-                        echo '<td>';
-                            echo '<div class="button-group">';
-                                echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
-                                echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
-                            echo '</div>';
-                        
-                        echo '</td>';
-                        echo '<td>' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
-                        echo '<td data-count="' . esc_html($attendee_count) . '">' .  esc_html($attendee_count) . '</td>';
+                            echo '</td>';
+                            echo '<td class="event-date">' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
+                            echo '<td class="attendee-count" data-count="' . esc_html($attendee_count) . '">' .  esc_html($attendee_count) . '</td>';
+                            
+                            echo '<td class="event-orders">';
+                                if($attendee_count > 0) :
+                                    foreach($attendees as $attendee) :
+                                        $order = wc_get_order($attendee['order_id']);
+                                        $user = get_userdata($order->get_customer_id());
+                                        echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
+                                        if(next($attendees)) echo '<br>';
+                                    endforeach;
+                                else :
+                                    echo 'No orders';
+                                endif;
+                            
+                            
+                            
+                            echo '</td>';
+
                         echo '</tr>';
                     endwhile;
                 else :
