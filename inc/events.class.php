@@ -494,9 +494,10 @@ class mindEventCalendar {
     $endtime = get_post_meta($event->ID, 'endtime', true);
     $thumb = get_the_post_thumbnail($event->post_parent, 'cal-thumb');
     $html .= '<div class="event-label-container">';
-        if($thumb) :
-            $html .= '<div class="event-thumb">' . $thumb . '</div>';
-        endif;
+      //TODO: uswe badge image in place of thumnmail
+        // if($thumb) :
+        //     $html .= '<div class="event-thumb">' . $thumb . '</div>';
+        // endif;
         $html .= '<div class="event-meta">';
           $html .= '<span class="event-title">' . get_the_title($event->post_parent) . '</span>';
           $html .= '<span class="event-time">' . $starttime . ' - ' . $endtime . '</span>';
@@ -589,11 +590,17 @@ class mindEventCalendar {
       $series_ended = $this->today->format('Y-m-d') > $series_end_date ? true : false;
     endif;
     
+    
 
     if($meta) :
       $style_str = array();
 
       $color = $this->get_event_color($event);
+
+
+      $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt( get_post_parent($event) ));
+
+
       if($color) :
         $style_str['border-color'] = 'border-color:' . $color . ';';
         $style_str['color'] = 'color:' . $color . ';';
@@ -647,9 +654,8 @@ class mindEventCalendar {
 
 
 
-        if($meta['eventDescription'][0]) :
+        if($description) :
           $html .= '<div class="meta-item description">';
-            $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt( get_post_parent($event) ));
             $html .= '<span class="value eventdescription">' . $description . '</span>';
           $html .= '</div>';
         endif;
@@ -824,6 +830,7 @@ class mindEventCalendar {
     if($meta) :
       $style_str = array();
       $color = $this->get_event_color($event);
+      $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt( get_post_parent($event) ));
 
 
       if($color) :
@@ -881,10 +888,10 @@ class mindEventCalendar {
             $html .= '</div>';
           endif;
 
-          if($meta['eventDescription'][0]) :
+          if($description) :
             $html .= '<div class="meta-item">';
-              $html .= '<span class="value eventdescription">' . $meta['eventDescription'][0] . '</span>';
-              $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link">Read More</span></a>';
+              $html .= '<span class="value eventdescription">' . $description . '</span></br>';
+              $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
             $html .= '</div>';
           endif;
 

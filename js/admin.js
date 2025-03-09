@@ -39,7 +39,10 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		})
 
 
-
+		$(document).on('click', '.occurance-container.past-event', function (event) {
+			console.log('click');
+			$(this).toggleClass('show'); 
+		});
 
 		$(document).on('change', '#event_meta_event_type', function (e) {
 			if(e.target.value == 'single-event') {

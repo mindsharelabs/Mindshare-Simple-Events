@@ -43,6 +43,9 @@ class mindEventsWooCommerce {
             if($from == 'completed' && $to == 'processing') :
                 return;
             endif;
+            if($from == 'processing' && $to == 'completed') :
+                return;
+            endif;
             
             $this->add_attendee($order);
             $this->schedule_hook($order);
@@ -312,15 +315,15 @@ class mindEventsWooCommerce {
         else :
             $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);
             
-            //get all orders for product
-            $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
-            //add attendees
-            if($orders) :
-                foreach($orders as $order) :
-                    mapi_write_log('Adding attendee for order: ' . $order);
-                    $this->add_attendee($order);
-                endforeach;
-            endif;
+            // //get all orders for product
+            // $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
+            // //add attendees
+            // if($orders) :
+            //     foreach($orders as $order) :
+            //         mapi_write_log('Adding attendee for order: ' . $order);
+            //         $this->add_attendee($order);
+            //     endforeach;
+            // endif;
 
         endif;
 

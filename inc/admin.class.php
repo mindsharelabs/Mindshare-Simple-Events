@@ -213,9 +213,8 @@ class mindeventsAdmin {
 
               $event_start_time_stamp = new DateTimeImmutable($meta_start_date);
               $event_start_day = $event_start_time_stamp->format('Y-m-d');
-              echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . '">';
-              
-              
+
+              echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . ' ' . ($today > $event_start_day ? 'past-event' : '') . '">';
               
               
               $linked_product = get_post_meta($occurance_id, 'linked_product', true);
@@ -234,8 +233,10 @@ class mindeventsAdmin {
 
                 if(!empty($tickets)) : 
                     echo '<h3>' . ($meta_start_date ? $event_start_time_stamp->format('F j, Y') : 'Series Attendees') . '</h3>';
+
+                      echo ($today > $event_start_day ? '<span class="small">(click to toggle table)</span>' : '');
                     
-                      echo '<table class="attendee-list wp-list-table widefat fixed striped">';
+                      echo '<table class="event-attendees wp-list-table widefat fixed striped">';
                         echo '<thead>';
                           echo '<tr>';
                             foreach($columns as $key => $value) :
@@ -410,7 +411,7 @@ class mindeventsAdmin {
 
             echo '<div class="form-section ticket-option multiple-option">';
               echo '<p class="label"><label for="eventProductID">Ticket Button Text</label></p>';
-              echo '<input type="text" name="event[wooLabel]" id="eventLinkedProduct" value="' . (isset($defaults['wooLabel']) ? $defaults['wooLabel'] : '') . '" placeholder="Attend Event">';
+              echo '<input type="text" name="event[wooLabel]" id="eventLinkedProduct" value="' . (isset($defaults['wooLabel']) ? $defaults['wooLabel'] : '') . '" placeholder="Join Class">';
             echo '</div>';
 
             echo '<div class="form-section ticket-option multiple-option">';
