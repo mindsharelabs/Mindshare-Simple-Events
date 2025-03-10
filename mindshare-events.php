@@ -241,3 +241,28 @@ class mindEvents {
 
 new mindEvents();
 
+
+
+// add_action('init', function() {
+//   //get all products that have a linked event
+//   $args = array(
+//     'post_type' => 'product',
+//     'posts_per_page' => -1,
+//     'meta_query' => array(
+//       array(
+//         'key' => 'linked_event',
+//         'compare' => 'NOT EXISTS'
+//       )
+//     )
+//   );
+//   $products = get_posts($args);
+//   if($products) :
+//     foreach ($products as $key => $product) :
+//       $prod_obj = wc_get_product($product->ID);
+//       if($prod_obj->get_type() == 'simple') :
+//         mapi_write_log('DELETE PRODUCT: ' . get_the_title($product->ID));
+//         // wp_trash_post($product->ID, true);
+//       endif;
+//     endforeach;
+//   endif;
+// });

@@ -378,73 +378,15 @@ class mindEventsAjax {
         $html .= '<div class="form-section">';
           $html .= '<p class="label"><label for="linked_product">Linked Product ID</label></p>';
           $html .= '<input type="number" class="linked-product" name="linked_product" id="linked_product" value="' . $values['linked_product'][0] . '" placeholder="">';
+          if($values['linked_product'][0]) :
+              $html .= '<p class="description">Current Product: <a href="' . get_edit_post_link($values['linked_product'][0]) . '" target="_blank">' . get_the_title($values['linked_product'][0]) . '</a></p>';
+          endif;
         $html .= '</div>';
-
-       
-
-
-
-
-      //this is a temporary code block for use during the calendar transition
-
-
-        $start_date = new DateTimeImmutable($values['event_date'][0]);
-        // $start_date->modify('-1 day');
-        $end_date = $start_date->modify('+1 day');
-    
-        $products = get_posts(array(
-          'post_type' => 'product',
-          'posts_per_page' => -1,
-          'post_status' => array('publish'),
-          'meta_query' => array(
-            array(
-              'key' => '_tribe_wooticket_for_event',
-              'compare' => 'EXISTS'
-            ),
-            array(
-              'key' => '_EventStartDate',
-              'value' => array($start_date->format('Y-m-d'), $end_date->format('Y-m-d')),
-              'compare' => 'BETWEEN',
-              'type' => 'DATE'
-            )
-          )
-        ));
-    
-        //output a list of product ids, titles and dates
-        if($products) :
-          
-            $html .= '<ul>';
-            foreach ($products as $key => $product) :
-              $event = get_post_meta($product->ID, '_tribe_wooticket_for_event', true);
-              if(!$event) :
-                continue;
-              endif;
-    
-              $html .= '<li class="small">' . $product->ID . ' - ' . $product->post_title . ' - ' . get_post_meta($event, '_EventStartDate', true) . '</li>';
-            endforeach;
-            $html .= '</ul>';
-          
-        endif;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         $html .= '<div class="form-section full">';
           $html .= '<p class="label"><label for="eventDescription">Short Description</label></p>';
           $html .= '<textarea type="text" name="eventDescription" id="eventDescription" placeholder="">' . $values['eventDescription'][0] . '</textarea>';
         $html .= '</div>';
-
 
 
         $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';

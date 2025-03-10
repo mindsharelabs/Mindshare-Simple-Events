@@ -698,8 +698,8 @@ class mindEventCalendar {
   }
 
 
-  private function build_offer_link($offer) {
-
+  public function build_offer_link($offer) {
+    mapi_write_log($offer);
     if(!$offer['label']) :
       $offer['label'] = __('Add to Cart', 'makesantafe');
     endif;
@@ -903,6 +903,8 @@ class mindEventCalendar {
         $html .= '</div>';
 
         $html .= '<div class="right-content">';
+          
+          $offers = unserialize ($meta['offers'][0]);
           if($meta['linked_product'][0]) :
         
               $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
@@ -924,17 +926,41 @@ class mindEventCalendar {
               endif;
 
 
-          elseif($meta['offers']) :
-              $offers = unserialize ($meta['offers'][0]);
+          elseif($offers) :
+              
 
               
               foreach ($offers as $key => $offer) :
                   $offer['background'] = $color;
                   $offer['color'] = $this->getContrastColor($color);
                   $html .= $this->build_offer_link($offer);
-                endforeach;
+              endforeach;
 
                 
+          else :
+            //get first sub event
+            $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
+            if($sub_events) :
+              $sub_event = $sub_events[0];
+              $meta = get_post_meta($sub_event->ID);
+              $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+              $product = wc_get_product( $meta['linked_product'][0] );
+              if($product) :
+              
+                  $html .= $this->build_offer_link(array(
+                      'label' => $meta['wooLabel'][0],
+                      'price' => $product->get_price(),
+                      'link' => $product->get_permalink(), 
+                      'background' => $color,
+                      'color' => $this->getContrastColor($color),
+                      'product_id' => $meta['linked_product'][0],
+                      'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                      'quantity' => 1
+                    ));
+                
+              endif;
+            endif;
+
 
           endif;
 

@@ -25,7 +25,8 @@ class MindEventsAdminOverview {
            'meta_query' => array(
                 array(
                     'key' => 'event_time_stamp', // Check the start date field
-                    'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
+                    //set the value to yesterdays date
+                    'value' => date('Y-m-d H:i:s', strtotime('-1 days')), // Set today's date 
                     'compare' => '>=', // Return the ones greater than today's date
                     'type' => 'DATETIME' // Let WordPress know we're working with date
                 )
@@ -51,7 +52,7 @@ class MindEventsAdminOverview {
                         $parent_id = wp_get_post_parent_id(get_the_id());
                         $attendees = get_post_meta($parent_id, 'attendees', true);
                         $attendees = $attendees[get_the_id()];
-                        
+                        $linked_product = get_post_meta(get_the_id(), 'linked_product', true);
                     
 
 
@@ -68,6 +69,9 @@ class MindEventsAdminOverview {
                                 echo '<div class="button-group">';
                                     echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
                                     echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
+                                    if($linked_product) :
+                                        echo '<a href="' . get_edit_post_link($linked_product) . '" target="_blank" class="button button-small button-secondary">Edit Product</a>';
+                                    endif;
                                 echo '</div>';
                             
                             echo '</td>';

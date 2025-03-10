@@ -542,7 +542,7 @@ table.event-attendees {
 }
 #cartErrorContainer {
   color: $danger;
-    border: 1px solid $danger;
+    // border: 1px solid $danger;
     background-color: color.adjust($danger, $lightness: 40%);
     padding: 0px 15px;
     margin-bottom: 0;
