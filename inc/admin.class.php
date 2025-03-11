@@ -418,7 +418,6 @@ class mindeventsAdmin {
               echo '<p class="label"><label for="eventProductID">Linked Product</label></p>';
               echo '<input type="number" name="event[linked_product]" id="eventLinkedProduct" value="' . (isset($defaults['linked_product']) ? $defaults['linked_product'] : '') . '" placeholder="">';
               echo '<p class="description">If left blank a new product will be created.</p>';
-              
             echo '</div>';
             
             echo '<div class="form-section ticket-option multiple-option">';

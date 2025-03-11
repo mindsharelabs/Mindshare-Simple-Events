@@ -45,25 +45,6 @@ echo '<main role="main" aria-label="Content">';
           do_action(MINDEVENTS_PREPEND . 'single_before_events', get_the_ID());
           
           echo '<div class="events-wrap">';
-            $event_type = get_post_meta(get_the_ID(), 'event_type', true);
-            if($event_type == 'single-event') :
-              $linked_product = get_post_meta(get_the_ID(), 'linked_product', true);
-              $first_event_date = get_post_meta(get_the_ID(), 'first_event_date', true);
-              $product = wc_get_product($linked_product);
-              echo '<h3>Purchase a Ticket</h3>';
-              echo $calendar->build_offer_link(array(
-                'label' => 'Join Class',
-                'price' => $product->get_price(),
-                'link' => $product->get_permalink(), 
-                'background' => '#be202e',
-                'color' => '#fff',
-                'product_id' => $linked_product,
-                'event_date' => $first_event_date,
-                'quantity' => 1
-              ));
-            endif;
-
-            
             echo '<div id="cartErrorContainer"></div>';
             if($display_type == 'list' || MINDEVENTS_IS_MOBILE) :
               echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');

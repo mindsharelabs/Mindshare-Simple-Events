@@ -10,9 +10,29 @@
 .mindevents_meta_box { 
   .occurance-container {
     padding: 10px;
+    border: 2px solid $info;
+    background: color.adjust($info, $lightness: 10%);
+    border-radius: 20px;
+    margin-bottom: 20px;
     &.today {
-      background: color.adjust($success, $lightness: 40%);
+      background: color.adjust($success, $lightness: 30%);
+      border: 2px solid color.adjust($success, $lightness: 10%);
+      border-radius: 20px;
       // color: #fff;
+    }
+    &.past-event {
+      //make this container toggleable
+      table {
+        display: none;
+      }
+      cursor: pointer;
+      
+    }
+    &.show {
+      background: color.adjust($success, $lightness: 30%);
+      table {
+        display: table; 
+      }
     }
   }
   a.button, button{
@@ -59,6 +79,7 @@
     }
   }
   h3 {
+    margin-top: 0;
     margin-bottom: 3px;
   }
   .status {
