@@ -30,6 +30,13 @@ class mindEventsWooCommerce {
     }
 
     public function order_status_change($order, $from, $to) {
+        mapi_write_log('Order status changed from ' . $from . ' to ' . $to);
+        if($from == $to) :
+            return;
+        endif;
+
+
+
         if( $to == 'refunded' || 
             $to == 'cancelled' || 
             $to == 'failed' || 
@@ -37,6 +44,9 @@ class mindEventsWooCommerce {
             $to == 'pending'
             ) :
             $this->remove_attendee($order);
+            $this->clear_schedule_hook($order);
+
+
         endif;
 
         if( $to == 'completed' || $to == 'processing') :
@@ -56,28 +66,45 @@ class mindEventsWooCommerce {
 
 
     private function schedule_hook($order_id) {
+       
         $order = wc_get_order( $order_id );
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
                 $event_start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
-
-                wp_schedule_single_event(strtotime($event_start_date) - DAY_IN_SECONDS * 3, 'woo_event_three_days_before', array(
+                wp_schedule_single_event(strtotime($event_start_date) - (DAY_IN_SECONDS * 3), 'woo_event_three_days_before', array(
                     'order_id' => $order_id,
                     'product_id' => $product_id,
-                ));
+                ), true);
+            endforeach;
+        endif;
+    }
+
+    private function clear_schedule_hook($order_id) {
+       
+        $order = wc_get_order( $order_id );
+        if($order->get_items()) :
+            foreach($order->get_items() as $line_item) :
+                $product_id = $line_item->get_product_id();
+                wp_clear_scheduled_hook( 'woo_event_three_days_before', array(
+                    'order_id' => $order_id,
+                    'product_id' => $product_id,
+                ) );
             endforeach;
         endif;
     }
     
     public function add_attendee($order_id) { 
         $order = wc_get_order( $order_id );
+
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
                 
+                
                 $get_linked_event = get_post_meta($product_id, 'linked_event', true);
                 $get_linked_occurance = get_post_meta($product_id, 'linked_occurance', true);
+
 
                 if($get_linked_event && $get_linked_occurance) :
                     $quantity = $line_item->get_quantity();
@@ -169,25 +196,6 @@ class mindEventsWooCommerce {
                 $adding[$sub_event->ID] = $sub_event->ID;
             endforeach;
 
-            $attendees = get_post_meta($event_id, 'attendees', true);
-            if(!$attendees) :
-                $attendees = array();
-            endif;
-
-            foreach($sub_event_ids as $sub_event_id) :
-                if(!array_key_exists($sub_event_id, $attendees)) :
-                    $attendees[$sub_event_id] = array();
-                endif;
-            endforeach;
-
-            $attendees_ordered = array() ;
-
-            foreach (array_keys($adding) as $key) {
-                $attendees_ordered[$key] = $attendees[$key];
-            }
-
-
-            update_post_meta($event_id, 'attendees', $attendees_ordered);
             update_post_meta($event_id, 'sub_events', $adding);
         endif;
 
@@ -297,7 +305,13 @@ class mindEventsWooCommerce {
         endif;
 
 
-        $title = get_the_title($post_id) . ' - ' . $start_date->format('D, M j') . ' - ' . $end_date->format('D, M j');
+        //if end date is different from start date, adjust title to ionclude end time not date
+        if($start_date->format('m-d-Y') != $end_date->format('m-d-Y')) :
+            $title = get_the_title($post_id) . ' | ' . $start_date->format('D, M j g:i a') . ' - ' . $end_date->format('D, M j g:i a');
+        else :
+            $title = get_the_title($post_id) . ' | ' . $start_date->format('D, M j g:i a') . ' to ' . $start_date->format('g:i a');
+        endif;
+
         $price = $product->get_regular_price();
      
         

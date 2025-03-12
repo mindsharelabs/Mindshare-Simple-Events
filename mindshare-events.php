@@ -76,22 +76,11 @@ class mindEvents {
     
 
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
-
-      
-
-
       include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
     endif;
 
 
-    add_filter( 'automatewoo/triggers',function ( $triggers ) {
-
-      include MINDEVENTS_ABSPATH . 'inc/automate-woo-trigger.php';
-      // set a unique name for the trigger and then the class name
-      $triggers['mind_events_trigger'] = 'Class_Reminder_Trigger';
-    
-      return $triggers;
-    } );
+  
     
 
   }
@@ -240,31 +229,4 @@ class mindEvents {
 }//end of class
 
 new mindEvents();
-
-
-
-add_action('init', function() {
-  //GET ALL SIMPLE PRODUCTS NOT ASSOCIATED WITH AN EVENT
-  $args = array(
-    'post_type' => 'product',
-    'posts_per_page' => -1,
-    'meta_query' => array(
-      array(
-        'key' => 'event_id',
-        'compare' => 'NOT EXISTS'
-      )
-    )
-  );
-  $products = get_posts($args);
-  if($products) :
-    foreach ($products as $key => $product) :
-      $prod_obj = wc_get_product($product->ID);
-      if($prod_obj->get_type() == 'simple') :
-        mapi_write_log('TRASHING PRODUCT: ' . get_the_title($product->ID));
-        //TRASH PRODUCT
-        // wp_trash_post($product->ID);
-      endif;
-    endforeach;
-  endif;
-});
 
