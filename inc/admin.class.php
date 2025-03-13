@@ -171,7 +171,7 @@ class mindeventsAdmin {
       $mindeventsAdmin = new mindeventsAdmin();
       $mindeventsAdmin->get_time_form();
 
-      $events = new mindEventCalendar($post->ID);
+      $events = new mindEventCalendar($post->ID, time(), true);
 
   		echo '<div class="calendar-nav">';
   			echo '<button data-dir="prev" class="calnav prev"><span>&#8592;</span></button>';
