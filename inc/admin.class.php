@@ -187,144 +187,173 @@ class mindeventsAdmin {
   }
 
   static function display_attendees_metabox($post) {
+
     $attendees = get_post_meta($post->ID, 'attendees', true);
+    
+
+    $event_type = get_post_meta($post->ID, 'event_type', true);
+
+    if($event_type == 'single-event') :
+      $sub_events[$post->ID] = $post->ID; //the event we're getting tickets for is the parent now
+    else :
+      $sub_events = get_post_meta($post->ID, 'sub_events', true);
+    endif;
+
+    $has_tickets = get_post_meta($post->ID, 'has_tickets', true);
+    
     $today = new DateTime();
     $today = $today->format('Y-m-d');
 
+    if($has_tickets) :
+      echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
+          if($attendees && $sub_events) :          
+              $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
+                'order_id' => 'Order ID',
+                'status' => 'Status',
+                'user_id' => 'Attendee',
+                'product' => 'Product',
+                'check_in' => 'Check In',
+              ));
 
-    echo '<div class="mindevents_meta_box mindevents-forms" id="mindevents_meta_box">';
-        if($attendees) :          
-            $columns = apply_filters(MINDEVENTS_PREPEND . 'attendee_columns', array(
-              'order_id' => 'Order ID',
-              'status' => 'Status',
-              'user_id' => 'Attendee',
-              'product' => 'Product',
-              'check_in' => 'Check In',
-            ));
+
+              
+              foreach($sub_events as $sub_event) :
+                $attendees_for_occurance = $attendees[$sub_event];
+                $meta_start_date = get_post_meta($sub_event, 'event_start_time_stamp', true);
+                  
+                if(!$meta_start_date) :
+                  $meta_start_date = get_post_meta($post->ID, 'first_event_date', true);
+                endif;
+
+                $event_start_time_stamp = new DateTimeImmutable($meta_start_date);
+                $event_start_day = $event_start_time_stamp->format('Y-m-d');
+
+                echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . ' ' . ($today > $event_start_day ? 'past-event' : '') . '">';
+                  if($event_type == 'single-event') :
+                    echo '<h3>Series Attendees</h3>'; 
+                    
+                  else :
+                    echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
+                  endif;
+
+                  echo ($today > $event_start_day ? '<span class="small">(click to toggle table)</span>' : '');
+
+                  echo '<table class="event-attendees wp-list-table widefat fixed striped">';
+                    echo '<thead>';
+                      echo '<tr>';
+                        foreach($columns as $key => $value) :
+                          echo '<th>' . $value . '</th>';
+                        endforeach;
+                      echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody>';
 
 
-            foreach($attendees as $occurance_id => $tickets) :
-              
-              $meta_start_date = get_post_meta($occurance_id, 'event_start_time_stamp', true);
-              
-              if(!$meta_start_date) :
-                $meta_start_date = get_post_meta($post->ID, 'first_event_date', true);
-              endif;
+                      if($attendees_for_occurance) :
+                      foreach($attendees_for_occurance as $akey => $ticket) :
 
-              $event_start_time_stamp = new DateTimeImmutable($meta_start_date);
-              $event_start_day = $event_start_time_stamp->format('Y-m-d');
+                        if($ticket) : 
+     
+                            $order = wc_get_order($ticket['order_id']);
+                            $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
+                              'order_id' => $ticket['order_id'],
+                              'status' => $order->get_status(),
+                              'user_id' => $ticket['user_id'],
+                              'product' => get_post_meta($sub_event, 'linked_product', true),
+                              'checked_in' => $ticket['checked_in'],
+                            ));
+                            $user_info = get_userdata($ticket_data['user_id']);
+                                        
+          
+                            echo '<tr>';
+                              foreach($ticket_data as $key => $value) :
 
-              echo '<div class="occurance-container ' . ($today == $event_start_day ? 'today' : '') . ' ' . ($today > $event_start_day ? 'past-event' : '') . '">';
-              
-              
-              $linked_product = get_post_meta($occurance_id, 'linked_product', true);
-              //get orders for product
-              
-             
-              $orders = self::get_orders_ids_by_product_id($linked_product, array('wc-completed'));
-              
-              foreach($orders as $order_id) :
-                $events = new mindEventsWooCommerce();
-                $events->add_attendee($order_id);
+                                if($key == 'user_id') :
+                                  $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
+                                
+                                
+                                elseif($key == 'product') :
+                                  $product = wc_get_product($value);
+                                  if($product) :
+                                    $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
+                                  else :
+                                    $value = '<strong>Product not found</strong>';
+                                  endif;
+                                              
+                              
+                                elseif($key == 'status') :
+                                  $value = '<span class="status ' . $value . '">' . wc_get_order_status_name($value) . '</span>';
+                                
+                                  
+                                elseif($key == 'checked_in') :
+                                  $checked_in = $value;
+                                  $value = '<button 
+                                    class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . ' ' . ($order->get_status() != 'completed' ? 'disabled' : '') . '" 
+                                    data-akey="' . $akey  . '" 
+                                    data-occurance="' . $sub_event . '" 
+                                    data-user_id="' . $ticket_data['user_id'] . '" ' . 
+                                    ($order->get_status() != 'completed' ? 'disabled' : '') . '>';
+          
+          
+                                    if($order->get_status() == 'completed') :
+                                      $value .= '<span class="check-in-status">' . ($checked_in ? 'Undo Checkin' : 'Checkin') . '</span>';
+                                    else :
+                                      $value .= '<span class="check-in-status">Order not completed</span>';
+                                    endif;
+                                                  
+                                  $value .= '</button>';
+          
+                                            
+                                
+                                  
+                                  
+                                elseif($key == 'order_id') :
+                                  $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
+                                endif;
+          
+          
+                                echo '<td>' . apply_filters(MINDEVENTS_PREPEND . 'attendee_value', $value) . '</td>';
+          
+                              endforeach;
+          
+                            echo '</tr>';
+          
+        
+                        endif;
+                        
+                      endforeach;
+                      else :
+                        echo '<tr><td colspan="' . count($columns) . '">No Attendees</td></tr>';
+                      endif;
+                    echo '</tbody>';
+                  echo '</table>';
+                echo '</div>';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               endforeach;
 
 
-
-
-                if(!empty($tickets)) : 
-                    echo '<h3>' . ($meta_start_date ? $event_start_time_stamp->format('F j, Y') : 'Series Attendees') . '</h3>';
-
-                      echo ($today > $event_start_day ? '<span class="small">(click to toggle table)</span>' : '');
-                    
-                      echo '<table class="event-attendees wp-list-table widefat fixed striped">';
-                        echo '<thead>';
-                          echo '<tr>';
-                            foreach($columns as $key => $value) :
-                              echo '<th>' . $value . '</th>';
-                            endforeach;
-                          echo '</tr>';
-                        echo '</thead>';
-                        echo '<tbody>';
-                          foreach($tickets as $akey => $ticket) :
-                              $order = wc_get_order($ticket['order_id']);
-                              $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
-                                'order_id' => $ticket['order_id'],
-                                'status' => $order->get_status(),
-                                'user_id' => $ticket['user_id'],
-                                'product' => get_post_meta($occurance_id, 'linked_product', true),
-                                'checked_in' => $ticket['checked_in'],
-                              ));
-                              $user_info = get_userdata($ticket_data['user_id']);
-                              
-
-                              echo '<tr>';
-                              
-                                foreach($ticket_data as $key => $value) :
-
-                                  if($key == 'user_id') :
-                                    $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
-                                  elseif($key == 'product') :
-                                    $product = wc_get_product($value);
-                                    if($product) :
-                                      $value = '<a href="' . get_edit_post_link($product->get_id()) . '" target="_blank">' . $product->get_title() . '</a>';
-                                    else :
-                                      $value = '<strong>Product not found</strong>';
-                                    endif;
-                                    
-                    
-                                  elseif($key == 'status') :
-                                    $value = '<span class="status ' . $value . '">' . wc_get_order_status_name($value) . '</span>';
-                                  elseif($key == 'checked_in') :
-                                    
-                                    
-                                    $checked_in = $value;
-                                    $value = '<button 
-                                      class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . ' ' . ($order->get_status() != 'completed' ? 'disabled' : '') . '" 
-                                      data-akey="' . $akey  . '" 
-                                      data-occurance="' . $occurance_id . '" 
-                                      data-user_id="' . $ticket_data['user_id'] . '" ' . 
-                                      ($order->get_status() != 'completed' ? 'disabled' : '') . '>';
-
-
-                                        if($order->get_status() == 'completed') :
-                                          $value .= '<span class="check-in-status">' . ($checked_in ? 'Undo Checkin' : 'Checkin') . '</span>';
-                                        else :
-                                          $value .= '<span class="check-in-status">Order not completed</span>';
-                                        endif;
-                                        
-                                    $value .= '</button>';
-
-                                  
-                                  elseif($key == 'order_id') :
-                                    $value = '<a href="' . admin_url('post.php?post=' . $value . '&action=edit') . '" target="_blank">' . $value . '</a>';
-                                  
-                                  endif;
-
-
-                                  echo '<td>' . apply_filters(MINDEVENTS_PREPEND . 'attendee_value', $value) . '</td>';
-
-                                endforeach;
-
-                              echo '</tr>';
-
-                        
-                          endforeach;
-
-                        echo '</tbody>';
-                      echo '</table>';
-                  
-                else :
-                  echo '<h3>' . ($meta_start_date ? $event_start_time_stamp->format('F j, Y') : 'Series Attendees') . '</h3>';
-                  echo '<p>No Attendees</p>';  
-                endif;
-              echo '</div>';
-            endforeach;
-            
-            
+              
+              
+              
+          
+          endif;
         
-        endif;
-      
-    echo '</div>';
+      echo '</div>';
+    endif;
   }
 
 

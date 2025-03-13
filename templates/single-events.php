@@ -44,8 +44,11 @@ echo '<main role="main" aria-label="Content">';
 
           do_action(MINDEVENTS_PREPEND . 'single_before_events', get_the_ID());
           
-          echo '<div class="events-wrap">'; $event_type = get_post_meta(get_the_ID(), 'event_type', true);
-            if($event_type == 'single-event') :
+          echo '<div class="events-wrap">';
+            $event_type = get_post_meta(get_the_ID(), 'event_type', true);
+            $has_tickets = get_post_meta(get_the_id(), 'has_tickets', true);
+ 
+            if($event_type == 'single-event' && $has_tickets) :
               $linked_product = get_post_meta(get_the_ID(), 'linked_product', true);
               $first_event_date = get_post_meta(get_the_ID(), 'first_event_date', true);
               $product = wc_get_product($linked_product);

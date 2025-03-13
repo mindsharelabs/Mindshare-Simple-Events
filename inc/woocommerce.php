@@ -30,7 +30,6 @@ class mindEventsWooCommerce {
     }
 
     public function order_status_change($order, $from, $to) {
-        mapi_write_log('Order status changed from ' . $from . ' to ' . $to);
         if($from == $to) :
             return;
         endif;
@@ -122,7 +121,6 @@ class mindEventsWooCommerce {
                         );
                     endfor;
 
-                   
                     update_post_meta($get_linked_event, 'attendees', $attendees);
                 endif;
 
