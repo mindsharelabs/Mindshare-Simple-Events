@@ -267,6 +267,7 @@ class mindEventsWooCommerce {
 
     private function build_product($post_id, $meta) {
         $post = get_post($post_id);
+
         $start_date = (isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : $meta['first_event_date'][0]);
         $end_date = (isset($meta['event_end_time_stamp'][0]) ? $meta['event_end_time_stamp'][0] : $meta['last_event_date'][0]);
 
@@ -279,13 +280,10 @@ class mindEventsWooCommerce {
         endif;
 
 
-        $start_date = new DateTimeImmutable($start_date);
-        $start_date = $start_date->setTimezone(new DateTimeZone(wp_timezone_string()));
+        $start_date = new DateTime($start_date);
 
-
-        $end_date = new DateTimeImmutable($end_date);
-        $end_date = $end_date->setTimezone(new DateTimeZone(wp_timezone_string()));
-
+        $end_date = new DateTime($end_date);
+  
         $sku = $this->build_sku($post_id, $start_date->format('m-d-Y'));
 
         $new_product = false;
@@ -302,12 +300,11 @@ class mindEventsWooCommerce {
             $new_product = true;
         endif;
 
-
         //if end date is different from start date, adjust title to ionclude end time not date
         if($start_date->format('m-d-Y') != $end_date->format('m-d-Y')) :
             $title = get_the_title($post_id) . ' | ' . $start_date->format('D, M j g:i a') . ' - ' . $end_date->format('D, M j g:i a');
         else :
-            $title = get_the_title($post_id) . ' | ' . $start_date->format('D, M j g:i a') . ' to ' . $start_date->format('g:i a');
+            $title = get_the_title($post_id) . ' | ' . $start_date->format('D, M j g:i a') . ' to ' . $end_date->format('g:i a');
         endif;
 
         $price = $product->get_regular_price();
