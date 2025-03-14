@@ -20,89 +20,110 @@ class MindEventsAdminOverview {
     public function display_upcoming_events_page() {
         global $wpdb;
 
+        // Pagination setup
+        $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $per_page = 30;
+        $offset = ($paged - 1) * $per_page;
+
         // Query to get upcoming events
-        $events = new WP_Query(array(
-           'meta_query' => array(
+        $events_query = new WP_Query(array(
+            'meta_query' => array(
                 array(
                     'key' => 'event_time_stamp', // Check the start date field
-                    //set the value to yesterdays date
-                    'value' => date('Y-m-d H:i:s', strtotime('-1 days')), // Set today's date 
+                    'value' => date('Y-m-d H:i:s', strtotime('-1 days')), // Set today's date
                     'compare' => '>=', // Return the ones greater than today's date
                     'type' => 'DATETIME' // Let WordPress know we're working with date
-                )
+                ),
             ),
             'orderby' => 'meta_value',
             'meta_key' => 'event_time_stamp',
             'meta_type' => 'DATETIME',
-            'order'            => 'ASC',
-            'post_type'        => 'sub_event',
+            'order' => 'ASC',
+            'post_type' => 'sub_event',
             'suppress_filters' => true,
-            'posts_per_page'   => 30
+            'posts_per_page' => $per_page,
+            'paged' => $paged
         ));
 
+        $total_items = $events_query->found_posts;
+        $total_pages = $events_query->max_num_pages;
+
         echo '<div class="wrap">';
-            echo '<h1>Upcoming Events</h1>';
-            echo '<table class="wp-list-table widefat striped event-attendees">';
-            echo '<thead><tr><th>Event</th><th>Actions</th><th>Date</th><th>Attendees</th><th>Orders</th></tr></thead>';
-                echo '<tbody>';
+        echo '<h1>Upcoming Events</h1>';
+        echo '<table class="wp-list-table widefat striped event-attendees">';
+        echo '<thead><tr><th>Event</th><th>Actions</th><th>Date</th><th>Attendees</th><th>Orders</th></tr></thead>';
+        echo '<tbody>';
 
-                if ($events->have_posts()) :
-                    while ($events->have_posts()) :
-                        $events->the_post();
-                        $parent_id = wp_get_post_parent_id(get_the_id());
-                        $attendees = get_post_meta($parent_id, 'attendees', true);
-                        $attendees = $attendees[get_the_id()];
-                        $linked_product = get_post_meta(get_the_id(), 'linked_product', true);
-                    
+        if ($events_query->have_posts()) :
+            while ($events_query->have_posts()) :
+                $events_query->the_post();
+                $parent_id = wp_get_post_parent_id(get_the_id());
 
+                $event_type = get_post_meta($parent_id, 'event_type', true);
+                $attendees = get_post_meta($parent_id, 'attendees', true);
 
-                        $date = get_post_meta(get_the_id(), 'event_date', true);
-                        $attendee_count = is_array($attendees) ? count($attendees) : 0;
-
-
-                        echo '<tr>';
-                            echo '<td class="event-title">';
-                                echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
-                                
-                            echo '</td>';
-                            echo '<td class="event-actions">';
-                                echo '<div class="button-group">';
-                                    echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
-                                    echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
-                                    if($linked_product) :
-                                        echo '<a href="' . get_edit_post_link($linked_product) . '" target="_blank" class="button button-small button-secondary">Edit Product</a>';
-                                    endif;
-                                echo '</div>';
-                            
-                            echo '</td>';
-                            echo '<td class="event-date">' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
-                            echo '<td class="attendee-count" data-count="' . esc_html($attendee_count) . '">' .  esc_html($attendee_count) . '</td>';
-                            
-                            echo '<td class="event-orders">';
-                                if($attendee_count > 0) :
-                                    foreach($attendees as $attendee) :
-                                        $order = wc_get_order($attendee['order_id']);
-                                        $user = get_userdata($order->get_customer_id());
-                                        echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
-                                        if(next($attendees)) echo '<br>';
-                                    endforeach;
-                                else :
-                                    echo 'No orders';
-                                endif;
-                            
-                            
-                            
-                            echo '</td>';
-
-                        echo '</tr>';
-                    endwhile;
+                if ($event_type == 'single-event') :
+                    $attendees = (isset($attendees[$parent_id]) && is_array($attendees[$parent_id])) ? $attendees[$parent_id] : array();
                 else :
-                    echo '<tr><td colspan="3">No upcoming events found.</td></tr>';
+                    $attendees = (isset($attendees[get_the_id()]) && is_array($attendees[get_the_id()])) ? $attendees[get_the_id()] : array();
                 endif;
 
-                echo '</tbody>';
-            echo '</table>';
+                $linked_product = get_post_meta(get_the_id(), 'linked_product', true);
+                $date = get_post_meta(get_the_id(), 'event_date', true);
+                $attendee_count = is_array($attendees) ? count($attendees) : 0;
+
+                echo '<tr>';
+                echo '<td class="event-title">';
+                echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
+                echo '</td>';
+                echo '<td class="event-actions">';
+                echo '<div class="button-group">';
+                echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
+                echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
+                if ($linked_product) :
+                    echo '<a href="' . get_edit_post_link($linked_product) . '" target="_blank" class="button button-small button-secondary">Edit Product</a>';
+                endif;
+                echo '</div>';
+                echo '</td>';
+                echo '<td class="event-date">' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
+                echo '<td class="attendee-count" data-count="' . esc_html($attendee_count) . '">' . esc_html($attendee_count) . '</td>';
+                echo '<td class="event-orders">';
+                if ($attendee_count > 0) :
+                    foreach ($attendees as $attendee) :
+                        $order = wc_get_order($attendee['order_id']);
+                        $user = get_userdata($order->get_customer_id());
+                        echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
+                        if (next($attendees)) echo '<br>';
+                    endforeach;
+                else :
+                    echo 'No orders';
+                endif;
+                echo '</td>';
+                echo '</tr>';
+            endwhile;
+        else :
+            echo '<tr><td colspan="5">No upcoming events found.</td></tr>';
+        endif;
+
+        echo '</tbody>';
+        echo '</table>';
+
+        // Pagination links
+        echo '<div class="tablenav"><div class="tablenav-pages">';
+        echo paginate_links(array(
+            'base' => add_query_arg('paged', '%#%'),
+            'format' => '',
+            'prev_text' => __('&laquo;'),
+            'next_text' => __('&raquo;'),
+            'total' => $total_pages,
+            'current' => $paged,
+        ));
+        echo '</div></div>';
+
         echo '</div>';
+
+        // Reset post data
+        wp_reset_postdata();
     }
 }
 
