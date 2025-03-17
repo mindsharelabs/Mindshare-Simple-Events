@@ -5,6 +5,18 @@ if (function_exists('add_theme_support')) {
 }
 
 
+add_filter( 'get_the_archive_title', function ( $title ) {
+	
+    //if is events post type
+	if ( is_post_type_archive( 'events' ) ) {
+		$title = 'Events @ Make Santa Fe';
+	}
+
+    return $title;
+
+});
+
+
 
 add_action( 'acf/include_fields', function() {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
