@@ -236,7 +236,7 @@ class mindeventsAdmin {
                     echo '<h3>' . $event_start_time_stamp->format('F j, Y') . '</h3>';
                   endif;
 
-                  echo ($today > $event_start_day ? '<span class="small">(click to toggle table)</span>' : '');
+                  echo ($today > $event_start_day ? '<span class="small toggle-expand">(click to toggle table)</span>' : '');
 
                   echo '<table class="event-attendees wp-list-table widefat fixed striped">';
                     echo '<thead>';
@@ -287,21 +287,25 @@ class mindeventsAdmin {
                                   
                                 elseif($key == 'checked_in') :
                                   $checked_in = $value;
-                                  $value = '<button 
-                                    class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . ' ' . ($order->get_status() != 'completed' ? 'disabled' : '') . '" 
-                                    data-akey="' . $akey  . '" 
-                                    data-occurance="' . $sub_event . '" 
-                                    data-user_id="' . $ticket_data['user_id'] . '" ' . 
-                                    ($order->get_status() != 'completed' ? 'disabled' : '') . '>';
-          
-          
-                                    if($order->get_status() == 'completed') :
-                                      $value .= '<span class="check-in-status">' . ($checked_in ? 'Undo Checkin' : 'Checkin') . '</span>';
-                                    else :
-                                      $value .= '<span class="check-in-status">Order not completed</span>';
-                                    endif;
-                                                  
-                                  $value .= '</button>';
+                                  if($order) :
+                                    $value = '<button 
+                                      class="atendee-check-in ' . ($checked_in ? 'checked-in' : '') . ' ' . ($order->get_status() != 'completed' ? 'disabled' : '') . '" 
+                                      data-akey="' . $akey  . '" 
+                                      data-occurance="' . $sub_event . '" 
+                                      data-user_id="' . $ticket_data['user_id'] . '" ' . 
+                                      ($order->get_status() != 'completed' ? 'disabled' : '') . '>';
+            
+            
+                                      if($order->get_status() == 'completed') :
+                                        $value .= '<span class="check-in-status">' . ($checked_in ? 'Undo Checkin' : 'Checkin') . '</span>';
+                                      else :
+                                        $value .= '<span class="check-in-status">Order not completed</span>';
+                                      endif;
+                                                    
+                                    $value .= '</button>';
+                                  else :
+                                    $value = '<span class="status">Order not found</span>';  
+                                  endif;
           
                                             
                                 

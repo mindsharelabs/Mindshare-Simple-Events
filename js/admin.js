@@ -39,9 +39,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		})
 
 
-		$(document).on('click', '.occurance-container.past-event', function (event) {
-			console.log('click');
-			$(this).toggleClass('show'); 
+		$(document).on('click', '.occurance-container.past-event .toggle-expand', function (event) {
+			var parent = $(this).parent('.occurance-container');
+			parent.toggleClass('show');
 		});
 
 		$(document).on('change', '#event_meta_event_type', function (e) {
