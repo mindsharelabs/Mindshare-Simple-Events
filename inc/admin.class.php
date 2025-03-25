@@ -257,7 +257,7 @@ class mindeventsAdmin {
                             $order = wc_get_order($ticket['order_id']);
                             $ticket_data = apply_filters(MINDEVENTS_PREPEND . 'attendee_data', array(
                               'order_id' => $ticket['order_id'],
-                              'status' => $order->get_status(),
+                              'status' => ($order ? $order->get_status() : 'order not found'),
                               'user_id' => $ticket['user_id'],
                               'product' => get_post_meta($sub_event, 'linked_product', true),
                               'checked_in' => $ticket['checked_in'],
