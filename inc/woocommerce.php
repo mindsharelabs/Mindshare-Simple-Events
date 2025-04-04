@@ -270,21 +270,26 @@ class mindEventsWooCommerce {
 
         $start_date = (isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : $meta['first_event_date'][0]);
         $end_date = (isset($meta['event_end_time_stamp'][0]) ? $meta['event_end_time_stamp'][0] : $meta['last_event_date'][0]);
+       
+        $start_date = new DateTime($start_date);
+        $end_date = new DateTime($end_date);
 
-
-        $product_id = (isset($meta['linked_product'][0]) ? $meta['linked_product'][0] : false);
+        $sku = $this->build_sku($post_id, $start_date->format('m-d-Y'));
         
+        $sku_id = wc_get_product_id_by_sku($sku);
+        $product_id = (isset($meta['linked_product'][0]) ? $meta['linked_product'][0] : false);
+
+        //defauly to the product that already exists by sku because skus are unique
+        if($sku_id) :
+            $product_id = $sku_id;
+        endif;
+
+        //if no product id is set, check if this is a sub event and get the parent event
         if(!$product_id) :
             $parent_event = get_post_parent( $post);
             $product_id = get_post_meta($parent_event, 'linked_product', true);
         endif;
-
-
-        $start_date = new DateTime($start_date);
-
-        $end_date = new DateTime($end_date);
   
-        $sku = $this->build_sku($post_id, $start_date->format('m-d-Y'));
 
         $new_product = false;
         if($product_id) :
@@ -323,16 +328,6 @@ class mindEventsWooCommerce {
             $product->set_short_description($post->post_excerpt);
         else :
             $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);
-            
-            // //get all orders for product
-            // $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
-            // //add attendees
-            // if($orders) :
-            //     foreach($orders as $order) :
-            //         mapi_write_log('Adding attendee for order: ' . $order);
-            //         $this->add_attendee($order);
-            //     endforeach;
-            // endif;
 
         endif;
 

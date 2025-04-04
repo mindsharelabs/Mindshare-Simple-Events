@@ -73,9 +73,10 @@ class mindEventsAjax {
       $parentID = $parent->post_parent;
       //check if event has attendees
       $attendees = get_post_meta($parentID, 'attendees', true);
-      
-      if($attendees[$eventID]) :
-        wp_send_json_error('This event has attendees, please reschedule or remove the attendees before deleting the event.');
+      if(isset($attendees[$eventID])) :
+        if($attendees[$eventID]) :
+          wp_send_json_error('This event has attendees, please reschedule or remove the attendees before deleting the event.');
+        endif;
       endif;
 
 
