@@ -103,9 +103,15 @@ class mindEventsAjax {
 
       $date = $_POST['date'];
       $eventID = $_POST['eventid'];
-
+      $insideHTML = '';
 
       $meta = $this->reArrayMeta($_POST['meta']['event']);
+      $meta['event_date'] = $date;
+
+      if($meta['eventColor'] == '') :
+        $meta['eventColor'] = '#000000';
+      endif;
+
       $event = new mindEventCalendar($eventID);
 
       $added_events = array();
@@ -121,7 +127,7 @@ class mindEventsAjax {
       else :
         $added_events[] = $added_event_id;
 
-        $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML .= '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
           $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';

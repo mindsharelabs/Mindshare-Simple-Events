@@ -1025,7 +1025,7 @@
 
 
        $insideHTML = '<div class="shadow-event ' . ($child_event ? 'event' : 'disable') . (MINDEVENTS_IS_MOBILE ? ' mobile' : '') . '">';
-         $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .'" data-subid="' . $event->ID . '">';
+         $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .';" data-subid="' . $event->ID . '">';
             if($child_event):
               $insideHTML .= $starttime . ' - ' . $endtime;
             else :
