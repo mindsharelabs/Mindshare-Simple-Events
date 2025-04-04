@@ -101,7 +101,14 @@ class mindEvents {
     $data = array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),
       'post_id' => $postID,
+      
     );
+
+    if(get_post_type() == 'events') :
+      $data['post_type'] = 'events';
+    endif;
+
+
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
       $data['cart_url'] = wc_get_cart_url();
     endif;
@@ -125,11 +132,16 @@ class mindEvents {
 
     wp_register_script('mindevents-js', plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE), array('jquery', 'timepicker-js'), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('mindevents-js');
-    wp_localize_script( 'mindevents-js', 'mindeventsSettings', array(
+
+    $data = array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),
       'post_id' => get_the_id()
-    ) );
+    );
+    if(get_post_type() == 'events') :
+      $data['post_type'] = 'events';
+    endif;
 
+    wp_localize_script( 'mindevents-js', 'mindeventsSettings', $data);
 	}
 
 

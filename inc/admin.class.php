@@ -100,8 +100,8 @@ class mindeventsAdmin {
       echo '<div class="form-section">';
         echo '<p class="label"><label for="event_meta_event_type">Event Type</label></p>';
         echo '<div class="select-wrap">';
-          echo '<select name="event_meta[event_type]" id="event_meta_event_type">';
-            echo '<option value="multiple-events" disabled selected>(Select Type)</option>';
+          echo '<select class="required" name="event_meta[event_type]" id="event_meta_event_type">';
+            echo '<option value="" disabled selected>(Select Type)</option>';
             echo '<option value="multiple-events" ' . selected($event_type, 'multiple-events', false) . '>Multiple Unique Events</option>';
             echo '<option value="single-event" ' . selected($event_type, 'single-event', false) . '>One Event Multiple Dates</option>';
           echo '</select>';

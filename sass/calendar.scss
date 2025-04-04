@@ -128,24 +128,31 @@ table.event-attendees {
   				background: rgba(1, 1, 1, .1);
   			}
 
-  			div.event {
+  			div.shadow-event {
           position: relative;
           display: flex;
           flex-wrap: nowrap;
+          overflow-x: hidden;
+          a {
+            color: $dark;
+          }
+          &.disable {
+            opacity: .4; 
+          }
           span {
-            font-size: .65em;
+            font-size: .8em;
             padding: 5px;
             margin: 2px 0px;
             background: #858585;
-            white-space: nowrap;
-            width: 83%;
+            line-height: 1.2em;
+            width: 100%;
+            a {
+              text-decoration: none;
+            }
             &.new {
               background: $success;
             }
-            &:hover {
-              opacity: .9;
-              cursor: pointer;
-            }
+            
             &.delete {
               flex-basis: 17%;
               display: flex;
@@ -162,6 +169,17 @@ table.event-attendees {
               }
             }
           }
+          &.event {
+            font-weight: bold;
+            span {
+              width: 83%;
+              &:hover {
+                opacity: .9;
+                cursor: pointer;
+              }
+            }
+          }
+          
   			}
 
   		}

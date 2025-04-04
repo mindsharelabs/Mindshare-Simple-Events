@@ -409,7 +409,7 @@
  }
 
  public function get_sub_events($args = array()) {
-
+  
    $defaults = array(
      'meta_query' => array(
        'relation' => 'AND',
@@ -449,6 +449,10 @@
        ),
      );
    }
+
+   if(is_admin()) :
+    unset($defaults['post_parent']);
+   endif;
 
    $args = wp_parse_args($args, $defaults);
 
@@ -994,10 +998,21 @@
 
  public function get_calendar($calDate = '') {
 
-   $this->setStartOfWeek($this->calendar_start_day);
+  $this->setStartOfWeek($this->calendar_start_day);
+
    $eventDates = $this->get_sub_events();
    if($eventDates) :
      foreach ($eventDates as $key => $event) :
+
+      //check if this is a sub_event of this event
+      $parentID = wp_get_post_parent_id($event->ID);
+      if($parentID == $this->eventID) :
+        $child_event = true;
+      else :
+        $child_event = false;
+      endif;
+
+      
        $starttime = get_post_meta($event->ID, 'starttime', true);
        $endtime = get_post_meta($event->ID, 'endtime', true);
        $date = get_post_meta($event->ID, 'event_date', true);
@@ -1005,15 +1020,26 @@
        $text_color = $this->getContrastColor($color);
 
 
+      
 
 
-       $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
+
+       $insideHTML = '<div class="shadow-event ' . ($child_event ? 'event' : 'disable') . (MINDEVENTS_IS_MOBILE ? ' mobile' : '') . '">';
          $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .'" data-subid="' . $event->ID . '">';
-           $insideHTML .= $starttime . ' - ' . $endtime;
+            if($child_event):
+              $insideHTML .= $starttime . ' - ' . $endtime;
+            else :
+              $insideHTML .= '<a href="' . get_edit_post_link( $parentID) . '" target="_blank" style="color:' . $text_color . ';">';
+                $insideHTML .= get_the_title($parentID);
+              $insideHTML .= '</a>';
+            endif;
+           
          $insideHTML .= '</span>';
-         if(is_admin()) :
-           $insideHTML .= '<span data-subid="' . $event->ID . '" class="delete">&#10005;</span>';
-         endif;
+
+         if(is_admin() && $child_event) :
+          $insideHTML .= '<span data-subid="' . $event->ID . '" class="delete">&#10005;</span>';
+        endif;
+         
        $insideHTML .= '</div>';
        $eventDates = $this->addDailyHtml($insideHTML, $date);
      endforeach;
