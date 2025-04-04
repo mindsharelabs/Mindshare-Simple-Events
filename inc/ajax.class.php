@@ -109,7 +109,7 @@ class mindEventsAjax {
       $meta['event_date'] = $date;
 
       if($meta['eventColor'] == '') :
-        $meta['eventColor'] = '#000000';
+        $meta['eventColor'] = '#2d8703';
       endif;
 
       $event = new mindEventCalendar($eventID);
