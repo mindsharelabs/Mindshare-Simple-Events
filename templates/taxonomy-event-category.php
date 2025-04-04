@@ -23,8 +23,8 @@ echo '<main role="main" aria-label="Content">';
         echo '<div class="row">';
           echo '<div class="col-12">';
           //display category title
-            echo '<h1 class="event-category-title">';
-              echo 'Category: ' . $queried->name;
+            echo '<h1 class="event-category-title text-center">';
+              echo $queried->name;
             echo '</h1>';
 
              //display category description
