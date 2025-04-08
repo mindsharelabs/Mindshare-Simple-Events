@@ -326,8 +326,6 @@ class mindEventsWooCommerce {
             endif; 
             $product->set_description($post->post_excerpt);
             $product->set_short_description($post->post_excerpt);
-        else :
-            $this->maybe_decrease_stock($product, $meta['ticket_stock'][0]);
 
         endif;
 
@@ -344,32 +342,12 @@ class mindEventsWooCommerce {
     }
 
 
-    private function maybe_decrease_stock($product, $stock) {
-        if($stock) :
-            //get all orders for this product
-            $orders = $this->get_orders_ids_by_product_id($product->get_id(), $this->get_order_statuses());
-            $total_sold = 0;
-            foreach($orders as $order) :
-                $order = wc_get_order($order);
-
-                //foreach items in order
-                foreach($order->get_items() as $item) :
-                    $product_id = $item->get_product_id();
-                    if($product_id != $product->get_id()) :
-                        continue;
-                    endif;
-                    $total_sold += $item->get_quantity();
-                endforeach;
-            endforeach;
-
-            $stock = $stock - $total_sold;
-            if($stock < 0) :
-                $stock = 0;
-            endif;
-
-            $product->set_stock_quantity($stock);
-        endif;
-    }
+    /**
+     * Sync the event meta with the product meta.
+     *
+     * @param int $sub_event_id The ID of the sub event.
+     * @param int $product_id The ID of the product.
+     */
 
     private function sync_meta($sub_event_id, $product_id) {
         $post = get_post($sub_event_id);
