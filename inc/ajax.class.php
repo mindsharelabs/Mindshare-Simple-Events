@@ -363,43 +363,43 @@ class mindEventsAjax {
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
 
-        $html .= '<div class="form-section third">';
-          $html .= '<p class="label"><label for="event_date">Event Occurrence Date</label></p>';
-          $html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $values['event_date'][0] . '" placeholder="">';
-        $html .= '</div>';
+        $form_html = '<div class="form-section third">';
+          $form_html .= '<p class="label"><label for="event_date">Event Occurrence Date</label></p>';
+          $form_html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $values['event_date'][0] . '" placeholder="">';
+        $form_html .= '</div>';
 
-        $html .= '<div class="form-section third">';
-          $html .= '<p class="label"><label for="starttime">Event Occurrence Start</label></p>';
-          $html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $values['starttime'][0] . '" placeholder="">';
-        $html .= '</div>';
-        $html .= '<div class="form-section third">';
-          $html .= '<p class="label"><label for="endtime">Event Occurrence End</label></p>';
-          $html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $values['endtime'][0] . '" placeholder="">';
-        $html .= '</div>';
+        $form_html .= '<div class="form-section third">';
+          $form_html .= '<p class="label"><label for="starttime">Event Occurrence Start</label></p>';
+          $form_html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $values['starttime'][0] . '" placeholder="">';
+        $form_html .= '</div>';
+        $form_html .= '<div class="form-section third">';
+          $form_html .= '<p class="label"><label for="endtime">Event Occurrence End</label></p>';
+          $form_html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $values['endtime'][0] . '" placeholder="">';
+        $form_html .= '</div>';
 
-        $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
-          $html .= '<input type="text" class="field-color" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
-        $html .= '</div>';
+        $form_html .= '<div class="form-section">';
+          $form_html .= '<p class="label"><label for="eventColor">Occurrence Color</label></p>';
+          $form_html .= '<input type="text" class="field-color" name="eventColor" id="eventColor" value="' . $values['eventColor'][0] . '" placeholder="">';
+        $form_html .= '</div>';
 
-        $html .= '<div class="form-section">';
-          $html .= '<p class="label"><label for="linked_product">Linked Product ID</label></p>';
-          $html .= '<input type="number" class="linked-product" name="linked_product" id="linked_product" value="' . $values['linked_product'][0] . '" placeholder="">';
+        $form_html .= '<div class="form-section">';
+          $form_html .= '<p class="label"><label for="linked_product">Linked Product ID</label></p>';
+          $form_html .= '<input type="number" class="linked-product" name="linked_product" id="linked_product" value="' . $values['linked_product'][0] . '" placeholder="">';
           if($values['linked_product'][0]) :
-            $html .= '<p class="description">Current Product: <a href="' . get_edit_post_link($values['linked_product'][0]) . '" target="_blank">' . get_the_title($values['linked_product'][0]) . '</a></p>';
+            $form_html .= '<p class="description">Current Product: <a href="' . get_edit_post_link($values['linked_product'][0]) . '" target="_blank">' . get_the_title($values['linked_product'][0]) . '</a></p>';
           endif;
-        $html .= '</div>';
+        $form_html .= '</div>';
 
-       
+        
+        $form_html .= '<div class="form-section full">';
+          $form_html .= '<p class="label"><label for="eventDescription">Short Description</label></p>';
+          $form_html .= '<textarea type="text" name="eventDescription" id="eventDescription" placeholder="">' . $values['eventDescription'][0] . '</textarea>';
+        $form_html .= '</div>';
 
-
-        $html .= '<div class="form-section full">';
-          $html .= '<p class="label"><label for="eventDescription">Short Description</label></p>';
-          $html .= '<textarea type="text" name="eventDescription" id="eventDescription" placeholder="">' . $values['eventDescription'][0] . '</textarea>';
-        $html .= '</div>';
-
-
-
+        $form_html = apply_filters(MINDEVENTS_PREPEND . 'sub_event_form', $form_html, $values, $sub_event_id, $parentID);
+        $html .= $form_html;
+        
+        
         $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';
         $html .= '<input type="hidden" name="event_date" value="' . $values['event_date'][0] . '">';
 
@@ -416,8 +416,8 @@ class mindEventsAjax {
 
       $html .= '</div>';
 
-    $html .= '</fieldset';
-
+    $html .= '</fieldset>';
+    
     return $html;
   }
 

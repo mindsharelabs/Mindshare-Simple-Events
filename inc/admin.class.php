@@ -432,11 +432,14 @@ class mindeventsAdmin {
           echo '<input type="text" class="field-color" name="event[eventColor]" id="eventColor" value="' . (isset($defaults['eventColor']) ? $defaults['eventColor'] : '') . '" placeholder="">';
           echo '<p class="description">If left blank this will default to event category color.</p>';
         echo '</div>';
+        
 
         echo '<div class="form-section full">';
           echo '<p class="label"><label for="eventDescription">Short Description</label></p>';
           echo '<textarea type="text" name="event[eventDescription]" id="eventDescription" value="' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '" placeholder="">' . (isset($defaults['eventDescription']) ? $defaults['eventDescription'] : '') . '</textarea>';
         echo '</div>';
+
+        
         
         if($options[MINDEVENTS_PREPEND . 'enable_woocommerce'] == true && class_exists('woocommerce')) :
             //add hiden inpuit
@@ -494,7 +497,7 @@ class mindeventsAdmin {
           echo '</div>';
         endif;
 
-
+        
       echo '</div>';
 
     echo '</fieldset>';
