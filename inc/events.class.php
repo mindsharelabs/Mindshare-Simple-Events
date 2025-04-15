@@ -409,6 +409,7 @@
  }
 
  public function get_sub_events($args = array()) {
+
   
    $defaults = array(
      'meta_query' => array(
@@ -465,7 +466,29 @@
  public function get_front_calendar() {
 
    $this->setStartOfWeek($this->calendar_start_day);
-   $eventDates = $this->get_sub_events();
+
+   $args = array(
+    'meta_query' => array(
+        'relation' => 'AND',
+        array(
+            'key' => 'event_time_stamp', // Check the start date field
+            'value' => array(
+                date('Y-m-d H:i:s'), // Current date and time
+                date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
+            ),
+            'compare' => 'BETWEEN', // Only get events between now and 30 days from now
+            'type' => 'DATETIME' // Let WordPress know we're working with date
+        ),
+    ),
+    'orderby' => 'meta_value',
+    'meta_key' => 'event_time_stamp',
+    'meta_type' => 'DATETIME',
+    'order' => 'ASC',
+    'post_type' => 'sub_event',
+    'suppress_filters' => true,
+    'posts_per_page' => -1
+  );
+  $eventDates = $this->get_sub_events($args);
 
 
    if($eventDates) :
@@ -496,7 +519,6 @@
    $html = '';
    $starttime = get_post_meta($event->ID, 'starttime', true);
    $endtime = get_post_meta($event->ID, 'endtime', true);
-   $thumb = get_the_post_thumbnail($event->post_parent, 'cal-thumb');
    $html .= '<div class="event-label-container">';
      //TODO: uswe badge image in place of thumnmail
        // if($thumb) :
@@ -516,7 +538,7 @@
      $this->is_archive = true;
      $this->show_past_events = false;
    endif;
-   $eventDates = $this->get_sub_events();
+   $eventDates = $this->get_sub_events(array());
    $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
    $i = 0;
@@ -550,14 +572,13 @@
    $now = getdate($this->now->getTimestamp());
    $out = '<div id="mindCalanderList" class="event-list ' . $this->classes['calendar'] . '">';
      if(is_array($this->dailyHtml)) :
-       $number_of_years = count($this->dailyHtml);
        foreach ($this->dailyHtml as $year => $year_items) :
          foreach ($year_items as $month => $month_items) :
            foreach ($month_items as $day => $daily_items) :
              $date = (new DateTime())->setDate($year, $month, $day);
              $date_format = 'D, M j';
                $out .= '<div class="list_day_container">';
-                 $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format($date_format) . '</time></div>';
+                 $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'"><i class="fa-solid fa-calendar-star me-2"></i>' . $date->format($date_format) . '</time></div>';
                  foreach ($daily_items as $key => $dHTML) :
                    $out .= $dHTML;
                  endforeach;
@@ -577,15 +598,12 @@
  public function get_list_item_html($event = '', $display_link = true) {
 
 
-
-
-
    $meta = get_post_meta($event);
    $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') ), $event);
    $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
    $parentID = wp_get_post_parent_id($event);
    $sub_event_obj = get_post($event);
-
+  
    $parent_event_type = get_post_meta($parentID, 'event_type', true);
    if($parent_event_type == 'single-event') :
      $series_start_date = get_post_meta($parentID, 'first_event_date', true);

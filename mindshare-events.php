@@ -22,7 +22,7 @@ class mindEvents {
     }
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
-    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.2.4');
+    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.3.4');
     $this->define( 'MINDEVENTS_PREPEND', 'mindevents_' );
 
 

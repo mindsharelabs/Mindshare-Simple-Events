@@ -588,16 +588,15 @@ table.event-attendees {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    border-left: 6px solid $dark;
+    border-left: 6px solid rgb(33, 33, 33);
     margin-bottom: 30px;
-    border-top: 6px solid $dark;
     .day-label{
       flex-basis: 100%;
       font-weight: bold;
       font-size: 1.6em;
-      color: white;
-      text-align: center;
-      background: $dark;
+      color: #fff;
+      text-align: left;
+      background: rgb(33, 33, 33);
     }
     .item_meta_container {
       flex-basis: 100%;

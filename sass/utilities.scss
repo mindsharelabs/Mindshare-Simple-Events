@@ -22,12 +22,12 @@
       @include transition(100ms);
     }
   }
-  $primary:       rgb(67, 160, 217);
-$secondary:     rgb(217, 67, 160);
-$tertiary:      rgb(160, 217, 67);
-$success:       $tertiary;
-$info:          rgb(225, 233, 214);
-$warning:       rgb(255, 205, 23);
-$danger:        rgba(201,73,73, 1);
-$light:         rgba(220,220,220, 1);
-$dark:          rgb(35, 31, 32); 
+  $primary:       rgb(190, 32, 46);
+  $secondary:     rgb(179, 175, 172);
+  $success:       rgba(75,175,7, 1);
+  $background:    rgba(250, 251, 252, 1);
+  $info:          rgb(94, 118, 145);
+  $warning:       rgba(201,169,56, 1);
+  $danger:        rgba(201,73,73, 1);
+  $light:         rgb(230, 230, 230);
+  $dark:          rgba(1, 1, 1, 1);
