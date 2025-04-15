@@ -599,6 +599,7 @@
 
 
    $meta = get_post_meta($event);
+
    $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail( get_post_parent( $event ), 'medium', array('class' => 'event-image') ), $event);
    $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
    $parentID = wp_get_post_parent_id($event);
@@ -678,6 +679,28 @@
        if($description) :
          $html .= '<div class="meta-item description">';
            $html .= '<span class="value eventdescription">' . $description . '</span>';
+
+          if(isset($meta['instructorEmail'][0])) :
+            //get instructor by email
+            $instructor = get_user_by('email', $meta['instructorEmail'][0]);
+            $display_profile_publicly = get_field('display_profile_publicly', 'user_' . $instructor->ID);
+            if($display_profile_publicly):
+              $html .= '<div class="meta-item instructor mt-4">';
+                $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'Instructor') . '</span>';
+                if($instructor) :
+                  $author_link = get_author_posts_url($instructor->ID);
+                  $html .= '<div class="instructor-name">';
+                    $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
+                      $html .= $instructor->display_name;
+                    $html .= '</a>';
+                  $html .= '</div>';
+                endif;
+              $html .= '</div>';
+            endif;
+          endif;
+
+
+
          $html .= '</div>';
        endif;
 

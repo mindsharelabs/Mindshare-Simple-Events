@@ -51,7 +51,14 @@ class MindEventsAdminOverview {
         echo '<div class="wrap">';
         echo '<h1>Upcoming Events</h1>';
         echo '<table class="wp-list-table widefat striped event-attendees">';
-        echo '<thead><tr><th>Event</th><th>Actions</th><th>Date</th><th>Attendees</th><th>Orders</th></tr></thead>';
+        echo '<thead><tr>
+            <th>Event</th>
+            <th>Actions</th>
+            <th>Date</th>
+            <th>Attendees</th>
+            <th>Orders</th>
+            <th>Instructor</th>
+            </tr></thead>';
         echo '<tbody>';
 
         if ($events_query->have_posts()) :
@@ -91,12 +98,30 @@ class MindEventsAdminOverview {
                 if ($attendee_count > 0) :
                     foreach ($attendees as $attendee) :
                         $order = wc_get_order($attendee['order_id']);
+                        if(!$order) continue;
                         $user = get_userdata($order->get_customer_id());
                         echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
                         if (next($attendees)) echo '<br>';
                     endforeach;
                 else :
                     echo 'No orders';
+                endif;
+                echo '</td>';
+                echo '<td class="event-instructor">';
+                $instructor = get_post_meta(get_the_id(), 'instructorEmail', true);
+                $parent_id = wp_get_post_parent_id(get_the_id());
+                $parent_ininstructors = get_field('instructors', $parent_id);
+                if($instructor) :
+                    //get user object
+                    $instructor_user = get_user_by('email', $instructor);
+                    echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
+                elseif($parent_ininstructors) :
+                    foreach($parent_ininstructors as $instructor_user) :
+                        echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
+                        if (next($parent_ininstructors)) echo '<br>';
+                    endforeach;
+                else :
+                    echo 'No instructor assigned';
                 endif;
                 echo '</td>';
                 echo '</tr>';
