@@ -378,7 +378,6 @@
      'orderby' => 'meta_value',
      'meta_key' => 'event_time_stamp',
      'meta_type' => 'DATETIME',
-
      'order'            => 'ASC',
      'post_type'        => 'sub_event',
      'suppress_filters' => true,
@@ -467,28 +466,8 @@
 
    $this->setStartOfWeek($this->calendar_start_day);
 
-   $args = array(
-    'meta_query' => array(
-        'relation' => 'AND',
-        array(
-            'key' => 'event_time_stamp', // Check the start date field
-            'value' => array(
-                date('Y-m-d H:i:s'), // Current date and time
-                date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
-            ),
-            'compare' => 'BETWEEN', // Only get events between now and 30 days from now
-            'type' => 'DATETIME' // Let WordPress know we're working with date
-        ),
-    ),
-    'orderby' => 'meta_value',
-    'meta_key' => 'event_time_stamp',
-    'meta_type' => 'DATETIME',
-    'order' => 'ASC',
-    'post_type' => 'sub_event',
-    'suppress_filters' => true,
-    'posts_per_page' => -1
-  );
-  $eventDates = $this->get_sub_events($args);
+   
+  $eventDates = $this->get_sub_events();
 
 
    if($eventDates) :
@@ -538,7 +517,28 @@
      $this->is_archive = true;
      $this->show_past_events = false;
    endif;
-   $eventDates = $this->get_sub_events(array());
+   $args = array(
+    'meta_query' => array(
+        'relation' => 'AND',
+        array(
+            'key' => 'event_time_stamp', // Check the start date field
+            'value' => array(
+                date('Y-m-d H:i:s'), // Current date and time
+                date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
+            ),
+            'compare' => 'BETWEEN', // Only get events between now and 30 days from now
+            'type' => 'DATETIME' // Let WordPress know we're working with date
+        ),
+    ),
+    'orderby' => 'meta_value',
+    'meta_key' => 'event_time_stamp',
+    'meta_type' => 'DATETIME',
+    'order' => 'ASC',
+    'post_type' => 'sub_event',
+    'suppress_filters' => true,
+    'posts_per_page' => -1
+  );
+   $eventDates = $this->get_sub_events($args);
    $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
    $i = 0;
@@ -1193,31 +1193,26 @@
      $sub_events = $this->get_sub_events();
      $schema = array(
        '@context' => 'https://schema.org',
-       'type' => 'TheaterEvent',
+       'type' => 'Event',
        'name' => get_the_title($this->eventID),
        'startDate' => get_post_meta($this->eventID, 'first_event_date', true),
        'endDate' => get_post_meta($this->eventID, 'last_event_date', true),
        'location' => array(
          '@type' => 'Place',
-         'name' => get_bloginfo('name'), //TODO: Add this to event options
+         'name' => get_bloginfo('name'), 
          'address' => array( //TODO: Add all this to event options
            '@type' => 'PostalAddress',
-           'name' => '',
+           'name' => 'Make Santa Fe',
            'addressLocality' => '',
-           'postalCode' => '',
-           'addressRegion' => '',
-           'addressCountry' => '',
+           'postalCode' => '87507',
+           'addressRegion' => 'New MExico',
+           'addressCountry' => 'US',
          ),
        ),
        'image' => array(
          get_the_post_thumbnail_url($this->eventID, 'medium')
        ),
-       'description' => get_the_content('', false, $this->eventID),
-       'performer' => array(
-         '@type' => 'Organization',
-         'url' => get_site_url(),
-         'name' => get_bloginfo('name')
-       )
+       'description' => get_the_excerpt( $this->eventID ),
      );
      if($sub_events) :
        foreach ($sub_events as $key => $event) :
@@ -1239,21 +1234,21 @@
 
          $schema['subEvent'][] = array(
            '@context' => 'https://schema.org',
-           'type' => 'TheaterEvent',
+           'type' => 'Event',
            'name' => get_the_title($this->eventID),
            'doorTime' => get_post_meta($event->ID, 'event_start_time_stamp', true),
            'startDate' => get_post_meta($event->ID, 'event_start_time_stamp', true),
            'endDate' => get_post_meta($event->ID, 'event_end_time_stamp', true),
            'location' => array(
              '@type' => 'Place',
-             'name' => get_bloginfo('name'), //TODO: Add this to event options
+             'name' => get_bloginfo('name'), 
              'address' => array( //TODO: Add all this to event options
                '@type' => 'PostalAddress',
-               'name' => '',
+               'name' => get_bloginfo('name'),
                'addressLocality' => '',
-               'postalCode' => '',
-               'addressRegion' => '',
-               'addressCountry' => '',
+               'postalCode' => '87507',
+               'addressRegion' => 'New Mexico',
+               'addressCountry' => 'US',
              ),
            ),
            'image' => array(

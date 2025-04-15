@@ -69,3 +69,4 @@ add_action( MINDEVENTS_PREPEND . 'single_before_events', function() {
     the_content();
   echo '</div>';
 }, 1);
+
