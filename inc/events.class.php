@@ -516,28 +516,39 @@
    if($calDate == 'archive') :
      $this->is_archive = true;
      $this->show_past_events = false;
+     $args = array(
+      'meta_query' => array(
+          'relation' => 'AND',
+          array(
+              'key' => 'event_time_stamp', // Check the start date field
+              'value' => array(
+                  date('Y-m-d H:i:s'), // Current date and time
+                  date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
+              ),
+              'compare' => 'BETWEEN', // Only get events between now and 30 days from now
+              'type' => 'DATETIME' // Let WordPress know we're working with date
+          ),
+      ),
+      'orderby' => 'meta_value',
+      'meta_key' => 'event_time_stamp',
+      'meta_type' => 'DATETIME',
+      'order' => 'ASC',
+      'post_type' => 'sub_event',
+      'suppress_filters' => true,
+      'posts_per_page' => -1
+    );
+  else :
+    $args = array(
+      'orderby' => 'meta_value',
+      'meta_key' => 'event_time_stamp',
+      'meta_type' => 'DATETIME',
+      'order' => 'ASC',
+      'post_type' => 'sub_event',
+      'suppress_filters' => true,
+      'posts_per_page' => -1
+    );
    endif;
-   $args = array(
-    'meta_query' => array(
-        'relation' => 'AND',
-        array(
-            'key' => 'event_time_stamp', // Check the start date field
-            'value' => array(
-                date('Y-m-d H:i:s'), // Current date and time
-                date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
-            ),
-            'compare' => 'BETWEEN', // Only get events between now and 30 days from now
-            'type' => 'DATETIME' // Let WordPress know we're working with date
-        ),
-    ),
-    'orderby' => 'meta_value',
-    'meta_key' => 'event_time_stamp',
-    'meta_type' => 'DATETIME',
-    'order' => 'ASC',
-    'post_type' => 'sub_event',
-    'suppress_filters' => true,
-    'posts_per_page' => -1
-  );
+   
    $eventDates = $this->get_sub_events($args);
    $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
