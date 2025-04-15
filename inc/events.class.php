@@ -555,7 +555,7 @@
          foreach ($year_items as $month => $month_items) :
            foreach ($month_items as $day => $daily_items) :
              $date = (new DateTime())->setDate($year, $month, $day);
-             $date_format = ($number_of_years > 1) ? 'l, M j Y' : 'l, M j';
+             $date_format = 'D, M j';
                $out .= '<div class="list_day_container">';
                  $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'">' . $date->format($date_format) . '</time></div>';
                  foreach ($daily_items as $key => $dHTML) :
@@ -610,7 +610,7 @@
        $style_str['color'] = 'color:' . $color . ';';
      endif;
 
-     $html = '<div class="item_meta_container">';
+     $html = '<div class="item_meta_container mb-3 p-3">';
        if($is_past) :
          $html .= '<div class="past-event event-notice">This event has passed.</div>';
        endif;
@@ -624,14 +624,6 @@
          endif;
        endif;
        if($this->is_archive) :
-         if($sub_event_obj->post_parent) :
-           $html .= '<div class="meta-item">';
-             $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-               $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-             $html .= '</a>';
-           $html .= '</div>';
-         endif;
-
 
          if($image) :
            $html .= '<div class="featured-image">';
@@ -640,6 +632,13 @@
              $html .= '</a>';
            $html .= '</div>';
          endif;
+         if($sub_event_obj->post_parent) :
+          $html .= '<div class="meta-item">';
+            $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+              $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+            $html .= '</a>';
+          $html .= '</div>';
+        endif;
        endif;
 
        if($meta['event_date'][0]) :

@@ -585,17 +585,19 @@ table.event-attendees {
   flex-direction: column;
   .list_day_container {
     flex-basis: 100%;
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(220,220,220, 1); 
     display: flex;
     flex-direction: column;
     align-items: stretch;
+    border-left: 6px solid $dark;
+    margin-bottom: 30px;
+    border-top: 6px solid $dark;
     .day-label{
       flex-basis: 100%;
       font-weight: bold;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-      margin-top: 15px;
+      font-size: 1.6em;
+      color: white;
+      text-align: center;
+      background: $dark;
     }
     .item_meta_container {
       flex-basis: 100%;
@@ -616,10 +618,17 @@ table.event-attendees {
       }
       .meta-item {
         padding: 6px 0;
+        a {
+          text-decoration: none;
+        }
         h3 {
           &.event-title {
-            font-size: 1.5em;
+            font-size: 1.2em;
             margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            color: $dark;
           }
         }
         &.time-span {
