@@ -46,7 +46,7 @@ class mindEventsCPTS {
   		'public'                => true,
   		'show_ui'               => true,
   		'show_in_menu'          => true,
-  		'menu_position'         => 5,
+  		'menu_position'         => 6,
   		'menu_icon'             => 'dashicons-calendar',
   		'show_in_admin_bar'     => true,
   		'show_in_nav_menus'     => true,
@@ -90,14 +90,14 @@ class mindEventsCPTS {
         'items_list_navigation' => __( 'Sub Events list navigation', 'text_domain' ),
         'filter_items_list'     => __( 'Filter items list', 'text_domain' ),
       ),
-      'supports'              => array(),
+      'supports'              => false,
       'hierarchical'          => false,
       'public'                => false,
       // 'show_ui'               => true,
       // 'show_in_menu'          => true,
       'show_ui'               => false,
       'show_in_menu'          => false,
-      'menu_position'         => 5,
+      'menu_position'         => 6.1,
       'menu_icon'             => 'dashicons-calendar',
       'show_in_admin_bar'     => false,
       'show_in_nav_menus'     => false,
@@ -156,3 +156,7 @@ class mindEventsCPTS {
 }
 
 new mindEventsCPTS();
+
+
+
+
