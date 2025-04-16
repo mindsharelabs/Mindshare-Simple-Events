@@ -1256,7 +1256,7 @@
              'address' => array( //TODO: Add all this to event options
                '@type' => 'PostalAddress',
                'name' => get_bloginfo('name'),
-               'addressLocality' => '',
+               'addressLocality' => '2879 All Trades Rd',
                'postalCode' => '87507',
                'addressRegion' => 'New Mexico',
                'addressCountry' => 'US',
@@ -1275,6 +1275,7 @@
          );
        endforeach;
      endif;
+     
      return json_encode($schema);
    }
  }
