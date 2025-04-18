@@ -1211,13 +1211,14 @@
        'location' => array(
          '@type' => 'Place',
          'name' => get_bloginfo('name'), 
-         'address' => array( //TODO: Add all this to event options
+         'address' => array( 
            '@type' => 'PostalAddress',
            'name' => 'Make Santa Fe',
-           'addressLocality' => '',
+           'addressLocality' => 'Santa Fe',
            'postalCode' => '87507',
-           'addressRegion' => 'New MExico',
+           'addressRegion' => 'NM',
            'addressCountry' => 'US',
+           'streetAddress' => '2879 All Trades Rd',
          ),
        ),
        'image' => array(
