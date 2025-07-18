@@ -15,6 +15,13 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			menu.toggleClass('show');
 		});
 
+		//when not clicking on the button or menu, close the menu
+		$(document).on('click', function (e) {
+			if (!$(e.target).closest('.add-to-calendar-button').length && !$(e.target).closest('.add-to-calendar-menu').length) {
+				$('.add-to-calendar-menu').removeClass('show');
+			}
+		});
+
 
 
 		function closeAllEventMeta() {

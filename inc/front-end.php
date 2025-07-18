@@ -238,14 +238,20 @@ function make_get_event_add_to_calendar_links($event_id) {
     $event = get_post($event_id);
     if (!$event) return '';
 
-    $start = get_post_meta($event_id, 'event_start', true);
-    $end = get_post_meta($event_id, 'event_end', true);
-    $location = get_post_meta($event_id, 'event_location', true);
+    $start = get_post_meta($event_id, 'event_start_time_stamp', true);
+    $end = get_post_meta($event_id, 'event_end_time_stamp', true);
+    $location = (get_post_meta($event_id, 'event_location', true) ? get_post_meta($event_id, 'event_location', true) : ''); // Fallback to empty string if not set
     $description = get_the_excerpt(get_post_parent($event_id));
     $title = $event->post_title;
 
-    $start_gcal = gmdate('Ymd\THis\Z', strtotime($start));
-    $end_gcal   = gmdate('Ymd\THis\Z', strtotime($end));
+    // Convert local time to UTC for Google Calendar
+    $timezone = new DateTimeZone('America/Denver'); // <-- set your local timezone
+    $start_dt = new DateTime($start, $timezone);
+    $end_dt = new DateTime($end, $timezone);
+    $start_dt->setTimezone(new DateTimeZone('UTC'));
+    $end_dt->setTimezone(new DateTimeZone('UTC'));
+    $start_gcal = $start_dt->format('Ymd\THis\Z');
+    $end_gcal   = $end_dt->format('Ymd\THis\Z');
 
     $ics_url = home_url('/event-ics/' . $event_id . '/');
 
