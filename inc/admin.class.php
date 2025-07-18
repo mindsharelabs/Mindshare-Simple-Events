@@ -218,7 +218,7 @@ class mindeventsAdmin {
 
               
               foreach($sub_events as $sub_event) :
-                $attendees_for_occurance = $attendees[$sub_event];
+                $attendees_for_occurance = (isset($attendees[$sub_event]) ? $attendees[$sub_event] : array());
                 $meta_start_date = get_post_meta($sub_event, 'event_start_time_stamp', true);
                   
                 if(!$meta_start_date) :
@@ -263,13 +263,18 @@ class mindeventsAdmin {
                               'checked_in' => $ticket['checked_in'],
                             ));
                             $user_info = get_userdata($ticket_data['user_id']);
-                                        
+                            
+
+                            //if user_ifo is not an object, skip this ticket
+                            if(!is_object($user_info)) {
+                              continue;
+                            }
           
                             echo '<tr>';
                               foreach($ticket_data as $key => $value) :
 
                                 if($key == 'user_id') :
-                                  $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->first_name . ' ' . $user_info->last_name . '</a>';
+                                  $value = '<a href="' . get_edit_user_link($ticket_data['user_id']) . '" target="_blank">' . $user_info->data->display_name . '</a>';
                                 
                                 
                                 elseif($key == 'product') :

@@ -272,7 +272,7 @@ function make_get_event_add_to_calendar_links($event_id) {
 
 
     ob_start();
-    $html = '<div class="add-to-calendar-dropdown mt-3">';
+    $html = '<div class="add-to-calendar-dropdown">';
         $html .= '<button class="add-to-calendar-button btn btn-sm btn-light">Add to Calendar <i class="fas fa-angle-down"></i></button>';
         $html .= '<ul class="add-to-calendar-menu">';
             $html .= '<li><a href="' . esc_url($gcal_url) . '" target="_blank" rel="noopener">Google Calendar</a></li>';

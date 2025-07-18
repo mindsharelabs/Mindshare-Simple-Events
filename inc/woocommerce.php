@@ -16,7 +16,7 @@ class mindEventsWooCommerce {
 
 
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
-
+ 
 
         //attendee management
         add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
@@ -62,6 +62,7 @@ class mindEventsWooCommerce {
 
     }
    
+    
 
 
     private function schedule_hook($order_id) {
