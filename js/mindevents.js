@@ -6,6 +6,17 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 	$(function () {
 
+
+		$(document).on('click', '.add-to-calendar-button', function (e) {
+			e.preventDefault();
+			var button = $(this);
+			var menu = button.next('.add-to-calendar-menu');
+
+			menu.toggleClass('show');
+		});
+
+
+
 		function closeAllEventMeta() {
 			$("tr.meta-container").each(function() {
 				$(this).removeClass('show').find('.eventMeta').html('');

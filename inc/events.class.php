@@ -401,6 +401,7 @@
        ),
      );
    }
+   mapi_write_log($args);
 
    $args = wp_parse_args($args, $defaults);
    return get_posts($args);
@@ -682,33 +683,38 @@
              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
              $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
            $html .= '</div>';
+
+           
+
          $html .= '</div>';
+         
        endif;
 
 
 
        if($description) :
          $html .= '<div class="meta-item description">';
-           $html .= '<span class="value eventdescription">' . $description . '</span>';
+           $html .= '<span class="value eventdescription d-block">' . $description . '</span>';
+           $html .= make_get_event_add_to_calendar_links($event);
 
-          if(isset($meta['instructorEmail'][0])) :
-            //get instructor by email
-            $instructor = get_user_by('email', $meta['instructorEmail'][0]);
-            $display_profile_publicly = get_field('display_profile_publicly', 'user_' . $instructor->ID);
-            if($display_profile_publicly):
-              $html .= '<div class="meta-item instructor mt-4">';
-                $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'Instructor') . '</span>';
-                if($instructor) :
-                  $author_link = get_author_posts_url($instructor->ID);
-                  $html .= '<div class="instructor-name">';
-                    $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
-                      $html .= $instructor->display_name;
-                    $html .= '</a>';
-                  $html .= '</div>';
-                endif;
-              $html .= '</div>';
+            if(isset($meta['instructorEmail'][0])) :
+              //get instructor by email
+              $instructor = get_user_by('email', $meta['instructorEmail'][0]);
+              $display_profile_publicly = get_field('display_profile_publicly', 'user_' . $instructor->ID);
+              if($display_profile_publicly):
+                $html .= '<div class="meta-item instructor mt-4">';
+                  $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'Instructor') . '</span>';
+                  if($instructor) :
+                    $author_link = get_author_posts_url($instructor->ID);
+                    $html .= '<div class="instructor-name">';
+                      $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
+                        $html .= $instructor->display_name;
+                      $html .= '</a>';
+                    $html .= '</div>';
+                  endif;
+                $html .= '</div>';
+              endif;
             endif;
-          endif;
 
 
 

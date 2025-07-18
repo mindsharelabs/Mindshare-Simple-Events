@@ -615,6 +615,46 @@ table.event-attendees {
         padding: 10px 20px;
         margin-bottom: 10px;
       }
+
+      .add-to-calendar-dropdown {
+          position: relative;
+          display: inline-block;
+      }
+
+      .add-to-calendar-menu {
+          display: none;
+          position: absolute;
+          background-color: white;
+          border: 1px solid #ddd;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+          z-index: 1000;
+          min-width: 180px;
+          padding: 0;
+          margin: 5px 0 0;
+          list-style: none;
+          &.show {
+              display: block;
+          }
+          li {
+              padding: 0;
+              font-size: 0.8em;
+              a {
+                  display: block;
+                  padding: 3px 6px;
+                  text-decoration: none;
+                  color: $dark;
+                  &:hover {
+                      background-color: #f0f0f0;
+                  }
+              }
+          }
+      }
+
+
+
+
+
+
       .meta-item {
         padding: 6px 0;
         a {
