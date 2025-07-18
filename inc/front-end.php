@@ -35,20 +35,51 @@ add_filter('template_include', function ( $template ) {
 
 add_action(MINDEVENTS_PREPEND . 'single_title', 'mind_events_single_title', 10, 1);
 function mind_events_single_title($id) {
-    echo '<h1>' . get_the_title($id) . '</h1>';
+    echo '<h1 class="event-title">' . get_the_title($id) . '</h1>';
 }
 
 add_action(MINDEVENTS_PREPEND . 'single_title', MINDEVENTS_PREPEND . 'single_datespan', 20, 1);
 function mindevents_single_datespan($id) {
-    $first_event = new DateTime(get_post_meta($id, 'first_event_date', true));
-    $startdate = $first_event->format('F j, Y');
+    // Query sub_events for this parent event
+    $now = current_time('Y-m-d H:i:s');
+    $sub_events = new WP_Query(array(
+        'post_type'      => 'sub_event',
+        'post_parent'    => $id,
+        'posts_per_page' => 1,
+        'orderby'        => 'meta_value',
+        'meta_key'       => 'event_time_stamp',
+        'meta_type'      => 'DATETIME',
+        'order'          => 'ASC',
+        'meta_query'     => array(
+            array(
+                'key'     => 'event_time_stamp',
+                'value'   => $now,
+                'compare' => '>=',
+                'type'    => 'DATETIME'
+            ),
+        ),
+    ));
 
-    $last_event = new DateTime(get_post_meta($id, 'last_event_date', true));
-    $enddate = $last_event->format('F j, Y');
-
-    echo '<div class="event-datespan">';
-      echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', '<span class="start-date">' . $startdate . '</span> - <span class="end-date">' . $enddate . '</span>', $startdate, $enddate);
-    echo '</div>';
+    if ($sub_events->have_posts()) {
+        $sub_events->the_post();
+        $next_event = get_post();
+        $next_event_date = get_post_meta($next_event->ID, 'event_date', true);
+        $next_event_date_obj = new DateTime($next_event_date);
+        $startdate = $next_event_date_obj->format('F j, Y');
+        echo '<div class="event-datespan">';
+        echo '<span class="start-date">';
+        echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', __('Next Occurrence: ', 'mindshare') . $startdate, $startdate, '');
+        echo '</span>';
+        echo '</div>';
+        wp_reset_postdata();
+    } else {
+        // fallback to first_event_date if no upcoming sub_event
+        $first_event = new DateTime(get_post_meta($id, 'first_event_date', true));
+        $startdate = $first_event->format('F j, Y');
+        echo '<div class="event-datespan">';
+        echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', '<span class="start-date">' . $startdate . '</span>', $startdate, '');
+        echo '</div>';
+    }
 }
 
 
@@ -86,6 +117,17 @@ add_action('init', function () {
 });
 
 
+
+
+add_action(MINDEVENTS_PREPEND . 'single_after_calendar', function() {
+  $str = home_url('/events-feed.ics');
+  $str = preg_replace('#^https?://#i', 'webcal://', $str);
+  echo '<div class="row my-1">';
+    echo '<div class="col-12 text-end">';
+      echo '<a href="' . esc_url($str) . '" class="btn btn-sm btn-info">Subscribe to Calendar</a>';
+    echo '</div>';
+  echo '</div>';
+});
 
 
 
@@ -140,13 +182,14 @@ function make_generate_ics_feed() {
   if($events->have_posts()) {
     while ($events->have_posts()) {
       $events->the_post();
+      
         $output .= "BEGIN:VEVENT\r\n";
         $output .= "UID:" . uniqid() . "@makesantafe.org\r\n";
         $output .= "DTSTAMP:" . gmdate('Ymd\THis\Z', strtotime(get_the_date())) . "\r\n";
         $output .= "DTSTART:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_start_time_stamp', true))) . "\r\n";
         $output .= "DTEND:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_end_time_stamp', true))) . "\r\n";
         $output .= "SUMMARY:" . esc_html(get_the_title()) . "\r\n";
-        $output .= "DESCRIPTION:" . esc_html(get_the_excerpt()) . "\r\n";
+        $output .= "DESCRIPTION:" . get_the_excerpt(get_post_parent(get_the_ID())). "\r\n";
         $output .= "LOCATION:" . esc_html(get_post_meta(get_the_ID(), 'event_location', true)) . "\r\n";
         $output .= "END:VEVENT\r\n";
     }
@@ -188,21 +231,6 @@ function make_generate_single_event_ics($event_id) {
 }
 
 
-add_action(MINDEVENTS_PREPEND . 'single_title', function($event_id) {
-  $url = home_url('/event-ics/' . $event_id . '/');
-  return '<a class="add-to-calendar-btn" href="' . esc_url($url) . '">Add to Calendar</a>';
-});
-
-
-add_action(MINDEVENTS_PREPEND . 'single_after_calendar', function() {
-  $str = home_url('/events-feed.ics');
-  $str = preg_replace('#^https?://#i', 'webcal://', $str);
-  echo '<div class="row my-1">';
-    echo '<div class="col-12 text-end">';
-      echo '<a href="' . esc_url($str) . '" class="btn btn-sm btn-info">Subscribe to Calendar</a>';
-    echo '</div>';
-  echo '</div>';
-});
 
 
 

@@ -27,6 +27,7 @@ echo '<main role="main" aria-label="Content">';
             //@hooked mind_events_single_title - 10
             //@hooked mindevents_single_datespan - 20
             do_action(MINDEVENTS_PREPEND . 'single_title', get_the_ID());
+            
           echo '</div>';
 
 

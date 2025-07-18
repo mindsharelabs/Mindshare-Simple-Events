@@ -401,7 +401,6 @@
        ),
      );
    }
-   mapi_write_log($args);
 
    $args = wp_parse_args($args, $defaults);
    return get_posts($args);
