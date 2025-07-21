@@ -127,7 +127,7 @@ class mindEventsAjax {
       else :
         $added_events[] = $added_event_id;
 
-        $insideHTML .= '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . '">';
+        $insideHTML .= '<div class="event">';
           $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
             $insideHTML .= $meta['starttime'] . '-' . $meta['endtime'];
           $insideHTML .= '</span>';
