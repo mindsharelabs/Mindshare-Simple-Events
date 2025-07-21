@@ -347,21 +347,16 @@ table.event-attendees {
                 flex-direction: row;
                 .event-meta {
                   .event-title {
-                    font-size: 1em;
+                    // font-size: 1em;
                     font-weight: bold;
 
                     display: block;
                   }
                   .event-time {
-                    font-size: .8em;
-
-                    margin: 0;
                     display: block;
                   }
                   .event-excerpt {
-                    font-size: .8em;
                     padding: 5px 0;
-                    margin: 0;
                     display: block;
   
                   }
@@ -421,6 +416,7 @@ table.event-attendees {
   .meta_inner_container {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     padding: 25px;
     justify-content: space-between;
     button {
@@ -441,7 +437,6 @@ table.event-attendees {
       }
     }
     .featured-image {
-      margin-right: 15px;
       min-width: 25%;
       img {
         border: 5px solid #fff;
@@ -454,8 +449,6 @@ table.event-attendees {
       justify-content: flex-start;
     }
     .left-content {
-      margin-right: 15px;
-      max-width: 70%;
       .event-notice {
         font-size: .8em;
         font-weight: bold;
@@ -473,9 +466,6 @@ table.event-attendees {
         margin-top: 10px;
         font-size: 1.5em;
       }
-    }
-    .right-content {
-      min-width: 30%;
     }
     .meta-item {
       .offer-link {
@@ -749,10 +739,6 @@ table.event-attendees {
     }
   }
 }
-
-
-
-
 
 .editor-post-taxonomies__hierarchical-terms-list {
   height: unset !important;

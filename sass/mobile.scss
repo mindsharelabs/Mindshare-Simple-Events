@@ -4,6 +4,55 @@
   section.content {
     flex-direction: column;
   }
+
+
+
+  #publicCalendar, #archiveCalendar {
+    table.mindEventCalendar {
+      .events {
+        .event {
+          .sub-event-toggle {
+            .event-label-container {
+              .event-meta {
+                .event-title {
+                  font-size: 10px;
+                  font-weight: bold;
+                  display: block;
+                  line-height: 10px;
+                }
+                .event-time {
+                  font-size: 9px;
+                  line-height: 10px;
+                  margin-top: 5px;
+                  display: block;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  #publicCalendar, #mindEventList {
+    .meta_inner_container {
+      flex-wrap: wrap;
+      .featured-image {
+        width: 100%;
+        img {
+          width: 100%;
+        }
+      }
+      .left-content {
+        width: 100%;
+        margin-top: 30px !important;
+      }
+      .right-content {
+        width: 100%;
+        margin-top: 30px !important;
+      }
+    }
+    
+  }
   #mindCalanderList{
     .list_day_container {
       .item_meta_container {
@@ -44,12 +93,6 @@
       }
     }
   }
-  #mindEventCalendar{
-    td{
-      .events{
-      }
-    }
-  }
   section.content{
     .featured-image-wrap {
       padding-right: 0px;
@@ -60,6 +103,24 @@
 
 // Small styles - default: 480px <= x <= 991px
 @media (min-width: 576px) and (max-width: 992px) {
+  #publicCalendar, #mindEventList {
+    .meta_inner_container {
+      flex-wrap: wrap;
+      .featured-image {
+        width: 25%;
+        img {
+          width: 100%;
+        }
+      }
+      .left-content {
+        width: 50%;
+      }
+      .right-content {
+        width:100%;
+        margin-top: 30px !important;
+      }
+    }
+  }
   section.content{
     flex-direction: row;
     .featured-image-wrap {
@@ -71,6 +132,23 @@
 
 // Medium styles - default: 992px <= x <= 1199px
 @media (min-width: 992px) and (max-width: 1200px) {
+  #publicCalendar, #mindEventList {
+    .meta_inner_container {
+      flex-wrap: nowrap;
+      .featured-image {
+        width: 25%;
+        img {
+          width: 100%;
+        }
+      }
+      .left-content {
+        width:50%;
+      }
+      .right-content {
+        width: 25%;
+      }
+    }
+  }
   section.content{
     flex-direction: row;
     .featured-image-wrap {
@@ -82,6 +160,23 @@
 
 // Large styles - default: 1200px <= x
 @media (min-width: 1200px) {
+  #publicCalendar, #mindEventList {
+    .meta_inner_container {
+      flex-wrap: nowrap;
+      .featured-image {
+        width: 25%;
+        img {
+          width: 100%;
+        }
+      }
+      .left-content {
+        width: 50%;
+      }
+      .right-content {
+        width: 25%;
+      }
+    }
+  }
   section.content{
     flex-direction: row;
     .featured-image-wrap {
@@ -105,3 +200,10 @@
 .text-xs-justify {
   text-align: justify;
 }
+
+
+
+
+
+
+

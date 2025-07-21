@@ -41,19 +41,8 @@ echo '<main role="main" aria-label="Content">';
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
       echo '<div id="cartErrorContainer"></div>';
-      if(MINDEVENTS_IS_MOBILE) :
-
-        
-        echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
-        do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
-        echo '<div id="mindEventList" class="mindevents-list">';
-          echo $calendar->get_front_list('archive');
-        echo '</div>';
-        do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());
-
-
-      else :
-        echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
+     
+      echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
         do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
         echo '<div class="calendar-nav">';
           echo '<button data-dir="prev" class="calnav prev"><span><i class="fas fa-arrow-left"></i></span></button>';
@@ -63,7 +52,6 @@ echo '<main role="main" aria-label="Content">';
           echo $calendar->get_front_calendar('archive');
         echo '</div>';
         do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
-      endif;
       echo '</div>';
 
 

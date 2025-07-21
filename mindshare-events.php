@@ -22,7 +22,7 @@ class mindEvents {
     }
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
-    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.3.5');
+    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.4.0');
     $this->define( 'MINDEVENTS_PREPEND', 'mindevents_' );
 
 
@@ -32,7 +32,6 @@ class mindEvents {
 
     $this->includes();
 
-    $mobile = new Mobile_Detect();
 
     add_action( 'admin_enqueue_scripts', array($this, 'enque_scripts_and_styles'), 100 );
     add_action( 'wp_enqueue_scripts', array($this, 'enque_front_scripts_and_styles'), 100 );
@@ -48,7 +47,6 @@ class mindEvents {
 
     add_action ('wp_head', array($this, 'generate_schema'));
 
-    $this->define( 'MINDEVENTS_IS_MOBILE', $mobile->isMobile() );
     
 	}
   public static function get_instance() {
@@ -65,7 +63,6 @@ class mindEvents {
   private function includes() {
     //General
     include MINDEVENTS_ABSPATH . 'inc/utilities.php';
-    include MINDEVENTS_ABSPATH . 'inc/mobile-detect.php';
     include MINDEVENTS_ABSPATH . 'inc/events.class.php';
     include MINDEVENTS_ABSPATH . 'inc/options.php';
     include MINDEVENTS_ABSPATH . 'inc/admin.class.php';

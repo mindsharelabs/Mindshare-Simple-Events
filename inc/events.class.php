@@ -478,7 +478,7 @@
 
        $text_color = $this->getContrastColor($color);
 
-       $insideHTML = '<div class="event ' . (MINDEVENTS_IS_MOBILE ? 'mobile' : '') . ' ' . ($is_past ? 'past-event' : '') . '">';
+       $insideHTML = '<div class="event ' . ($is_past ? 'past-event' : '') . '">';
          $insideHTML .= '<div class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color .'" >';
            $insideHTML .= $this->get_event_label($event);
          $insideHTML .= '</div>';
