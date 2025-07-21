@@ -66,10 +66,11 @@ function mindevents_single_datespan($id) {
         $next_event_date = get_post_meta($next_event->ID, 'event_date', true);
         $next_event_date_obj = new DateTime($next_event_date);
         $startdate = $next_event_date_obj->format('F j, Y');
+        
         echo '<div class="event-datespan">';
-        echo '<span class="start-date">';
-        echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', __('Next Occurrence: ', 'mindshare') . $startdate, $startdate, '');
-        echo '</span>';
+          echo '<span class="start-date">';
+            echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', __('Next Occurrence: ', 'mindshare') . $startdate, $startdate, '');
+          echo '</span>';
         echo '</div>';
         wp_reset_postdata();
     } else {
@@ -77,7 +78,7 @@ function mindevents_single_datespan($id) {
         $first_event = new DateTime(get_post_meta($id, 'first_event_date', true));
         $startdate = $first_event->format('F j, Y');
         echo '<div class="event-datespan">';
-        echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', '<span class="start-date">' . $startdate . '</span>', $startdate, '');
+          echo apply_filters(MINDEVENTS_PREPEND . 'single_datespan', '<span class="start-date">' . $startdate . '</span>', $startdate, '');
         echo '</div>';
     }
 }
