@@ -189,7 +189,7 @@ function make_generate_ics_feed() {
         $output .= "DTSTAMP:" . gmdate('Ymd\THis\Z', strtotime(get_the_date())) . "\r\n";
         $output .= "DTSTART:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_start_time_stamp', true))) . "\r\n";
         $output .= "DTEND:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_end_time_stamp', true))) . "\r\n";
-        $output .= "SUMMARY:" . esc_html(get_the_title()) . "\r\n";
+        $output .= "SUMMARY:" . esc_html(get_the_title(get_post_parent(get_the_ID()))) . "\r\n";
         $output .= "DESCRIPTION:" . get_the_excerpt(get_post_parent(get_the_ID())). "\r\n";
         $output .= "LOCATION:" . esc_html(get_post_meta(get_the_ID(), 'event_location', true)) . "\r\n";
         $output .= "END:VEVENT\r\n";
