@@ -224,7 +224,7 @@ function make_generate_single_event_ics($event_id) {
            "DTSTAMP:$dtstamp\r\n" .
            "DTSTART:$dtstart\r\n" .
            "DTEND:$dtend\r\n" .
-           "SUMMARY:" . esc_html($event->post_title) . "\r\n" .
+           "SUMMARY:" . esc_html(get_the_title(get_post_parent($event_id))) . "\r\n" .
            "DESCRIPTION:" . esc_html(strip_tags($description)) . "\r\n" .
            "LOCATION:" . esc_html($location) . "\r\n" .
            "END:VEVENT\r\n" .
@@ -241,9 +241,9 @@ function make_get_event_add_to_calendar_links($event_id) {
 
     $start = get_post_meta($event_id, 'event_start_time_stamp', true);
     $end = get_post_meta($event_id, 'event_end_time_stamp', true);
-    $location = (get_post_meta($event_id, 'event_location', true) ? get_post_meta($event_id, 'event_location', true) : ''); // Fallback to empty string if not set
+    $location = (get_post_meta($event_id, 'event_location', true) ? get_post_meta($event_id, 'event_location', true) : ''); //TODO: Add location support
     $description = get_the_excerpt(get_post_parent($event_id));
-    $title = $event->post_title;
+    $title = $event->post_parent ? get_the_title($event->post_parent) : $event->post_title;
 
     // Convert local time to UTC for Google Calendar
     $timezone = new DateTimeZone('America/Denver'); // <-- set your local timezone
