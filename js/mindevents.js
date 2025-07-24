@@ -25,8 +25,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 
 		function closeAllEventMeta() {
-			$("tr.meta-container").each(function() {
-				$(this).removeClass('show').find('.eventMeta').html('');
+			$(".meta-container").each(function() {
+				$(this).removeClass('show').html('');
 			});
 		}
 
@@ -39,10 +39,10 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		$(document).on('click', '.sub-event-toggle', function (event) {
 			closeAllEventMeta();
 			var eventid = $(this).data('eventid');
-			var container = $(this).closest('tr').next().addClass('show');
-			var metaContainer = container.find('.eventMeta');
-
-			metaContainer.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+			
+			var metaContainer = $(this).closest('.week-row').after('<div class="meta-container"></div>');
+			metaContainer = metaContainer.next('.meta-container').html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
+			
 
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
@@ -53,6 +53,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 				},
 				success: function(response) {
 					metaContainer.html(response.data.html);
+					//after the responce is loeaded, scroll into view
+					scrollIntoView(metaContainer);
 					// console.log(response);
 				},
 				error: function (response) {
@@ -202,12 +204,11 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
   function scrollIntoView($target) {
 	var target = $($target);
-    if (target.length)
-        {
-            var top = target.offset().top + -300;
-            $('html,body').animate({scrollTop: top}, 1000);
-            return false;
-        }
+    if (target.length){
+        var top = target.offset().top + -300;
+        $('html,body').animate({scrollTop: top}, 1000);
+        return false;
+    }
   }
 
 } ( this, jQuery ));

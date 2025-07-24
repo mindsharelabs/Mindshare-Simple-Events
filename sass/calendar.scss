@@ -264,151 +264,11 @@ table.event-attendees {
       margin: 0;
     }
   }
-  table.mindEventCalendar {
+  .mindEventCalendar {
   	width: 100%;
-    table-layout: fixed;
-  	th {
-  		background: rgba(255,255,255,.7);
-  		color: rgb(35, 31, 32); 
-      text-align: center;
-  		font-size: 1.1em;
-  		padding: 5px;
-      border: none;
-  	}
-
-  	tbody {
-      tr {
-
-      }
-  		td {
-        width: (calc(100% / 7)) !important;
-        vertical-align: top;
-  			border: 1px solid rgba(200, 200, 200, .2);
-  			background: rgba(255,255,255,.4);
-        position: relative;
-
-  			time {
-          font-size: 1.1em;
-          display: block;
-          background: transparent;
-          font-weight: bold;
-          text-align: center;
-          padding: 20px 5px;
-
-  			}
-        &.today {
-          background: color.adjust($primary, $lightness: 40%);
-          // background: color.adjust($primary, $lightness: 40%);
-          .calendar-day {
-            color: $primary;
-          }
-          time {
-            background: color.adjust($primary, $lightness: 40%);
-          }
-        }
-        &.past-date {
-          background-color: rgba(214, 214, 214, 0.4);
-          opacity: .5;
-        }
-  			&.SCsuffix, &.SCprefix {
-          background: rgba(200, 200, 200, .1);
-  			}
-        .events {
-          display: flex;
-          width: 100%;
-          flex-direction: column;
-          div.event {
-             
-            position: relative;
-            text-align: left;
-            flex-grow: 1;
-            margin: 2px;
-            &.past-event {
-              opacity: .5;
-            }
-            .sub-event-toggle {
-              cursor: pointer;
-              font-size: 13px;
-              padding: 4px;
-              line-height: 1.15em;
-              background: #858585;
-              color: #fff;
-              font-weight: bold;
-              display: block;
-              // height: 23px;
-              max-width: 100%;
-              &:hover {
-                @include transition(100ms);
-                transform: scale(1.05);
-              }
-
-              .event-label-container {
-                display: flex;
-                flex-direction: row;
-                .event-meta {
-                  .event-title {
-                    // font-size: 1em;
-                    font-weight: bold;
-
-                    display: block;
-                  }
-                  .event-time {
-                    display: block;
-                  }
-                  .event-excerpt {
-                    padding: 5px 0;
-                    display: block;
-  
-                  }
-                }
-                
-                .event-thumb {
-                  width: 100px;
-                  margin-right: 5px;
-                  border: 2px solid #fff;
-                  align-self: start;
-                  img {
-                    width: 100%;
-                  }
-                }
-              }
-
-
-
-            }
-            &.mobile {
-              overflow: hidden;
-              span.sub-event-toggle {
-                text-indent: -9999999px;
-                cursor: pointer;
-                width: 40%;
-                border-radius: 20px;
-                max-height: 18px;
-                max-width: 18px;
-              }
-            }
-    			}
-
-        }
-        &.meta-container {
-          height: 0;
-          overflow: hidden;
-          @include transition(300ms);
-          &.show {
-            @include transition(300ms);
-
-          }
-
-        }
-        &.eventMeta {
-          // border-style: hidden;
-          .la-ball-fall {
-            text-align: center;
-          }
-
-        }
-  		}
-  	}
+    .day-container {
+      min-width: 14.28%;
+    }
 
   }
 }
@@ -647,11 +507,6 @@ table.event-attendees {
       }
 
       
-
-
-
-
-
 
       .meta-item {
         padding: 6px 0;

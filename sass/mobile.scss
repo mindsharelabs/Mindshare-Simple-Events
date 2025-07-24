@@ -6,33 +6,6 @@
   }
 
 
-
-  #publicCalendar, #archiveCalendar {
-    table.mindEventCalendar {
-      .events {
-        .event {
-          .sub-event-toggle {
-            .event-label-container {
-              .event-meta {
-                .event-title {
-                  font-size: 10px;
-                  font-weight: bold;
-                  display: block;
-                  line-height: 10px;
-                }
-                .event-time {
-                  font-size: 9px;
-                  line-height: 10px;
-                  margin-top: 5px;
-                  display: block;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
   #publicCalendar, #mindEventList {
     .meta_inner_container {
       flex-wrap: wrap;
@@ -45,7 +18,7 @@
       .left-content {
         width: 100%;
         margin-top: 30px !important;
-      }
+      } 
       .right-content {
         width: 100%;
         margin-top: 30px !important;
@@ -143,7 +116,7 @@
         }
       }
       .left-content {
-        width:50%;
+        // width:50%;
         padding-left: 15px !important;
       }
       .right-content {
@@ -173,7 +146,7 @@
         }
       }
       .left-content {
-        width: 50%;
+        // width: 50%;
         padding-left: 20px !important;
       }
       .right-content {

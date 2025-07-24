@@ -25,12 +25,12 @@
 
  private $classes = [
    'calendar'     => 'mindEventCalendar',
-   'leading_day'  => 'SCprefix',
-   'trailing_day' => 'SCsuffix',
+   'leading_day'  => 'SCprefix d-none d-md-block day-container',
+   'trailing_day' => 'SCsuffix d-none d-md-block day-container',
    'today'        => 'today',
    'event'        => 'event',
    'events'       => 'events',
-   'past'         => 'past-date',
+   'past'         => 'past-date opacity-50',
  ];
 
  private $dailyHtml = [];
@@ -249,67 +249,57 @@
    $weekDayIndex = date('N', mktime(0, 0, 1, $now['mon'], 1, $now['year'])) - $this->offset;
    $daysInMonth  = cal_days_in_month(CAL_GREGORIAN, $now['mon'], $now['year']);
 
+   // Bootstrap 5 flexbox-based calendar rendering
+   $out .= '<h4 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h4>';
+   $out .= '<div id="mindEventCalendar" class="container-fluid ' . $this->classes['calendar'] . '" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '">';
+   $out .= '<div class="row text-center fw-bold border-bottom pb-2 d-none d-md-flex">';
+   foreach( $daysOfWeek as $dayName ) {
+     $out .= '<div class="col">' . $dayName . '</div>';
+   }
+   $out .= '</div>';
 
-     $out .= '<h4 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h4>';
-     $out .= '<table id="mindEventCalendar" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '" cellpadding="0" cellspacing="0" class=" ' . $this->classes['calendar'] . '"><thead><tr>';
-       foreach( $daysOfWeek as $dayName ) {
-         $out .= '<th>' . $dayName . '</th>';
+   $weekDayIndex = ($weekDayIndex + 7) % 7;
+   $count = $weekDayIndex;
+   $out .= '<div class="row justify-content-center week-row">';
+   for( $i = 0; $i < $weekDayIndex; $i++ ) {
+     $out .= '<div class="col border ' . $this->classes['leading_day'] . '">&nbsp;</div>';
+   }
+   for( $i = 1; $i <= $daysInMonth; $i++ ) {
+     $date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
+     $isToday = $i == $today['mday'] && $today['mon'] == $date->format('n') && $today['year'] == $date->format('Y');
+     $isPast = $this->today && $this->today->format('Y-m-d') > $date->format('Y-m-d');
+
+     // Responsive column classes: col-12 col-sm border p-2
+     $classes = 'col-12 col-md border p-2 day-container ';
+     if ($isToday) $classes .= $this->classes['today'] . ' ';
+     if ($isPast) $classes .= $this->classes['past'] . ' d-none d-md-block ';
+ 
+     $out .= '<div class="' . trim($classes) . '">';
+     // Add mobile weekday+date display
+     $dayName = $date->format('l'); // Full weekday name
+     $monthName = $date->format('F'); // Full month name
+
+     $out .= '<div class="d-block d-md-none small fw-bold mb-1">' . $dayName . ', ' . $monthName . ' ' . $i . '</div>';
+     $out .= sprintf('<time class="d-none d-md-block calendar-day " datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
+
+     if( isset($this->dailyHtml[$now['year']][$now['mon']][$i]) ) {
+       $out .= '<div class="events">';
+       foreach( $this->dailyHtml[$now['year']][$now['mon']][$i] as $dHtml ) {
+         $out .= $dHtml;
        }
-     $out .= '</tr></thead><tbody><tr>';
-
-     $weekDayIndex = ($weekDayIndex + 7) % 7;
-     if( $weekDayIndex === 7 ) {
-       $weekDayIndex = 0;
-     } else {
-       $out .= str_repeat('<td class="' . $this->classes['leading_day'] . '">&nbsp;</td>', $weekDayIndex);
+       $out .= '</div>';
      }
 
-     $count = $weekDayIndex + 1;
-     for( $i = 1; $i <= $daysInMonth; $i++ ) {
-       $date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
-
-       $isToday = false;
-       $isPast = false;
-       if( $this->today !== null ) {
-         $isToday = $i == $today['mday']
-           && $today['mon'] == $date->format('n')
-           && $today['year'] == $date->format('Y');
-
-         $isPast = $this->today->format('Y-m-d') > $date->format('Y-m-d');
-       }
-
-       $out .= '<td class="' . ($isToday ? $this->classes['today'] : '') . ' ' . ($isPast ? $this->classes['past'] : '') . '">';
-
-       $out .= sprintf('<time class="calendar-day" datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
-
-       $dailyHTML = null;
-       if( isset($this->dailyHtml[$now['year']][$now['mon']][$i]) ) {
-         $dailyHTML = $this->dailyHtml[$now['year']][$now['mon']][$i];
-       }
-
-       if( is_array($dailyHTML) ) {
-         $out .= '<div class="events">';
-         foreach( $dailyHTML as $dHtml ) {
-           $out .= $dHtml;
-         }
-         $out .= '</div>';
-       }
-
-       $out .= '</td>';
-
-       if( $count > 6 ) {
-         $out   .= '</tr><tr class="meta-container"><td class="eventMeta" colspan="7"></td></tr>' . ($i < $daysInMonth ? '<tr>' : '');
-         $count = 0;
-       }
-       $count++;
+     $out .= '</div>';
+     $count++;
+     if ($count % 7 === 0 && $i !== $daysInMonth) {
+       $out .= '</div><div class="row justify-content-center week-row">';
      }
-
-     if( $count !== 1 ) {
-       $out .= str_repeat('<td class="' . $this->classes['trailing_day'] . '">&nbsp;</td>', 8 - $count) . '</tr>';
-     }
-
-     $out .= '<tr class="meta-container"><td class="eventMeta" colspan="7"></tbody></table>';
-
+   }
+   for( $i = $count % 7; $i < 7 && $i !== 0; $i++ ) {
+     $out .= '<div class="col border ' . $this->classes['trailing_day'] . '">&nbsp;</div>';
+   }
+   $out .= '</div></div>';
    return $out;
  }
 
@@ -498,14 +488,16 @@
    $html = '';
    $starttime = get_post_meta($event->ID, 'starttime', true);
    $endtime = get_post_meta($event->ID, 'endtime', true);
-   $html .= '<div class="event-label-container">';
-     //TODO: uswe badge image in place of thumnmail
+   //if in past add class
+    $is_past = $this->today->format('Y-m-d') > get_post_meta($event->ID, 'event_date', true) ? true : false;
+   $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . '">';
+     //TODO: use badge image in place of thumbnail
        // if($thumb) :
        //     $html .= '<div class="event-thumb">' . $thumb . '</div>';
        // endif;
        $html .= '<div class="event-meta">';
-         $html .= '<span class="event-title">' . get_the_title($event->post_parent) . '</span>';
-         $html .= '<span class="event-time">' . $starttime . ' - ' . $endtime . '</span>';
+         $html .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
+         $html .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
        $html .= '</div>';
    $html .= '</div>';
    return $html;
@@ -932,7 +924,7 @@
          if($sub_event_obj->post_parent) :
            $html .= '<div class="meta-item">';
              $html .= '<a style="' . implode(' ', $style_str) .'" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-               $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+               $html .= '<h3 class="event-title mt-0">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
              $html .= '</a>';
            $html .= '</div>';
          endif;
@@ -965,17 +957,12 @@
 
        $html .= '</div>';
 
-       $html .= '<div class="right-content">';
-         
+      $offers = unserialize ($meta['offers'][0]);
+      $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
+      if($offers || $has_tickets) :
 
-         
-
-         $offers = unserialize ($meta['offers'][0]);
-
-         $has_tickets = $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
-         if($has_tickets) :
-          if($meta['linked_product'][0]) :
-
+        $html .= '<div class="right-content">';
+         if($has_tickets && $meta['linked_product'][0]) :
               $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
               $product = wc_get_product( $meta['linked_product'][0] );
 
@@ -993,7 +980,6 @@
                     ));
 
               endif;
-
           elseif(count($offers) > 0) :
 
               foreach ($offers as $key => $offer) :
@@ -1028,12 +1014,10 @@
               endif;
             endif;
 
-
-          endif;
          endif;
 
        $html .= '</div>';
-
+      endif; //end if offers
 
 
 
