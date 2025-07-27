@@ -1,0 +1,482 @@
+@use "sass:color";
+@use "sass:math";
+@use 'loading' as *;
+@use 'forms-main' as *;
+@use 'calendar' as *;
+@use 'utilities' as *;
+
+#eventsCalendar { 
+  // Basic Bootstrap 5 Grid System for Plugin Use
+ 
+
+
+    // Container
+    .container,
+    .container-fluid {
+        width: 100%;
+        margin-right: auto;
+        margin-left: auto;
+        padding-right: 12px;
+        padding-left: 12px;
+    }
+
+    // Row
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -12px;
+        margin-left: -12px;
+    }
+
+    // Columns
+    .col {
+    flex: 1 0 0%;
+    max-width: 100%;
+    padding-right: 12px;
+    padding-left: 12px;
+    }
+
+    @for $i from 1 through 12 {
+      .col-#{$i} {
+          flex: 0 0 math.percentage(calc($i / 12));
+          max-width: math.percentage(calc($i / 12));
+          padding-right: 12px;
+          padding-left: 12px;
+      }
+    }
+
+
+    // Basic Bootstrap 5 Display Utilities
+
+    $displays: none, inline, inline-block, block, grid, table, table-row, table-cell, flex, inline-flex;
+
+    @each $display in $displays {
+      .d-#{$display} { display: #{$display} !important; }
+    }
+
+    @each $breakpoint, $size in (sm: 576px, md: 768px, lg: 992px, xl: 1200px, xxl: 1400px) {
+      @media (min-width: #{$size}) {
+        @each $display in $displays {
+          .d-#{$breakpoint}-#{$display} { display: #{$display} !important; }
+        }
+      }
+    }
+
+    // Responsive columns
+    @each $breakpoint, $size in (sm: 576px, md: 768px, lg: 992px, xl: 1200px, xxl: 1400px) {
+    @media (min-width: #{$size}) {
+        .col-#{$breakpoint} {
+        flex: 1 0 0%;
+        max-width: 100%;
+        }
+        @for $i from 1 through 12 {
+        .col-#{$breakpoint}-#{$i} {
+            flex: 0 0 math.percentage(calc($i / 12));
+            max-width: math.percentage(calc($i / 12));
+        }
+        }
+    }
+    }
+}
+
+
+table.event-attendees {
+  width: 100%;
+  thead {
+    background: rgba(220,220,220, 1);
+    th {
+      padding: 5px;
+      border: 1px solid rgba(200, 200, 200, .3);
+    }
+  }
+  tbody {
+    tr {
+      border: 1px solid rgba(200, 200, 200, .3);
+      td {
+        padding: 5px;
+        border: 1px solid rgba(200, 200, 200, .3);
+        &.event-actions {
+          
+        }
+        &.attendee-count {
+          text-align: center;
+          max-width: 40px;
+        }
+      }
+    }
+  }
+}
+.mindevents_meta_box {
+  .occurance-container {
+      padding: 10px;
+      border: 2px solid $info;
+      background: color.adjust($info, $lightness: 10%);
+      border-radius: 20px;
+      margin-bottom: 20px;
+      &.today {
+        background: color.adjust($success, $lightness: 30%);
+        border: 2px solid color.adjust($success, $lightness: 10%);
+        border-radius: 20px;
+        // color: #fff;
+      }
+      &.past-event {
+        //make this container toggleable
+        table {
+          display: none;
+        }
+        span.toggle-expand {
+          cursor: pointer;
+          font-weight: bold;
+          text-transform: uppercase;
+          font-size: .7em;
+        }
+        
+        
+      }
+      &.show {
+        background: color.adjust($success, $lightness: 30%);
+        table {
+          display: table; 
+        }
+      }
+    }
+    a.button, button{
+      cursor: pointer;
+      border: 1px solid color.adjust($primary, $lightness: -10%);
+      padding: 5px 7px;
+      border-radius: 0;
+      color: #fff !important;
+      background: $primary;
+      &:hover {
+        background: color.adjust($primary, $lightness: -10%);
+      }
+      &.clear-occurances {
+        margin-top: 5px;
+      }
+      &.button-success {
+        color: #fff;
+        background: $success; 
+        border: color.adjust($danger, $lightness: -10%)
+      }
+      &.button-danger {
+        color: #fff;
+        background: $danger;
+        border: color.adjust($danger, $lightness: -10%)
+      }
+      &.add-event-occurrence {
+        color: #fff;
+        background: $secondary;
+        border: color.adjust($secondary, $lightness: -10%)
+      }
+      &.button-white {
+        background: #fff;
+        color: $dark;
+      }
+      &.checked-in {
+        background: $success;
+        color: #353535;
+        border-color: #a6a6a6;
+      }
+      &.disabled {
+        background: $info;
+        color: #414141;
+        border-color: #a6a6a6;
+      }
+    }
+    h3 {
+      margin-top: 0;
+      margin-bottom: 3px;
+    }
+    .status {
+      font-weight: bold;
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 5px;
+      background: $danger;
+      color: #fff;
+      &.completed {
+        background: $success;
+        color: #fff;
+      }
+      &.processing {
+        background: $info;
+        color: $dark;
+      }
+
+    }
+  #errorBox {
+    opacity: 0;
+
+    span {
+      border: $danger;
+      background-color: color.adjust($danger, $lightness: 35%);
+      margin: 5px 0;
+      display: block;
+      padding: 5px 7px;
+      font-weight: bold;
+      font-size: 1em;
+      color: $danger;
+    }
+    &.show {
+      opacity: 1;
+      @include transition(200ms);
+    }
+  }
+
+  h3.offers-title {
+    margin-left: 1%;
+  }
+  .offer-options {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    .single-offer {
+      display: flex;
+      flex-direction: row;
+      flex-grow: 1;
+    }
+    .add-offer, .remove-offer, .add-offer-edit, .remove-offer-edit {
+      width: 10%;
+      text-align: center;
+      font-size: 2em;
+      color: $primary;
+      span {
+        padding: 23px 0 0;
+        display: block;
+      }
+    }
+    .remove-offer, .remove-offer-edit {
+      color: $danger;
+    }
+  }
+
+  .event-times {
+    margin-bottom: 20px;
+    .time-block {
+      display: flex; 
+      flex-direction: row;
+      flex-wrap: wrap;
+      margin-left: -10px;
+      margin-right: -10px;
+      margin-bottom: 25px;
+      position: relative;
+      .form-section {
+        flex-basis: 48%;
+        padding: 0 1%;
+        &.full {
+          flex-basis: 100%;
+        }
+        &.third {
+          flex-basis: 31.333333%;
+          padding: 0 1%;
+        }
+        p {
+          margin: 3px;
+          line-height: 1.1em;
+        }
+      }
+      .remove {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 16px;
+        font-size: 1.5em;
+        position: absolute;
+        color: #c94949;
+        left: 0;
+        top: 39%;
+      }
+      &:not(:first-child) {
+        padding-left: 40px;
+      }
+    }
+
+  }
+}
+
+
+
+
+
+
+
+
+
+#eventsCalendar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  flex-direction: column;
+  .la-ball-fall {
+    position: inherit;
+  }
+ 
+
+
+
+
+
+  	width: 100%;
+    .calendar-header {
+      .day-name {
+        padding: 5px 10px;
+        text-align: center;
+      }
+    }
+
+  	
+
+  		.day-container {
+        width: (calc(100% / 7)) !important;
+        vertical-align: top;
+  			border: 1px solid rgba(200, 200, 200, .3);
+  			background: rgb(250, 250, 250);
+        position: relative;
+        padding: 0;
+  			time {
+          font-size: 1.2em;
+          display: block;
+          background: #fff;
+          font-weight: bold;
+          text-align: center;
+          padding: 20px 5px;
+          @include transition(200ms);
+          .la-ball-fall {
+            position: absolute;
+            position: absolute;
+            width: 100%;
+          }
+          &.selected {
+            background: color.adjust($success, $lightness: 40%);
+          }
+          &.whoops {
+            background: color.adjust($danger, $lightness: 40%);
+          }
+          &:hover {
+            background: color.adjust($success, $lightness: 50%);
+          }
+  			}
+        &.today {
+          border: 1px solid $primary;
+        }
+  			&.SCsuffix, &.SCprefix {
+  				background: rgba(1, 1, 1, .1);
+  			}
+
+  			div.shadow-event, div.event {
+          position: relative;
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: hidden;
+          a {
+            color: $dark;
+          }
+          &.disable {
+            opacity: .4; 
+          }
+          span {
+            font-size: .8em;
+            padding: 5px;
+            margin: 2px 0px;
+            background: #858585;
+            line-height: 1.2em;
+            width: 100%;
+            a {
+              text-decoration: none;
+            }
+            &.new {
+              background: $success;
+            }
+            
+            &.delete {
+              flex-basis: 17%;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              text-align: center;
+              font-size: .9em;
+              background: #fff;
+              color: $danger;
+              padding: 0 2px;
+              &:hover {
+                background: $danger;
+                color: #fff;
+              }
+            }
+          }
+          &.event {
+            font-weight: bold;
+            span {
+              width: 83%;
+              &:hover {
+                opacity: .9;
+                cursor: pointer;
+              }
+            }
+          }
+          
+  			}
+
+  		}
+  	
+
+  }
+  #editBox {
+    position: absolute;
+    z-index: 100;
+    background: rgba(255,255,255,.9);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    .container {
+      width: 70%;
+      margin: 0 auto;
+      padding: 10px;
+      h3 {
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .buttonContainer {
+        width: 100%;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        button.edit-button {
+          margin-top: 10px;
+          &.update-event{
+            display: block;
+            width: 60%;
+            margin: 0 auto;
+            font-size: 1.2em;
+            padding: 10px;
+          }
+          &.cancel {
+            margin: 0 auto;
+            display: block;
+            background-color: $danger;
+            border-color: color.adjust($danger, $lightness: -20%);
+            &:hover {
+              background-color: color.adjust($danger, $lightness: -20%);;
+            }
+          }
+        }
+      }
+      button.edit-button {
+
+        &.update-event{
+          display: block;
+          width: 40%;
+          margin: 0 auto;
+          font-size: 1.2em;
+          padding: 10px;
+        }
+        &.cancel {
+          margin: 0 auto;
+          display: block;
+          background-color: $danger;
+          border-color: color.adjust($danger, $lightness: -20%);
+        }
+      }
+    }
+  }

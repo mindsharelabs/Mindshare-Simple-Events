@@ -19,6 +19,16 @@ gulp.task('plugin-styles', () => {
       .pipe(gulp.dest('./css/'))
 });
 
+gulp.task('admin-styles', () => {
+    return gulp.src('sass/admin.scss')
+      .pipe(sourcemaps.init())
+      .pipe(sass({
+        outputStyle: 'compressed'//nested, expanded, compact, compressed
+      }).on('error', sass.logError))
+      .pipe(sourcemaps.write('./css/'))
+      .pipe(gulp.dest('./css/'))
+});
+
 
 
 gulp.task('clean', () => {
@@ -30,11 +40,11 @@ gulp.task('clean', () => {
 
 gulp.task('watch', () => {
   gulp.watch('sass/*.scss', (done) => {
-    gulp.series(['plugin-styles'])(done);
+    gulp.series(['plugin-styles', 'admin-styles'])(done);
   });
 });
 
-gulp.task('default', gulp.series(['clean','plugin-styles', 'watch']));
+gulp.task('default', gulp.series(['clean','plugin-styles', 'admin-styles', 'watch']));
 
 
 

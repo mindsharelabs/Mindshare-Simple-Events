@@ -114,8 +114,9 @@ class mindEvents {
 
 
   public function enque_scripts_and_styles() {
+    
 
-    wp_register_style('mindevents-css', plugins_url('css/style.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
+    wp_register_style('mindevents-css', plugins_url('css/admin.css', MINDEVENTS_PLUGIN_FILE), array(), MINDEVENTS_PLUGIN_VERSION, 'all');
 		wp_enqueue_style('mindevents-css');
 
     wp_register_style('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css', array(), '1.3.5', 'all');

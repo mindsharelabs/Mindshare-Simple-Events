@@ -252,9 +252,9 @@
    // Bootstrap 5 flexbox-based calendar rendering
    $out .= '<h4 class="month-display">' . $now['month'] . ' ' . $now['year'] . '</h4>';
    $out .= '<div id="mindEventCalendar" class="container-fluid ' . $this->classes['calendar'] . '" data-month="' . $now['mon'] . '" data-year="' . $now['year'] . '">';
-   $out .= '<div class="row text-center fw-bold border-bottom pb-2 d-none d-md-flex">';
+   $out .= '<div class="row text-center calendar-header fw-bold border-bottom pb-2 d-none d-md-flex">';
    foreach( $daysOfWeek as $dayName ) {
-     $out .= '<div class="col">' . $dayName . '</div>';
+     $out .= '<div class="col day-name">' . $dayName . '</div>';
    }
    $out .= '</div>';
 
@@ -270,7 +270,7 @@
      $isPast = $this->today && $this->today->format('Y-m-d') > $date->format('Y-m-d');
 
      // Responsive column classes: col-12 col-sm border p-2
-     $classes = 'col-12 col-md border p-2 day-container ';
+     $classes = 'col-12 col-md border p-0 ps-1 day-container ';
      if ($isToday) $classes .= $this->classes['today'] . ' ';
      if ($isPast) $classes .= $this->classes['past'] . ' d-none d-md-block ';
  
@@ -279,9 +279,11 @@
      $dayName = $date->format('l'); // Full weekday name
      $monthName = $date->format('F'); // Full month name
 
-     $out .= '<div class="d-block d-md-none small fw-bold mb-1">' . $dayName . ', ' . $monthName . ' ' . $i . '</div>';
+     if(isset($this->dailyHtml[$now['year']][$now['mon']][$i])) :
+      $out .= '<div class="mobile-day-name d-block d-md-none small fw-bold mb-1">' . $dayName . ', ' . $monthName . ' ' . $i . '</div>';
+     endif;
      $out .= sprintf('<time class="d-none d-md-block calendar-day " datetime="%s">%d</time>', $date->format('Y-m-d'), $i);
-
+     
      if( isset($this->dailyHtml[$now['year']][$now['mon']][$i]) ) {
        $out .= '<div class="events">';
        foreach( $this->dailyHtml[$now['year']][$now['mon']][$i] as $dHtml ) {
@@ -329,7 +331,7 @@
      $today = (86400 * (date('N')));
      $wDays = [];
      for( $n = 0; $n < 7; $n++ ) {
-       $wDays[] = date('D', time() - $today + ($n * 86400));
+       $wDays[] = date('l', time() - $today + ($n * 86400));
      }
    }
 
@@ -580,7 +582,7 @@
            foreach ($month_items as $day => $daily_items) :
              $date = (new DateTime())->setDate($year, $month, $day);
              $date_format = 'D, M j';
-               $out .= '<div class="list_day_container">';
+               $out .= '<div class="list_day_container row">';
                  $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') .'"><i class="fa-solid fa-calendar-star me-2"></i>' . $date->format($date_format) . '</time></div>';
                  foreach ($daily_items as $key => $dHTML) :
                    $out .= $dHTML;
@@ -632,23 +634,23 @@
        $style_str['color'] = 'color:' . $color . ';';
      endif;
 
-     $html = '<div class="item_meta_container mb-3 p-3">';
+     $html = '<div class="item_meta_container">';
        if($is_past) :
-         $html .= '<div class="past-event event-notice">This event has passed.</div>';
+         $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
        endif;
 
        if($parent_event_type == 'single-event') :
          if($series_started && !$series_ended) :
-             $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
+             $html .= '<div class="series-started alert alert-info"><strong>This multiday event has started.</strong></div>';
          endif;
          if($series_ended) :
-             $html .= '<div class="series-ended event-notice"><strong>This series has ended.</strong></div>';
+             $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
          endif;
        endif;
        if($this->is_archive) :
 
          if($image) :
-           $html .= '<div class="featured-image">';
+           $html .= '<div class="featured-image mb-2">';
              $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
                $html .= $image;
              $html .= '</a>';
@@ -1066,7 +1068,7 @@
 
 
 
-       $insideHTML = '<div class="shadow-event ' . ($child_event ? 'event' : 'disable') . '">';
+       $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '">';
          $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color .';" data-subid="' . $event->ID . '">';
             if($child_event):
               $insideHTML .= $starttime . ' - ' . $endtime;

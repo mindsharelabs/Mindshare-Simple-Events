@@ -324,11 +324,12 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 
 
-		$(document).on('click', 'td .event span.edit', function (event) {
+		$(document).on('click', '.event span.edit', function (event) {
 			event.preventDefault();
 			var thisEvent = $(this).parent('.event');
 			var eventid = $(this).data('subid');
 			var calendarContainer = $('#eventsCalendar')
+			console.log(eventid);
 
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
@@ -359,7 +360,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		});
 
 
-		$(document).on('click', 'td .event span.delete', function (event) {
+		$(document).on('click', '.event span.delete', function (event) {
 			event.preventDefault();
 			var thisEvent = $(this).parent('.event');
 			var eventid = $(this).data('subid');

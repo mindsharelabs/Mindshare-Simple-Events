@@ -1,11 +1,5 @@
 @use "sass:color";
 @use 'utilities' as *; 
-#ui-datepicker-div {
-  background: #fff;
-  padding: 5px;
-  -webkit-box-shadow: 0 0 6px 0 rgba(1,1,1,.3);
-  box-shadow: 0 0 6px 0 rgba(1,1,1,.3);
-}
 
 
 
@@ -39,216 +33,6 @@
   }
 }
 
-table.event-attendees {
-  width: 100%;
-  thead {
-    background: rgba(220,220,220, 1);
-    th {
-      padding: 5px;
-      border: 1px solid rgba(200, 200, 200, .3);
-    }
-  }
-  tbody {
-    tr {
-      border: 1px solid rgba(200, 200, 200, .3);
-      td {
-        padding: 5px;
-        border: 1px solid rgba(200, 200, 200, .3);
-        &.event-actions {
-          
-        }
-        &.attendee-count {
-          text-align: center;
-          max-width: 40px;
-        }
-      }
-    }
-  }
-}
-
-
-#eventsCalendar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  flex-direction: column;
-  .la-ball-fall {
-    position: inherit;
-  }
-  table.mindEventCalendar {
-  	
-  	width: 100%;
-    thead {
-      border: 1px solid rgb(217, 67, 160);
-    }
-  	th {
-  		background: rgba(220,220,220, 1); 
-  		color: rgb(35, 31, 32); 
-  		font-size: 1.3em;
-  		padding: 5px;
-      border-color: rgb(217, 67, 160); 
-  		border-bottom: 1px solid rgb(217, 67, 160);
-  	}
-
-  	tbody {
-      tr {
-        border: none;
-      }
-  		td {
-        width: (calc(100% / 7)) !important;
-        vertical-align: top;
-  			border: 1px solid rgba(200, 200, 200, .3);
-  			background: rgb(250, 250, 250);
-        position: relative;
-
-  			time {
-          font-size: 1.2em;
-          display: block;
-          background: #fff;
-          font-weight: bold;
-          text-align: center;
-          padding: 20px 5px;
-          @include transition(200ms);
-          .la-ball-fall {
-            position: absolute;
-            position: absolute;
-            width: 100%;
-          }
-          &.selected {
-            background: color.adjust($success, $lightness: 40%);
-          }
-          &.whoops {
-            background: color.adjust($danger, $lightness: 40%);
-          }
-          &:hover {
-            background: color.adjust($success, $lightness: 50%);
-          }
-  			}
-        &.today {
-          border: 1px solid $primary;
-        }
-  			&.SCsuffix, &.SCprefix {
-  				background: rgba(1, 1, 1, .1);
-  			}
-
-  			div.shadow-event, div.event {
-          position: relative;
-          display: flex;
-          flex-wrap: nowrap;
-          overflow-x: hidden;
-          a {
-            color: $dark;
-          }
-          &.disable {
-            opacity: .4; 
-          }
-          span {
-            font-size: .8em;
-            padding: 5px;
-            margin: 2px 0px;
-            background: #858585;
-            line-height: 1.2em;
-            width: 100%;
-            a {
-              text-decoration: none;
-            }
-            &.new {
-              background: $success;
-            }
-            
-            &.delete {
-              flex-basis: 17%;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              text-align: center;
-              font-size: .9em;
-              background: #fff;
-              color: $danger;
-              padding: 0 2px;
-              &:hover {
-                background: $danger;
-                color: #fff;
-              }
-            }
-          }
-          &.event {
-            font-weight: bold;
-            span {
-              width: 83%;
-              &:hover {
-                opacity: .9;
-                cursor: pointer;
-              }
-            }
-          }
-          
-  			}
-
-  		}
-  	}
-
-  }
-  #editBox {
-    position: absolute;
-    z-index: 100;
-    background: rgba(255,255,255,.9);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    .container {
-      width: 70%;
-      margin: 0 auto;
-      padding: 10px;
-      h3 {
-        text-align: center;
-        margin-bottom: 10px;
-      }
-      .buttonContainer {
-        width: 100%;
-        margin-bottom: 10px;
-        margin-top: 10px;
-        button.edit-button {
-          margin-top: 10px;
-          &.update-event{
-            display: block;
-            width: 60%;
-            margin: 0 auto;
-            font-size: 1.2em;
-            padding: 10px;
-          }
-          &.cancel {
-            margin: 0 auto;
-            display: block;
-            background-color: $danger;
-            border-color: color.adjust($danger, $lightness: -20%);
-            &:hover {
-              background-color: color.adjust($danger, $lightness: -20%);;
-            }
-          }
-        }
-      }
-      button.edit-button {
-
-        &.update-event{
-          display: block;
-          width: 40%;
-          margin: 0 auto;
-          font-size: 1.2em;
-          padding: 10px;
-        }
-        &.cancel {
-          margin: 0 auto;
-          display: block;
-          background-color: $danger;
-          border-color: color.adjust($danger, $lightness: -20%);
-        }
-      }
-    }
-  }
-}
 
 #publicCalendar, #archiveCalendar {
   display: flex;
@@ -264,14 +48,48 @@ table.event-attendees {
       margin: 0;
     }
   }
+  .calendar-day {
+    padding: 3px 6px;
+    font-weight: bold;
+    font-size: .8em;
+    margin-bottom: 5px;
+  }
   .mindEventCalendar {
   	width: 100%;
     .day-container {
       min-width: 14.28%;
+      .mobile-day-name {
+        margin-top: 20px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2em;
+      }
     }
 
   }
+  .week-row {
+        .day-container {
+            .events { 
+                .event {
+                    .sub-event-toggle {
+                        cursor: pointer;
+                        
+                        @include transition(300ms);
+                        &:hover {
+                            //change scale on hover
+                            transform: scale(1.05);
+                            @include transition(100ms);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+
+
+
+
 #publicCalendar, #mindEventList {
   .meta_inner_container {
     display: flex;
@@ -309,19 +127,6 @@ table.event-attendees {
       justify-content: flex-start;
     }
     .left-content {
-      .event-notice {
-        font-size: .8em;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-top: 6px;
-        // color: $light;
-        background-color: rgba(255,255,255,.3);
-        border: 1px solid $light;
-        padding: 10px 20px;
-        &:first-child {
-          margin-top: 0;
-        }
-      }
       .event-title {
         margin-top: 10px;
         font-size: 1.5em;
@@ -385,44 +190,17 @@ table.event-attendees {
   }
 
 }
-#mindEventList {
-  h4.day-label {
-    text-align: center;
-    margin: 45px 0 15px;
-  }
-  p.no-events {
-    text-align: center;
-    font-weight: bold;
-  }
-  .meta_inner_container {
-    padding: 10px;
-    margin-bottom: 20px;
-    .meta-item {
-      span {
-        &.value {
-          margin-bottom: 5px;
-          &.eventdescription {
-            font-size: .85em;
-            line-height: 1.35em;
-            padding-right: 10px;
-          }
-        }
-
-      }
-    }
-  }
-}
 #cartErrorContainer {
   color: $danger;
-    border: 1px solid $danger;
-    background-color: color.adjust($danger, $lightness: 40%);
-    padding: 0px 15px;
-    margin-bottom: 0;
-    border-radius: 20px;
-    text-align: left;
-    line-height: 1.1em; 
-    display: block;
-    font-weight: bold;
+  // border: 1px solid $danger;
+  background-color: color.adjust($danger, $lightness: 40%);
+  padding: 0px 15px;
+  margin-bottom: 0;
+  border-radius: 20px;
+  text-align: left;
+  line-height: 1.1em; 
+  display: block;
+  font-weight: bold;
   p {
     a.button {
       @include button-link;
@@ -436,6 +214,8 @@ table.event-attendees {
 
 
 .add-to-calendar-dropdown {
+  margin-top: 40px;
+  border: 1px solid #636363;
     position: relative;
     display: inline-block;
 }
@@ -469,131 +249,6 @@ table.event-attendees {
     }
 }
 
-
-#mindCalanderList.event-list {
-  display: flex;
-  flex-direction: column;
-  .list_day_container {
-    flex-basis: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    border-left: 6px solid rgb(33, 33, 33);
-    margin-bottom: 30px;
-    .day-label{
-      flex-basis: 100%;
-      font-weight: bold;
-      font-size: 1.6em;
-      color: #fff;
-      text-align: left;
-      background: rgb(33, 33, 33);
-    }
-    .item_meta_container {
-      flex-basis: 100%;
-      display: flex;
-      padding-left: 15px;
-      justify-content: start;
-      flex-wrap: wrap;
-      .event-notice {
-        font-size: .8em;
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-top: 8px;
-        flex-basis: 100%;
-        background-color: rgba(212, 147, 61, 0.3);
-        border: 1px solid $light;
-        padding: 10px 20px;
-        margin-bottom: 10px;
-      }
-
-      
-
-      .meta-item {
-        padding: 6px 0;
-        a {
-          text-decoration: none;
-        }
-        h3 {
-          &.event-title {
-            font-size: 1.2em;
-            margin-top: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-            color: $dark;
-          }
-        }
-        &.time-span {
-            display: flex;
-            flex-direction: column;
-            // justify-content: space-between;
-            flex-basis: 10%;
-            .endtime {
-              margin-top: 20px;
-            }
-        }
-        span.label {
-          display: block;
-          text-transform: uppercase;
-          font-weight: bold;
-          font-size: .6em;
-          white-space: nowrap;
-          line-height: .6em;
-        }
-        span.value {
-          
-          &.eventstarttime {
-            font-weight: bold;
-          }
-          &.eventendtime {
-            font-weight: bold;
-          }
-        }
-        &.starttime {
-          flex-basis: 20%;
-        }
-        &.cost {
-          flex-basis: 18%;
-        }
-        &.description {
-          margin-left: 20px;
-          flex-basis: 53%;
-          padding-right: 10px;
-        }
-        
-        &.link {
-          flex-basis: 30%;
-          // align-items: center;
-          justify-content: flex-end;
-          display: flex;
-          a.button, button{
-            display: block;
-            @include button-link;
-            &.go-to-cart {
-              margin-top: 10px;
-              background: $success;
-              border-color: color.adjust($success, $lightness: -20%);
-              &:hover {
-                background: color.adjust($success, $lightness: -20%);
-              }
-            }
-          }
-
-        }
-        &.offers {
-          display: flex;
-          flex-wrap: wrap;
-          max-width: 30%;
-          .cost {
-            margin: 0 8px 5px 8px;
-          }
-        }
-        
-      }
-
-    }
-  }
-}
 
 .editor-post-taxonomies__hierarchical-terms-list {
   height: unset !important;

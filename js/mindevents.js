@@ -35,12 +35,28 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			closeAllEventMeta();
 		});
 
+		//on resize close all event meta
+		$(window).on('resize', function () {
+			closeAllEventMeta();
+		});
+
 
 		$(document).on('click', '.sub-event-toggle', function (event) {
 			closeAllEventMeta();
 			var eventid = $(this).data('eventid');
 			
-			var metaContainer = $(this).closest('.week-row').after('<div class="meta-container"></div>');
+			//if on desktop:
+			
+
+			//if on mobile:
+			if ($(window).width() < 768) {
+				var metaContainer = $(this).closest('.day-container').after('<div class="meta-container row"></div>');
+			} else {
+				var metaContainer = $(this).closest('.week-row').after('<div class="meta-container row"></div>');
+			}
+
+
+
 			metaContainer = metaContainer.next('.meta-container').html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 			
 

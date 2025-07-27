@@ -1,33 +1,35 @@
 @mixin transition($speed) {
-    -webkit-transition: all $speed ease;
-    -moz-transition: all $speed ease;
-    -ms-transition: all $speed ease;
-    -o-transition: all $speed ease;
-    transition: all $speed ease;
+  -webkit-transition: all $speed ease;
+  -moz-transition: all $speed ease;
+  -ms-transition: all $speed ease;
+  -o-transition: all $speed ease;
+  transition: all $speed ease;
+}
+@mixin button-link {
+  border: 1px solid #fff;
+  border-left: 5px solid #fff;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  font-size: .9em;
+  font-weight: bold;
+  color: #fff;
+  white-space: nowrap;
+  width: 100%;
+  @include transition(300ms);
+  &:hover {
+    border-left-width: 10px;
+    background-color: rgba(255,255,255,.6);
+    @include transition(100ms);
   }
-  @mixin button-link {
-    border: 1px solid #fff;
-    border-left: 5px solid #fff;
-    padding: 6px 8px;
-    margin-bottom: 4px;
-    font-size: .9em;
-    font-weight: bold;
-    color: #fff;
-    white-space: nowrap;
-    width: 100%;
-    @include transition(300ms);
-    &:hover {
-      border-left-width: 10px;
-      background-color: rgba(255,255,255,.6);
-      @include transition(100ms);
-    }
-  }
-  $primary:       rgb(190, 32, 46);
-  $secondary:     rgb(179, 175, 172);
-  $success:       rgb(150, 175, 133);
-  $background:    rgba(250, 251, 252, 1);
-  $info:          rgb(167, 187, 209);
-  $warning:       rgba(201,169,56, 1);
-  $danger:        rgba(201,73,73, 1);
-  $light:         rgb(230, 230, 230);
-  $dark:          rgba(1, 1, 1, 1);
+}
+$primary:       rgb(190, 32, 46); 
+$secondary:     rgb(179, 175, 172);
+$success:       rgb(150, 175, 133);
+$background:    rgba(250, 251, 252, 1);
+$info:          rgb(167, 187, 209);
+$warning:       rgba(201,169,56, 1);
+$danger:        rgba(201,73,73, 1);
+$light:         rgb(230, 230, 230);
+$dark:          rgba(1, 1, 1, 1);
+
+
