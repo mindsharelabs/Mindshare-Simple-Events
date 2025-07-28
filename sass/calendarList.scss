@@ -14,9 +14,9 @@
         }
         .item_meta_container {
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             justify-content: space-between;
-            flex-wrap: wrap;
+            // flex-wrap: wrap;
             .meta-item {
                 flex: 1 1 100%;
                 margin-bottom: 10px;
@@ -46,7 +46,7 @@
                     }
                 }
                 &.description {
-                    
+                    min-width: 70%;
                     .value {
                         display: block;
                     }
@@ -59,4 +59,14 @@
         }
 
     }
+}
+
+@media (min-width: 768px) {
+  #mindCalanderList {
+    .list_day_container {
+      .item_meta_container {
+        flex-direction: row;
+      }
+    }
+  }
 }
