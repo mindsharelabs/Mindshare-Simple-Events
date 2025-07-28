@@ -272,7 +272,7 @@
      // Responsive column classes: col-12 col-sm border p-2
      $classes = 'col-12 col-md border p-0 ps-1 day-container ';
      if ($isToday) $classes .= $this->classes['today'] . ' ';
-     if ($isPast) $classes .= $this->classes['past'] . ' d-none d-md-block ';
+     if ($isPast) $classes .= $this->classes['past'] . ' ';
  
      $out .= '<div class="' . trim($classes) . '">';
      // Add mobile weekday+date display

@@ -1,5 +1,5 @@
 @use "sass:color";
-@use 'utilities' as *; 
+@use 'utilities' as *;
 
 
 
@@ -8,7 +8,9 @@
   margin: 5px 0;
   display: flex;
   justify-content: space-between;
-  button.calnav, button.archive-calnav{
+
+  button.calnav,
+  button.archive-calnav {
     cursor: pointer;
     border: 0;
     padding: 5px 7px;
@@ -16,6 +18,7 @@
     color: #fff;
     background: $primary;
     @include transition(200ms);
+
     span {
       // font-size: 20px;
       // line-height: 24px;
@@ -23,41 +26,50 @@
       font-weight: bold;
       margin: 0 8px;
     }
+
     &.loading {
       display: none;
     }
+
     &:hover {
       @include transition(200ms);
       background: color.adjust(rgb(67, 160, 217), $lightness: -10%)
-    } 
+    }
   }
 }
 
 
-#publicCalendar, #archiveCalendar {
+#publicCalendar,
+#archiveCalendar {
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
   flex-direction: column;
+
   .calendar-nav {
     margin: 5px 0;
     display: flex;
     justify-content: space-between;
+
     h3.month-display {
       margin: 0;
     }
   }
+
   .calendar-day {
     padding: 3px 6px;
     font-weight: bold;
     font-size: .8em;
     margin-bottom: 5px;
   }
+
   .mindEventCalendar {
-  	width: 100%;
+    width: 100%;
+
     .day-container {
       min-width: 14.28%;
+
       .mobile-day-name {
         margin-top: 20px;
         text-align: center;
@@ -67,36 +79,54 @@
     }
 
   }
+
   .week-row {
-        .day-container {
-            .events { 
-                .event {
-                    .sub-event-toggle {
-                        cursor: pointer;
-                        
-                        @include transition(300ms);
-                        &:hover {
-                            //change scale on hover
-                            transform: scale(1.05);
-                            @include transition(100ms);
-                        }
-                    }
-                }
+    .day-container {
+      .events {
+        .event {
+          .sub-event-toggle {
+            cursor: pointer;
+
+            @include transition(300ms);
+
+            &:hover {
+              //change scale on hover
+              transform: scale(1.05);
+              @include transition(100ms);
             }
+            .event-label-container {
+              .event-meta {
+                .event-title {
+                  font-weight: bold;
+                  line-height: 1.1em;
+                }
+                .event-time {
+                  font-weight: bold;
+                  text-transform: uppercase;
+                  font-size: .8em;
+                }
+              }
+            }
+            
+          }
         }
+      }
     }
+  }
 }
 
 
 
 
-#publicCalendar, #mindEventList {
+#publicCalendar,
+#mindEventList {
   .meta_inner_container {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     padding: 25px;
     justify-content: space-between;
+
     button {
       &.event-meta-close {
         background: none;
@@ -107,75 +137,96 @@
         font-size: 29px;
         padding: 3px 15px;
       }
-      
+
     }
-    a.button{
+
+    a.button {
       &.button-link {
         @include button-link;
       }
     }
+
     .featured-image {
       min-width: 25%;
+
       img {
         border: 5px solid #fff;
       }
-      
+
     }
-    .left-content, .right-content {
+
+    .left-content,
+    .right-content {
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
     }
+
     .left-content {
       .event-title {
         margin-top: 10px;
         font-size: 1.5em;
       }
     }
+
     .meta-item {
       .offer-link {
         button {
           display: block;
         }
+
         span {
           display: inline-block;
+
           &.label {
             font-weight: bold;
             text-transform: uppercase;
             font-size: .7em;
           }
         }
-        a, button {
+
+        a,
+        button {
           @include button-link;
         }
       }
+
       .errors {
         font-size: .8em;
       }
     }
   }
 }
-#archiveContainer, #singleEventContainer {
+
+#archiveContainer,
+#singleEventContainer {
   // max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
-  .events-wrap, .content-wrap {
+
+  .events-wrap,
+  .content-wrap {
     margin-bottom: 2em;
+
     h3 {
       // text-align: center;
       margin-bottom: 20px;
       margin-top: 40px;
     }
   }
-  section.content{
+
+  section.content {
     display: flex;
+
     .featured-image-wrap {
-      flex-grow: 1; 
+      flex-grow: 1;
       min-width: 300px;
+
       img {
         width: 100%;
       }
     }
+
     .content-wrap {
       flex-grow: 2;
       text-align: center;
@@ -190,6 +241,7 @@
   }
 
 }
+
 #cartErrorContainer {
   color: $danger;
   // border: 1px solid $danger;
@@ -198,9 +250,10 @@
   margin-bottom: 0;
   border-radius: 20px;
   text-align: left;
-  line-height: 1.1em; 
+  line-height: 1.1em;
   display: block;
   font-weight: bold;
+
   p {
     a.button {
       @include button-link;
@@ -208,7 +261,7 @@
       border-color: $danger;
       max-width: 150px;
       margin-top: 5px;
-    } 
+    }
   }
 }
 
@@ -216,37 +269,41 @@
 .add-to-calendar-dropdown {
   margin-top: 40px;
   border: 1px solid #636363;
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .add-to-calendar-menu {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    z-index: 1000;
-    min-width: 180px;
+  display: none;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 180px;
+  padding: 0;
+  margin: 5px 0 0;
+  list-style: none;
+
+  &.show {
+    display: block;
+  }
+
+  li {
     padding: 0;
-    margin: 5px 0 0;
-    list-style: none;
-    &.show {
-        display: block;
+    font-size: 0.8em;
+
+    a {
+      display: block;
+      padding: 3px 6px;
+      text-decoration: none;
+      color: $dark;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
     }
-    li {
-        padding: 0;
-        font-size: 0.8em;
-        a {
-            display: block;
-            padding: 3px 6px;
-            text-decoration: none;
-            color: $dark;
-            &:hover {
-                background-color: #f0f0f0;
-            }
-        }
-    }
+  }
 }
 
 
