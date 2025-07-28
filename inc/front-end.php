@@ -183,12 +183,23 @@ function make_generate_ics_feed() {
   if($events->have_posts()) {
     while ($events->have_posts()) {
       $events->the_post();
+      $start = get_post_meta(get_the_id(), 'event_start_time_stamp', true); // must be ISO 8601 or timestamp
+      $end = get_post_meta(get_the_id(), 'event_end_time_stamp', true);
+      // Convert from America/Denver to UTC for ICS
+      $tz = new DateTimeZone('America/Denver');
+      $start_dt = new DateTime($start, $tz);
+      $end_dt = new DateTime($end, $tz);
+      $start_dt->setTimezone(new DateTimeZone('UTC'));
+      $end_dt->setTimezone(new DateTimeZone('UTC'));
+
+      $dtstart = $start_dt->format('Ymd\THis\Z');
+      $dtend   = $end_dt->format('Ymd\THis\Z');
       
         $output .= "BEGIN:VEVENT\r\n";
-        $output .= "UID:" . uniqid() . "@makesantafe.org\r\n";
+        $output .= "UID:" . get_the_id() . "@makesantafe.org\r\n";
         $output .= "DTSTAMP:" . gmdate('Ymd\THis\Z', strtotime(get_the_date())) . "\r\n";
-        $output .= "DTSTART:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_start_time_stamp', true))) . "\r\n";
-        $output .= "DTEND:" . gmdate('Ymd\THis\Z', strtotime(get_post_meta(get_the_ID(), 'event_end_time_stamp', true))) . "\r\n";
+        $output .= "DTSTART:" . $dtstart . "\r\n";
+        $output .= "DTEND:" . $dtend . "\r\n";
         $output .= "SUMMARY:" . esc_html(get_the_title(get_post_parent(get_the_ID()))) . "\r\n";
         $output .= "DESCRIPTION:" . get_the_excerpt(get_post_parent(get_the_ID())). "\r\n";
         $output .= "LOCATION:" . esc_html(get_post_meta(get_the_ID(), 'event_location', true)) . "\r\n";
@@ -197,6 +208,7 @@ function make_generate_ics_feed() {
   }
 
   $output .= "END:VCALENDAR\r\n";
+  mapi_write_log($output);
   return $output;
 }
 
@@ -212,8 +224,15 @@ function make_generate_single_event_ics($event_id) {
     $location = get_post_meta($event_id, 'event_location', true);
     $description = get_the_excerpt(get_post_parent($event_id));
 
-    $dtstart = gmdate('Ymd\THis\Z', strtotime($start));
-    $dtend   = gmdate('Ymd\THis\Z', strtotime($end));
+    // Convert from America/Denver to UTC for ICS
+    $tz = new DateTimeZone('America/Denver');
+    $start_dt = new DateTime($start, $tz);
+    $end_dt = new DateTime($end, $tz);
+    $start_dt->setTimezone(new DateTimeZone('UTC'));
+    $end_dt->setTimezone(new DateTimeZone('UTC'));
+
+    $dtstart = $start_dt->format('Ymd\THis\Z');
+    $dtend   = $end_dt->format('Ymd\THis\Z');
     $dtstamp = gmdate('Ymd\THis\Z');
 
     return "BEGIN:VCALENDAR\r\n" .
