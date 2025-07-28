@@ -543,17 +543,21 @@ class mindEventCalendar
     $html = '';
     $starttime = get_post_meta($event->ID, 'starttime', true);
     $endtime = get_post_meta($event->ID, 'endtime', true);
+    $is_featured = get_post_meta($event->post_parent, 'is_featured', true);
     //if in past add class
     $is_past = $this->today->format('Y-m-d') > get_post_meta($event->ID, 'event_date', true) ? true : false;
     $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . '">';
-    //TODO: use badge image in place of thumbnail
-    // if($thumb) :
-    //     $html .= '<div class="event-thumb">' . $thumb . '</div>';
-    // endif;
-    $html .= '<div class="event-meta">';
-    $html .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
-    $html .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
-    $html .= '</div>';
+      
+
+    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'cal-thumb');
+    if ($thumb && $is_featured) {
+      $html .= '<div class="event-thumb">' . $thumb . '</div>';
+    }
+
+      $html .= '<div class="event-meta">';
+        $html .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
+        $html .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
+      $html .= '</div>';
     $html .= '</div>';
     return $html;
   }

@@ -95,6 +95,7 @@
               @include transition(100ms);
             }
             .event-label-container {
+              display: flex;
               .event-meta {
                 .event-title {
                   font-weight: bold;
@@ -103,7 +104,14 @@
                 .event-time {
                   font-weight: bold;
                   text-transform: uppercase;
-                  font-size: .8em;
+                  font-size: .9em;
+                }
+              }
+              .event-thumb {
+                margin: 0 5px 0px 0;
+                
+                img {
+                  border: 3px solid #fff;
                 }
               }
             }
