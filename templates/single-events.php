@@ -77,10 +77,6 @@ echo '<main role="main" aria-label="Content">';
             elseif($display_type == 'calendar') :
               echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
-              echo '<div class="calendar-nav">';
-                echo '<button data-dir="prev" class="calnav prev"><span><i class="fas fa-arrow-left"></i></span></button>';
-                echo '<button data-dir="next" class="calnav next"><span><i class="fas fa-arrow-right"></i></span></button>';
-              echo '</div>';
               echo '<div id="publicCalendar">';
                 echo $calendar->get_front_calendar();
               echo '</div>';

@@ -38,14 +38,17 @@
 
  function __construct($id = '', $calendarDate = null, $today = null ) {
 
-
    $this->setToday($today);
    $this->setCalendarClasses();
-
 
    if($id == 'archive') :
      $this->all_events = $this->get_all_events();
    endif;
+
+   // Allow calendar_date from query string if present
+   if (isset($_GET['calendar_date'])) {
+     $calendarDate = sanitize_text_field($_GET['calendar_date']);
+   }
 
    if($calendarDate) :
      $this->setDate($calendarDate);
@@ -59,15 +62,12 @@
 
    $this->show_past_events = true;
 
-
    $date = new DateTime('now');
    $date->modify('first day of next month');
    $this->next_month = $date->format('m');
 
    $this->currency_symbol = (isset($this->options[MINDEVENTS_PREPEND . 'currency_symbol']) ? $this->options[MINDEVENTS_PREPEND . 'currency_symbol'] : '$');
    $this->calendar_start_day = (isset($this->options[MINDEVENTS_PREPEND . 'start_day']) ? $this->options[MINDEVENTS_PREPEND . 'start_day'] : 'Monday');
-
-
  }
  private function define( $name, $value ) {
    if ( ! defined( $name ) ) {
@@ -236,7 +236,7 @@
   * @return string
   */
  public function render() {
-   $out = '';
+   $out = $this->get_calendar_nav_links();
    $now   = getdate($this->now->getTimestamp());
    $today = [ 'mday' => -1, 'mon' => -1, 'year' => -1 ];
    if( $this->today !== null ) {
@@ -302,6 +302,26 @@
      $out .= '<div class="col border ' . $this->classes['trailing_day'] . '">&nbsp;</div>';
    }
    $out .= '</div></div>';
+   return $out;
+ }
+
+ /**
+  * Generate Previous/Next month navigation links that update the query string.
+  */
+ public function get_calendar_nav_links() {
+   $prevMonth = clone $this->now;
+   $prevMonth = $prevMonth->modify('first day of previous month')->format('Y-m-d');
+
+   $nextMonth = clone $this->now;
+   $nextMonth = $nextMonth->modify('first day of next month')->format('Y-m-d');
+
+   $currentUrl = strtok($_SERVER["REQUEST_URI"], '?');
+
+   $out  = '<div class="calendar-nav d-flex justify-content-between mb-3 w-100">';
+    $out .= '<a href="' . $currentUrl . '?calendar_date=' . $prevMonth . '" class="btn btn-sm btn-outline-primary"><i class="fas fa-chevron-left"></i> ' . date('F', strtotime($prevMonth)) . '</a>';
+    $out .= '<a href="' . $currentUrl . '?calendar_date=' . $nextMonth . '" class="btn btn-sm btn-outline-primary">' . date('F', strtotime($nextMonth)) . ' <i class="fas fa-chevron-right"></i></a>';
+   $out .= '</div>';
+
    return $out;
  }
 
