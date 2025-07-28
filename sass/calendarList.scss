@@ -20,8 +20,9 @@
             .meta-item {
                 flex: 1 1 100%;
                 margin-bottom: 10px;
+                flex: 1 1 auto;
                 &.time-span {
-                    max-width: 200px;
+                    min-width: 200px;
                     .starttime {
                         .label {
                             font-size: .6em;
@@ -46,12 +47,12 @@
                     }
                 }
                 &.description {
-                    min-width: 70%;
                     .value {
                         display: block;
                     }
                 }
                 &.link {
+                    min-width: 200px;
                     align-self: flex-end;
                     min-width: 300px;
                 }
