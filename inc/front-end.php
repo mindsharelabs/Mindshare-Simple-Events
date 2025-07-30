@@ -208,7 +208,7 @@ function make_generate_ics_feed() {
   }
 
   $output .= "END:VCALENDAR\r\n";
-
+  mapi_write_log($output);
   return $output;
 }
 

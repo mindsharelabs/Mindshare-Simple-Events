@@ -187,6 +187,21 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					
 					if(response.success) {
 						button.prop('disabled', false);
+						// Google Analytics 4 add_to_cart event
+						
+						if (typeof gtag === 'function') {
+							
+							gtag('event', 'add_to_cart', {
+								event_category: 'MindEvents',
+								event_label: event_date,
+								value: quantity,
+								items: [{
+									item_id: product_id,
+									event_date: event_date, // optional: product name
+									quantity: quantity
+								}]
+							});
+						}
 						//get current style string of button
 						var style = button.attr('style');
 						//hide button
