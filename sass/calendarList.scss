@@ -1,28 +1,29 @@
 #mindCalanderList {
     .list_day_container {
-        background-color: rgb(245, 245, 245); 
-        border-radius: 20px;
-        padding: 10px;
-        border: 1px solid rgb(221, 221, 221);
-        margin-bottom: 20px;
+        
         .day-label {
             margin-bottom: 10px;
-            .calendar-day {
-                font-weight: bold;
-                font-size: 1.2em;
-            }
+            font-size: 1.8em;
+            font-weight: 300;
+            text-align: center;
+            margin-top: 30px;
         }
         .item_meta_container {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            background-color: rgb(245, 245, 245); 
+            border-radius: 20px;
+            padding: 10px;
+            border: 1px solid rgb(221, 221, 221);
+            margin-bottom: 20px;
             // flex-wrap: wrap;
             .meta-item {
                 flex: 1 1 100%;
                 margin-bottom: 10px;
                 flex: 1 1 auto;
                 &.time-span {
-                    min-width: 200px;
+                    
                     .starttime {
                         .label {
                             font-size: .6em;
@@ -52,9 +53,9 @@
                     }
                 }
                 &.link {
-                    min-width: 200px;
-                    align-self: flex-end;
-                    min-width: 300px;
+                    // min-width: 200px;
+                    // align-self: flex-end;
+                    // min-width: 300px;
                 }
             }
         }

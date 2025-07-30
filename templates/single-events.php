@@ -70,7 +70,7 @@ echo '<main role="main" aria-label="Content">';
             if($display_type == 'list') :
               echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h3>Occurences</h3>');
               do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
-              echo '<div id="mindEventList" class="mindevents-list">';
+              echo '<div id="mindEventList" class="mindevents-list container">';
                 echo $calendar->get_front_list();
               echo '</div>';
               do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());

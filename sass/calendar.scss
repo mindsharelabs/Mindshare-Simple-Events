@@ -57,12 +57,6 @@
     }
   }
 
-  .calendar-day {
-    padding: 3px 6px;
-    font-weight: bold;
-    font-size: .8em;
-    margin-bottom: 5px;
-  }
 
   .mindEventCalendar {
     width: 100%;
@@ -275,7 +269,7 @@
 
 
 .add-to-calendar-dropdown {
-  margin-top: 40px;
+  margin-top: 10px;
   border: 1px solid #636363;
   position: relative;
   display: inline-block;

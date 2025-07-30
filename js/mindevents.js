@@ -177,7 +177,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					event_date : event_date
 				},
 				beforeSend: function() {
-					$('.go-to-cart').remove();
+					$(this).find('.go-to-cart').remove();
 					button.prop('disabled', true);
 				},
 				afterSend: function() {
@@ -202,11 +202,10 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 								}]
 							});
 						}
-						//get current style string of button
-						var style = button.attr('style');
+
 						//hide button
 						button.hide();
-						buttonParent.append('<a class="button go-to-cart" style="' + style + '" href="' + mindeventsSettings.cart_url + '">Success! Go to Cart.</a>');
+						buttonParent.append('<a class="btn btn-primary go-to-cart w-100 vf-bold" href="' + mindeventsSettings.cart_url + '">Success! Go to Cart.</a>');
 						//increment cart icon count
 						$('.cart-contents-count').find('svg').attr('data-icon', 'circle-' + response.data.cart_count);
 				

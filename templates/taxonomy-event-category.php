@@ -23,7 +23,7 @@ echo '<main role="main" aria-label="Content">';
         echo '<div class="row">';
           echo '<div class="col-12">';
           //display category title
-            echo '<h1 class="event-category-title text-center">';
+            echo '<h1 class="event-category-title text-center display-3">';
               echo $queried->name;
             echo '</h1>';
 
@@ -46,13 +46,9 @@ echo '<main role="main" aria-label="Content">';
 
       echo '<div id="archiveContainer" class="calendar-wrap">';
         do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
-        echo '<div class="calendar-nav">';
-          echo '<button data-dir="prev" data-cat="' . $queried->slug . '" class="calnav prev"><span>&#8592;</span></button>';
-          echo '<button data-dir="next" data-cat="' . $queried->slug . '" class="calnav next"><span>&#8594;</span></button>';
-        echo '</div>';
         do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
-        echo '<div id="publicCalendar">';
-          echo $calendar->get_front_calendar('archive');
+        echo '<div id="publicCalendar" class="container">';
+          echo $calendar->get_front_list('archive');
         echo '</div>';
       echo '</div>';
 

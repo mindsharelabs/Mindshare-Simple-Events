@@ -665,7 +665,7 @@ class mindEventCalendar
 
     $meta = get_post_meta($event);
 
-    $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail(get_post_parent($event), 'medium', array('class' => 'event-image')), $event);
+  
     $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
@@ -694,7 +694,7 @@ class mindEventCalendar
         $style_str['color'] = 'color:' . $color . ';';
       endif;
 
-      $html = '<div class="item_meta_container">';
+      $html = '<div class="item_meta_container row">';
       if ($is_past):
         $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
       endif;
@@ -707,37 +707,33 @@ class mindEventCalendar
           $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
         endif;
       endif;
-      if ($this->is_archive):
 
-        if ($image):
-          $html .= '<div class="featured-image mb-2">';
-          $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-          $html .= $image;
-          $html .= '</a>';
+      if ($this->is_archive):
+        $html .= '<div class="col-12">';
+          $html .= '<div class="row">';
+            if ($sub_event_obj->post_parent):
+              $html .= '<div class="meta-item col-12 col-md-9">';
+                $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                  $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+                $html .= '</a>';
+              $html .= '</div>';
+            endif;
           $html .= '</div>';
-        endif;
-        if ($sub_event_obj->post_parent):
-          $html .= '<div class="meta-item">';
-          $html .= '<a style="' . implode(' ', $style_str) . '" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-          $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-          $html .= '</a>';
-          $html .= '</div>';
-        endif;
+        $html .= '</div>';
       endif;
 
       if ($meta['event_date'][0]):
-        $html .= '<div class="meta-item time-span">';
-        $html .= '<div class="starttime">';
-        $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
-        $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
-        $html .= "</div>";
+        $html .= '<div class="meta-item time-span col-6 col-md-2">';
 
-        $html .= '<div class="endtime">';
-        $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
-        $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
-        $html .= '</div>';
+          $html .= '<div class="starttime">';
+            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
+            $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
+          $html .= "</div>";
 
-
+          $html .= '<div class="endtime">';
+            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
+            $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
+          $html .= '</div>';
 
         $html .= '</div>';
 
@@ -746,7 +742,7 @@ class mindEventCalendar
 
 
       if ($description):
-        $html .= '<div class="meta-item description">';
+        $html .= '<div class="meta-item description col-12 col-md-7">';
         $html .= '<span class="value eventdescription d-block">' . $description . '</span>';
         $html .= make_get_event_add_to_calendar_links($event);
 
@@ -757,13 +753,13 @@ class mindEventCalendar
             $display_profile_publicly = get_field('display_profile_publicly', 'user_' . $instructor->ID);
             if ($display_profile_publicly):
               $html .= '<div class="meta-item instructor mt-4">';
-              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'Instructor') . '</span>';
+              $html .= '<span class="label fw-bold small ">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'INSTRUCTOR') . '</span>';
               if ($instructor):
                 $author_link = get_author_posts_url($instructor->ID);
                 $html .= '<div class="instructor-name">';
-                $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
-                $html .= $instructor->display_name;
-                $html .= '</a>';
+                  $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
+                    $html .= $instructor->display_name;
+                  $html .= '</a>';
                 $html .= '</div>';
               endif;
               $html .= '</div>';
@@ -802,7 +798,7 @@ class mindEventCalendar
 
         elseif ($meta['offers'][0]):
           $offers = unserialize($meta['offers'][0]);
-          $html .= '<div class="offers meta-item">';
+          $html .= '<div class="offers meta-item col-12 col-md-3">';
           foreach ($offers as $key => $offer):
             $html .= $this->build_offer_link($offer);
           endforeach;
@@ -822,9 +818,8 @@ class mindEventCalendar
       $offer['label'] = __('Add to Cart', 'makesantafe');
     endif;
 
-    $style_str = 'color: ' . $offer['color'] . '; border-color:' . $offer['color'] . '; background: ' . $offer['background'] . ';';
     $options = get_option(MINDEVENTS_PREPEND . 'support_settings');
-    $html = '<div class="meta-item link">';
+    $html = '<div class="meta-item link col-12 col-md-3">';
     $html .= '<div class="offer-link">';
     // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
 
@@ -844,19 +839,18 @@ class mindEventCalendar
              data-product_id="' . $offer['product_id'] . '"
              data-quantity="' . $offer['quantity'] . '"
              data-event_date="' . $offer['event_date'] . '"
-             class="button mindevents-add-to-cart" 
-             style="' . $style_str . '"
+             class="btn btn-primary mb-3 mindevents-add-to-cart w-100" 
              ' . ($stock ? '' : 'disabled') . '
              >';
 
 
       if ($in_cart):
-        $html .= '<span class="in-cart">Item In Cart, Add more (+1)</span>';
+        $html .= '<span class="in-cart fw-bold d-block">Item In Cart</span><span class="small d-block">Add more (+1)</span>';
       else:
         if ($stock):
-          $html .= $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
+          $html .= '<span class="d-inline-block fw-bold">' . $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '') . '</span>';
           if ($stock > 0):
-            $html .= ' (' . $stock . ' Available)';
+            $html .= '<span class="small d-block"> (' . $stock . ' Available)</span>';
           endif;
         else:
           $html .= 'Out of Stock';
@@ -866,11 +860,11 @@ class mindEventCalendar
       $html .= '</button>';
 
       if ($in_cart):
-        $html .= '<a href="' . wc_get_cart_url() . '" style="' . $style_str . '" class="button go-to-cart">Go to cart.</a>';
+        $html .= '<a href="' . wc_get_cart_url() . '"  class="btn-sm btn btn-info w-100 go-to-cart">Go to cart.</a>';
       endif;
     else:
 
-      $html .= '<a href="' . $offer['link'] . '" class="button" target="_blank" style="' . $style_str . '">';
+      $html .= '<a href="' . $offer['link'] . '" class="button" target="_blank" >';
 
       $html .= ($offer['price'] ? $this->currency_symbol . $offer['price'] : $offer['label']);
 
