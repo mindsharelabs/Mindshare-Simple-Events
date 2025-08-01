@@ -895,24 +895,29 @@ class mindEventCalendar
     $meta = get_post_meta($eventID);
     $color = (isset($meta['eventColor'][0]) ? $meta['eventColor'][0] : false);
     if (!$color):
-      //get event category
-      $event_categories = get_the_terms($eventID, 'event_category');
-      if (!$event_categories):
-        $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
-      endif;
-
-
-
-      if ($event_categories):
-        foreach ($event_categories as $key => $term):
-          $color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
-          if ($color):
-            break;
-          endif;
-        endforeach;
-      endif;
-
-
+      // Try Yoast primary category first if available
+      if (class_exists('WPSEO_Primary_Term')) {
+        $primary_term = new WPSEO_Primary_Term('event_category', $eventID);
+        $primary_term_id = $primary_term->get_primary_term();
+        if ($primary_term_id && !is_wp_error($primary_term_id)) {
+          $color = get_field('event_color', 'event_category_' . $primary_term_id);
+        }
+      }
+      // Fallback to first event category with a color
+      if (!$color) {
+        $event_categories = get_the_terms($eventID, 'event_category');
+        if (!$event_categories) {
+          $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
+        }
+        if ($event_categories):
+          foreach ($event_categories as $key => $term):
+            $color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
+            if ($color):
+              break;
+            endif;
+          endforeach;
+        endif;
+      }
       if (!$color):
         $color = '#858585';
       endif;
