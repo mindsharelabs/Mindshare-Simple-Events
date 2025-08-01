@@ -819,7 +819,7 @@ class mindEventCalendar
     endif;
 
     $options = get_option(MINDEVENTS_PREPEND . 'support_settings');
-    $html = '<div class="meta-item link col-12 col-md-3">';
+    $html = '<div class="meta-item link">';
     $html .= '<div class="offer-link">';
     // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
 
