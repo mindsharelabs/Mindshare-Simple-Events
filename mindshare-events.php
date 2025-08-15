@@ -76,7 +76,6 @@ class mindEvents {
       include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
     endif;
 
-
   
     
 

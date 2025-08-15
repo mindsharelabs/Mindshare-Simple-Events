@@ -21,8 +21,49 @@ class mindEventsWooCommerce {
         //attendee management
         add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
 
+        // Initialize order stats for existing sub events (run once, but more efficiently)
+        add_action('wp_loaded', array($this, 'maybe_initialize_order_stats'));
+
         $this->event = ($event ? $event : false);
         $this->event_type = get_post_meta($this->event, 'event_type', true);
+    }
+
+    /**
+     * Initialize order stats for existing sub events if not already done
+     * This ensures the fields show up in Admin Columns
+     */
+    public function maybe_initialize_order_stats() {
+        // Only run in admin and for users who can manage options
+        if (!is_admin() || !current_user_can('manage_options')) {
+            return;
+        }
+        
+        // Check if we've already initialized or if manually disabled
+        $initialized = get_option('mindevents_order_stats_initialized', false);
+        $disabled = get_option('mindevents_disable_auto_init', false);
+        
+        if (!$initialized && !$disabled) {
+            // Set a flag to prevent multiple simultaneous runs
+            $running = get_transient('mindevents_initializing_stats');
+            if ($running) {
+                return;
+            }
+            
+            // Set a 5-minute lock
+            set_transient('mindevents_initializing_stats', true, 300);
+            
+            try {
+                // Process in smaller batches to prevent timeout
+                $this->recalculate_all_sub_event_stats_batched();
+                update_option('mindevents_order_stats_initialized', true);
+            } catch (Exception $e) {
+                // Log error but don't crash the site
+                error_log('MinEvents: Error initializing order stats: ' . $e->getMessage());
+            }
+            
+            // Clear the lock
+            delete_transient('mindevents_initializing_stats');
+        }
     }
 
     public function add_event_options() {
@@ -34,17 +75,27 @@ class mindEventsWooCommerce {
             return;
         endif;
 
+        // Get affected sub events for order stats update
+        $affected_sub_events = array();
+        $order_obj = wc_get_order($order);
+        if($order_obj && $order_obj->get_items()) :
+            foreach($order_obj->get_items() as $line_item) :
+                $product_id = $line_item->get_product_id();
+                $sub_event_id = $this->get_sub_event_by_product_id($product_id);
+                if($sub_event_id) :
+                    $affected_sub_events[] = $sub_event_id;
+                endif;
+            endforeach;
+        endif;
 
-
-        if( $to == 'refunded' || 
-            $to == 'cancelled' || 
-            $to == 'failed' || 
-            $to == 'on-hold' || 
+        if( $to == 'refunded' ||
+            $to == 'cancelled' ||
+            $to == 'failed' ||
+            $to == 'on-hold' ||
             $to == 'pending'
             ) :
             $this->remove_attendee($order);
             $this->clear_schedule_hook($order);
-
 
         endif;
 
@@ -60,10 +111,14 @@ class mindEventsWooCommerce {
             $this->schedule_hook($order);
         endif;
 
+        // Update order stats for affected sub events
+        foreach($affected_sub_events as $sub_event_id) :
+            $this->update_sub_event_order_stats($sub_event_id);
+        endforeach;
+
     }
    
     
-
 
     private function schedule_hook($order_id) {
        
@@ -373,7 +428,6 @@ class mindEventsWooCommerce {
         endif;
         
 
-
        
         update_post_meta($product_id, 'linkedEventStartDate', $start_date );
         update_post_meta($product_id, 'linkedEventEndDate', $end_date );
@@ -416,11 +470,6 @@ class mindEventsWooCommerce {
         return sanitize_title($eventID . '_' . $start_date);
     }
 
-
-
-
-
-
     /**
      * Get All orders IDs for a given product ID.
      *
@@ -462,9 +511,285 @@ class mindEventsWooCommerce {
         return $statuses;
     }
 
+    /**
+     * Calculate and update related orders count for a sub event
+     * Uses the same data source as the admin attendee display
+     *
+     * @param int $sub_event_id The ID of the sub event
+     * @return int Number of related orders
+     */
+    public function calculate_related_orders_count($sub_event_id) {
+        // Get the parent event ID
+        $parent_id = wp_get_post_parent_id($sub_event_id);
+        if (!$parent_id) {
+            update_post_meta($sub_event_id, 'related_orders_count', 0);
+            return 0;
+        }
+
+        // Get attendees data from parent event (same as admin interface)
+        $attendees = get_post_meta($parent_id, 'attendees', true);
+        $attendees_for_sub = isset($attendees[$sub_event_id]) ? $attendees[$sub_event_id] : array();
+        
+        // Count total attendees (spots purchased) from valid orders
+        $valid_attendees = 0;
+        foreach ($attendees_for_sub as $attendee) {
+            if (isset($attendee['order_id'])) {
+                $order = wc_get_order($attendee['order_id']);
+                if ($order && in_array($order->get_status(), array('completed', 'processing'))) {
+                    $valid_attendees++;
+                }
+            }
+        }
+        
+        $valid_orders = $valid_attendees;
+        
+        update_post_meta($sub_event_id, 'related_orders_count', $valid_orders);
+        return $valid_orders;
+    }
+
+    /**
+     * Calculate and update total revenue for a sub event
+     * Uses the same data source as the admin attendee display
+     *
+     * @param int $sub_event_id The ID of the sub event
+     * @return float Total revenue from orders
+     */
+    public function calculate_total_revenue($sub_event_id) {
+        // Get the parent event ID
+        $parent_id = wp_get_post_parent_id($sub_event_id);
+        if (!$parent_id) {
+            update_post_meta($sub_event_id, 'total_revenue', 0);
+            return 0;
+        }
+
+        // Get attendees data from parent event (same as admin interface)
+        $attendees = get_post_meta($parent_id, 'attendees', true);
+        $attendees_for_sub = isset($attendees[$sub_event_id]) ? $attendees[$sub_event_id] : array();
+        
+        // Collect unique order IDs to avoid counting revenue multiple times
+        $unique_order_ids = array();
+        foreach ($attendees_for_sub as $attendee) {
+            if (isset($attendee['order_id']) && !in_array($attendee['order_id'], $unique_order_ids)) {
+                $order = wc_get_order($attendee['order_id']);
+                if ($order && in_array($order->get_status(), array('completed', 'processing'))) {
+                    $unique_order_ids[] = $attendee['order_id'];
+                }
+            }
+        }
+        
+        // Calculate revenue from unique orders only
+        $total_revenue = 0;
+        foreach ($unique_order_ids as $order_id) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                $total_revenue += floatval($order->get_total());
+            }
+        }
+        
+        update_post_meta($sub_event_id, 'total_revenue', $total_revenue);
+        return $total_revenue;
+    }
+
+    /**
+     * Calculate and update customer orders list for a sub event
+     * Creates an array of Order ID: Customer Name with clickable links
+     *
+     * @param int $sub_event_id The ID of the sub event
+     * @return array Formatted customer orders array
+     */
+    public function calculate_customer_orders_list($sub_event_id) {
+        // Get the parent event ID
+        $parent_id = wp_get_post_parent_id($sub_event_id);
+        if (!$parent_id) {
+            update_post_meta($sub_event_id, 'customer_orders_list', array());
+            return array();
+        }
+
+        // Get attendees data from parent event
+        $attendees = get_post_meta($parent_id, 'attendees', true);
+        $attendees_for_sub = isset($attendees[$sub_event_id]) ? $attendees[$sub_event_id] : array();
+        
+        // Collect unique orders with customer info and clickable links
+        $customer_orders = array();
+        $processed_orders = array();
+        
+        foreach ($attendees_for_sub as $attendee) {
+            if (isset($attendee['order_id']) && !in_array($attendee['order_id'], $processed_orders)) {
+                $order = wc_get_order($attendee['order_id']);
+                if ($order && in_array($order->get_status(), array('completed', 'processing'))) {
+                    $customer_name = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
+                    if (empty(trim($customer_name))) {
+                        $customer_name = $order->get_billing_email();
+                    }
+                    
+                    // Create clickable order link with line break
+                    $order_link = '<a href="' . admin_url('post.php?post=' . $attendee['order_id'] . '&action=edit') . '" target="_blank">Order #' . $attendee['order_id'] . '</a>';
+                    
+                    $customer_orders[] = $order_link . ': ' . $customer_name . '<br>';
+                    $processed_orders[] = $attendee['order_id'];
+                }
+            }
+        }
+        
+        update_post_meta($sub_event_id, 'customer_orders_list', $customer_orders);
+        return $customer_orders;
+    }
+
+    /**
+     * Update order stats for a sub event when order status changes
+     *
+     * @param int $sub_event_id The ID of the sub event
+     */
+    public function update_sub_event_order_stats($sub_event_id) {
+        $this->calculate_related_orders_count($sub_event_id);
+        $this->calculate_total_revenue($sub_event_id);
+        $this->calculate_customer_orders_list($sub_event_id);
+    }
+
+    /**
+     * Get sub event ID from product ID
+     *
+     * @param int $product_id The WooCommerce product ID
+     * @return int|false Sub event ID or false if not found
+     */
+    public function get_sub_event_by_product_id($product_id) {
+        $args = array(
+            'post_type' => 'sub_event',
+            'meta_query' => array(
+                array(
+                    'key' => 'linked_product',
+                    'value' => $product_id,
+                    'compare' => '='
+                )
+            ),
+            'posts_per_page' => 1,
+            'fields' => 'ids'
+        );
+        
+        $results = get_posts($args);
+        return !empty($results) ? $results[0] : false;
+    }
+
+    /**
+     * Recalculate order stats for all sub events
+     * Useful for initial setup or data migration
+     */
+    public function recalculate_all_sub_event_stats() {
+        $args = array(
+            'post_type' => 'sub_event',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'meta_query' => array(
+                array(
+                    'key' => 'linked_product',
+                    'compare' => 'EXISTS'
+                )
+            )
+        );
+        
+        $sub_events = get_posts($args);
+        
+        foreach ($sub_events as $sub_event_id) {
+            $this->update_sub_event_order_stats($sub_event_id);
+        }
+        
+        return count($sub_events);
+    }
+
+    /**
+     * Recalculate order stats in batches to prevent timeouts
+     */
+    public function recalculate_all_sub_event_stats_batched() {
+        // First, get ALL sub events with linked products
+        $args = array(
+            'post_type' => 'sub_event',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'meta_query' => array(
+                array(
+                    'key' => 'linked_product',
+                    'compare' => 'EXISTS'
+                )
+            )
+        );
+        
+        $all_sub_events = get_posts($args);
+        
+        // Initialize ALL with zero values first (fast operation)
+        foreach ($all_sub_events as $sub_event_id) {
+            if (!get_post_meta($sub_event_id, 'related_orders_count', true)) {
+                update_post_meta($sub_event_id, 'related_orders_count', 0);
+            }
+            if (!get_post_meta($sub_event_id, 'total_revenue', true)) {
+                update_post_meta($sub_event_id, 'total_revenue', 0);
+            }
+        }
+        
+        // Then calculate actual values for first batch only (slow operation)
+        $first_batch = array_slice($all_sub_events, 0, 20);
+        foreach ($first_batch as $sub_event_id) {
+            $this->update_sub_event_order_stats($sub_event_id);
+        }
+        
+        // Schedule the rest to be processed later
+        if (count($all_sub_events) > 20) {
+            wp_schedule_single_event(time() + 30, 'mindevents_process_remaining_stats', array(20));
+        }
+        
+        return count($all_sub_events);
+    }
+
+    /**
+     * Process remaining sub events in background
+     */
+    public function process_remaining_sub_event_stats($offset = 0) {
+        $args = array(
+            'post_type' => 'sub_event',
+            'posts_per_page' => 20,
+            'offset' => $offset,
+            'fields' => 'ids',
+            'meta_query' => array(
+                array(
+                    'key' => 'linked_product',
+                    'compare' => 'EXISTS'
+                )
+            )
+        );
+        
+        $sub_events = get_posts($args);
+        
+        foreach ($sub_events as $sub_event_id) {
+            $this->update_sub_event_order_stats($sub_event_id);
+        }
+        
+        // Schedule next batch if there are more
+        if (count($sub_events) == 20) {
+            wp_schedule_single_event(time() + 30, 'mindevents_process_remaining_stats', array($offset + 20));
+        }
+    }
+
+    /**
+     * Force recalculation of ALL sub event stats (for manual use)
+     * You can call this function to ensure all sub events are processed
+     */
+    public function force_recalculate_all_stats() {
+        // Reset the initialization flag to allow re-processing
+        delete_option('mindevents_order_stats_initialized');
+        delete_transient('mindevents_initializing_stats');
+        
+        // Run the full recalculation
+        return $this->recalculate_all_sub_event_stats();
+    }
+
 }
 
 
+
+// Register the background processing hook
+add_action('mindevents_process_remaining_stats', function($offset) {
+    $woo_events = new mindEventsWooCommerce();
+    $woo_events->process_remaining_sub_event_stats($offset);
+});
 
 add_action('init', function() {
     new mindEventsWooCommerce();
