@@ -169,6 +169,26 @@ class mindeventsAdmin {
       echo '</label></p>';
     echo '</div>';
 
+    // Add expense fields for profit calculation
+    $instructor_expense = get_post_meta(get_the_ID(), 'instructor_expense', true);
+    $materials_expense = get_post_meta(get_the_ID(), 'materials_expense', true);
+    
+    echo '<div class="form-section">';
+      echo '<p class="label"><label for="event_meta_instructor_expense">Instructor Expense ($)</label></p>';
+      echo '<div class="input-wrap">';
+        echo '<input type="number" name="event_meta[instructor_expense]" id="event_meta_instructor_expense" value="' . esc_attr($instructor_expense) . '" step="0.01" min="0">';
+        echo '<p class="description">Cost for instructor per sub event</p>';
+      echo '</div>';
+    echo '</div>';
+
+    echo '<div class="form-section">';
+      echo '<p class="label"><label for="event_meta_materials_expense">Materials Expense ($)</label></p>';
+      echo '<div class="input-wrap">';
+        echo '<input type="number" name="event_meta[materials_expense]" id="event_meta_materials_expense" value="' . esc_attr($materials_expense) . '" step="0.01" min="0">';
+        echo '<p class="description">Cost for materials per attendee (will be multiplied by number of attendees)</p>';
+      echo '</div>';
+    echo '</div>';
+
     echo '</div>';
   }
 

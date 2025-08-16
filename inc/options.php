@@ -314,14 +314,32 @@ class mindEventsOptions {
         $customer_orders_list = $customer_orders;
       }
       
+      // Calculate profit
+      $profit = 0;
+      if ($parent_id) {
+        // Get expense values from parent event
+        $instructor_expense = (float) get_post_meta($parent_id, 'instructor_expense', true);
+        $materials_expense_per_attendee = (float) get_post_meta($parent_id, 'materials_expense', true);
+        
+        // Calculate total materials expense (per attendee × number of attendees)
+        $total_materials_expense = $materials_expense_per_attendee * $related_orders_count;
+        
+        // Calculate total expenses
+        $total_expenses = $instructor_expense + $total_materials_expense;
+        
+        // Calculate profit (can be negative)
+        $profit = $total_revenue - $total_expenses;
+      }
+      
       // Update meta fields
       update_post_meta($sub_event_id, 'related_orders_count', $related_orders_count);
       update_post_meta($sub_event_id, 'total_revenue', $total_revenue);
       update_post_meta($sub_event_id, 'customer_orders_list', isset($customer_orders_list) ? $customer_orders_list : array());
+      update_post_meta($sub_event_id, 'sub_event_profit', $profit);
       
       if ($related_orders_count > 0) {
         $found_data++;
-        $details[] = "✓ Sub Event #{$sub_event_id}: {$related_orders_count} orders, $" . number_format($total_revenue, 2);
+        $details[] = "✓ Sub Event #{$sub_event_id}: {$related_orders_count} orders, $" . number_format($total_revenue, 2) . ", Profit: $" . number_format($profit, 2);
       }
       
       $processed++;

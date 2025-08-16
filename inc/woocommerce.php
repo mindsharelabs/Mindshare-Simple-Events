@@ -664,6 +664,53 @@ class mindEventsWooCommerce {
     }
 
     /**
+     * Calculate profit for a sub event
+     * Profit = Total Revenue - (Instructor Expense + (Materials Expense × Attendee Count))
+     *
+     * @param int $sub_event_id The ID of the sub event
+     * @return float The calculated profit
+     */
+    public function calculate_profit($sub_event_id) {
+        // Get total revenue
+        $total_revenue = $this->calculate_total_revenue($sub_event_id);
+        
+        // Get parent event ID
+        $parent_id = wp_get_post_parent_id($sub_event_id);
+        if (!$parent_id) {
+            return $total_revenue; // No parent, so profit is just revenue
+        }
+        
+        // Get expense values from parent event
+        $instructor_expense = (float) get_post_meta($parent_id, 'instructor_expense', true);
+        $materials_expense_per_attendee = (float) get_post_meta($parent_id, 'materials_expense', true);
+        
+        // Get attendee count for this sub event
+        $attendee_count = $this->calculate_related_orders_count($sub_event_id);
+        
+        // Calculate total materials expense (per attendee × number of attendees)
+        $total_materials_expense = $materials_expense_per_attendee * $attendee_count;
+        
+        // Calculate total expenses
+        $total_expenses = $instructor_expense + $total_materials_expense;
+        
+        // Calculate and return profit (can be negative)
+        $profit = $total_revenue - $total_expenses;
+        
+        return $profit;
+    }
+
+    /**
+     * Update profit meta field for a sub event
+     *
+     * @param int $sub_event_id The ID of the sub event
+     * @return void
+     */
+    public function update_profit_meta($sub_event_id) {
+        $profit = $this->calculate_profit($sub_event_id);
+        update_post_meta($sub_event_id, 'sub_event_profit', $profit);
+    }
+
+    /**
      * Update order stats for a sub event when order status changes
      *
      * @param int $sub_event_id The ID of the sub event
@@ -672,6 +719,7 @@ class mindEventsWooCommerce {
         $this->calculate_related_orders_count($sub_event_id);
         $this->calculate_total_revenue($sub_event_id);
         $this->calculate_customer_orders_list($sub_event_id);
+        $this->update_profit_meta($sub_event_id);
     }
 
     /**
