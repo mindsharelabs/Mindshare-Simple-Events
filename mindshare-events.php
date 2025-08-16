@@ -70,6 +70,7 @@ class mindEvents {
     include MINDEVENTS_ABSPATH . 'inc/ajax.class.php';
     include MINDEVENTS_ABSPATH . 'inc/front-end.php';
     include MINDEVENTS_ABSPATH . 'inc/events-admin-overview.php';
+    include MINDEVENTS_ABSPATH . 'inc/events-reports.php';
     
 
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
