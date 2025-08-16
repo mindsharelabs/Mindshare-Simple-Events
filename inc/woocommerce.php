@@ -550,6 +550,8 @@ class mindEventsWooCommerce {
     /**
      * Calculate and update total revenue for a sub event
      * Uses the same data source as the admin attendee display
+     * Calculates revenue from product line items only, not entire order totals
+     * Accounts for refunds by subtracting refunded amounts
      *
      * @param int $sub_event_id The ID of the sub event
      * @return float Total revenue from orders
@@ -577,12 +579,38 @@ class mindEventsWooCommerce {
             }
         }
         
-        // Calculate revenue from unique orders only
+        // Calculate revenue from product line items only, accounting for refunds
         $total_revenue = 0;
         foreach ($unique_order_ids as $order_id) {
             $order = wc_get_order($order_id);
             if ($order) {
-                $total_revenue += floatval($order->get_total());
+                // Get the linked product ID for this sub event
+                $linked_product_id = get_post_meta($sub_event_id, 'linked_product', true);
+                
+                if ($linked_product_id) {
+                    // Get all line items from the order
+                    foreach ($order->get_items() as $line_item) {
+                        // Check if this line item is for our linked product
+                        if ($line_item->get_product_id() == $linked_product_id) {
+                            // Add the line item total (price × quantity)
+                            $line_item_total = floatval($line_item->get_total());
+                            
+                            // Subtract refunds for this line item
+                            $refunded_amount = 0;
+                            foreach ($order->get_refunds() as $refund) {
+                                foreach ($refund->get_items() as $refund_item) {
+                                    if ($refund_item->get_product_id() == $linked_product_id) {
+                                        $refunded_amount += floatval($refund_item->get_total());
+                                    }
+                                }
+                            }
+                            
+                            // Net revenue for this line item (original - refunds)
+                            $net_revenue = $line_item_total + $refunded_amount; // refunded amounts are negative
+                            $total_revenue += $net_revenue;
+                        }
+                    }
+                }
             }
         }
         
@@ -622,10 +650,10 @@ class mindEventsWooCommerce {
                         $customer_name = $order->get_billing_email();
                     }
                     
-                    // Create clickable order link with line break
+                    // Create clickable order link with line break (no colon or space)
                     $order_link = '<a href="' . admin_url('post.php?post=' . $attendee['order_id'] . '&action=edit') . '" target="_blank">Order #' . $attendee['order_id'] . '</a>';
                     
-                    $customer_orders[] = $order_link . ': ' . $customer_name . '<br>';
+                    $customer_orders[] = $order_link . $customer_name . '<br>';
                     $processed_orders[] = $attendee['order_id'];
                 }
             }
