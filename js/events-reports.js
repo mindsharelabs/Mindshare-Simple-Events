@@ -1,36 +1,28 @@
 jQuery(document).ready(function ($) {
-  // Function to handle form submission with AJAX
-  $("#events-reports-form").on("submit", function (e) {
-    e.preventDefault();
-
-    // Show loading indicator
-    $(".report-results-container").html(
-      '<div class="loading"><p>Loading report data...</p></div>'
-    );
-
-    // Get form data
-    var formData = $(this).serialize();
-
-    // Submit AJAX request
-    $.ajax({
-      url: ajaxurl,
-      type: "GET",
-      data: formData,
-      success: function (response) {
-        // Replace the results container with the new data
-        $(".report-results-container").html(
-          $(response).find(".report-results-container").html()
-        );
-      },
-      error: function (xhr, status, error) {
-        $(".report-results-container").html(
-          '<div class="error"><p>Error loading report data: ' +
-            error +
-            "</p></div>"
-        );
-      },
-    });
+  // Initialize date pickers
+  $(".datepicker").datepicker({
+    dateFormat: "yy-mm-dd",
+    changeMonth: true,
+    changeYear: true,
   });
+
+  // Toggle comparison date range and time period selector based on report type
+  $(".report-type-selector").on("change", function () {
+    var reportType = $(this).val();
+    if (reportType === "comparison") {
+      $(".comparison-date-range").slideDown();
+      $(".time-period-selector").slideUp();
+    } else if (reportType === "time_based") {
+      $(".comparison-date-range").slideUp();
+      $(".time-period-selector").slideDown();
+    } else {
+      $(".comparison-date-range").slideUp();
+      $(".time-period-selector").slideUp();
+    }
+  });
+
+  // Trigger change on page load to set initial state
+  $(".report-type-selector").trigger("change");
 
   // Function to export report to CSV
   $(".export-csv").on("click", function (e) {
@@ -38,7 +30,7 @@ jQuery(document).ready(function ($) {
 
     var reportType = $(this).data("report-type");
     var formData =
-      $("#events-reports-form").serialize() +
+      $(".events-reports-form").serialize() +
       "&export=csv&report_type=" +
       reportType;
 
@@ -111,17 +103,17 @@ jQuery(document).ready(function ($) {
       return year + "-" + month + "-" + day;
     };
 
-    $("#start_date").val(formatDate(startDate));
-    $("#end_date").val(formatDate(endDate));
+    $(".start-date").val(formatDate(startDate));
+    $(".end-date").val(formatDate(endDate));
 
     // Submit the form
-    $("#events-reports-form").submit();
+    $(".events-reports-form").submit();
   });
 
   // Function to toggle advanced filters
   $(".toggle-advanced-filters").on("click", function (e) {
     e.preventDefault();
-    $(".advanced-filters").slideToggle();
+    $(".advanced-filters-section").slideToggle();
     $(this).text(
       $(this).text() === "Show Advanced Filters"
         ? "Hide Advanced Filters"

@@ -41,6 +41,13 @@ class MindEventsReports {
                 });
             });
         ');
+        
+        // Add CSS for hiding sections initially
+        wp_add_inline_style('jquery-ui-datepicker', '
+            .comparison-date-range, .time-period-selector {
+                display: none;
+            }
+        ');
     }
 
     public function display_reports_page() {
@@ -76,21 +83,13 @@ class MindEventsReports {
         
         echo '<div class="report-form-container" style="background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ccd0d4; border-radius: 4px;">';
         echo '<h2>Report Filters</h2>';
-        echo '<form method="get" action="">';
+        echo '<form method="get" action="" class="events-reports-form">';
         echo '<input type="hidden" name="post_type" value="events">';
         echo '<input type="hidden" name="page" value="events-reports">';
         
-        echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
-        echo '<div class="form-group" style="flex: 1;">';
-        echo '<label for="start_date">Start Date:</label>';
-        echo '<input type="text" id="start_date" name="start_date" class="datepicker regular-text" value="' . esc_attr(isset($_GET['start_date']) ? $_GET['start_date'] : $start_date) . '">';
-        echo '</div>';
-        
-        echo '<div class="form-group" style="flex: 1;">';
-        echo '<label for="end_date">End Date:</label>';
-        echo '<input type="text" id="end_date" name="end_date" class="datepicker regular-text" value="' . esc_attr(isset($_GET['end_date']) ? $_GET['end_date'] : $end_date) . '">';
-        echo '</div>';
-        echo '</div>';
+        // Basic filters section
+        echo '<div class="filters-section" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">';
+        echo '<h3 style="margin-top: 0; margin-bottom: 15px;">Basic Filters</h3>';
         
         echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
         echo '<div class="form-group" style="flex: 1;">';
@@ -123,12 +122,64 @@ class MindEventsReports {
         echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
         echo '<div class="form-group" style="flex: 1;">';
         echo '<label for="report_type">Report Type:</label>';
-        echo '<select id="report_type" name="report_type" class="regular-text">';
+        echo '<select id="report_type" name="report_type" class="report-type-selector regular-text">';
         echo '<option value="summary" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'summary' ? 'selected' : '') . '>Summary Report</option>';
         echo '<option value="detailed" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'detailed' ? 'selected' : '') . '>Detailed Report</option>';
         echo '<option value="parent" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'parent' ? 'selected' : '') . '>Parent Event Summary</option>';
         echo '<option value="category" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'category' ? 'selected' : '') . '>Category Report</option>';
+        echo '<option value="comparison" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'comparison' ? 'selected' : '') . '>Comparison Report</option>';
+        echo '<option value="time_based" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'time_based' ? 'selected' : '') . '>Time-based Report</option>';
         echo '</select>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        
+        // Date range section
+        echo '<div class="date-range-section" style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee;">';
+        echo '<h3 style="margin-top: 0; margin-bottom: 15px;">Date Range</h3>';
+        
+        echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="start_date">Start Date:</label>';
+        echo '<input type="text" id="start_date" name="start_date" class="datepicker start-date regular-text" value="' . esc_attr(isset($_GET['start_date']) ? $_GET['start_date'] : $start_date) . '">';
+        echo '</div>';
+        
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="end_date">End Date:</label>';
+        echo '<input type="text" id="end_date" name="end_date" class="datepicker end-date regular-text" value="' . esc_attr(isset($_GET['end_date']) ? $_GET['end_date'] : $end_date) . '">';
+        echo '</div>';
+        echo '</div>';
+        
+        // Comparison date range for comparison report
+        echo '<div id="comparison-date-range" class="comparison-date-range" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">';
+        echo '<h4 style="margin-top: 0; margin-bottom: 15px;">Comparison Period</h4>';
+        echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="start_date_2">Start Date:</label>';
+        echo '<input type="text" id="start_date_2" name="start_date_2" class="datepicker regular-text" value="' . esc_attr(isset($_GET['start_date_2']) ? $_GET['start_date_2'] : date('Y-m-d', strtotime('-60 days'))) . '">';
+        echo '</div>';
+        
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="end_date_2">End Date:</label>';
+        echo '<input type="text" id="end_date_2" name="end_date_2" class="datepicker regular-text" value="' . esc_attr(isset($_GET['end_date_2']) ? $_GET['end_date_2'] : date('Y-m-d', strtotime('-31 days'))) . '">';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        
+        // Time period selector for time-based report
+        echo '<div id="time-period-selector" class="time-period-selector" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">';
+        echo '<h4 style="margin-top: 0; margin-bottom: 15px;">Time Period Cadence</h4>';
+        echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="time_period">Group Results By:</label>';
+        echo '<select id="time_period" name="time_period" class="regular-text">';
+        echo '<option value="weekly" ' . (isset($_GET['time_period']) && $_GET['time_period'] == 'weekly' ? 'selected' : '') . '>Weekly</option>';
+        echo '<option value="monthly" ' . (isset($_GET['time_period']) && $_GET['time_period'] == 'monthly' ? 'selected' : '') . '>Monthly</option>';
+        echo '<option value="quarterly" ' . (isset($_GET['time_period']) && $_GET['time_period'] == 'quarterly' ? 'selected' : '') . '>Quarterly</option>';
+        echo '<option value="yearly" ' . (isset($_GET['time_period']) && $_GET['time_period'] == 'yearly' ? 'selected' : '') . '>Yearly</option>';
+        echo '</select>';
+        echo '</div>';
+        echo '</div>';
         echo '</div>';
         echo '</div>';
         
@@ -168,6 +219,13 @@ class MindEventsReports {
                 return $this->get_parent_report($start_date, $end_date, $parent_event, $event_category);
             case 'category':
                 return $this->get_category_report($start_date, $end_date, $event_category);
+            case 'comparison':
+                $start_date_2 = isset($_GET['start_date_2']) ? sanitize_text_field($_GET['start_date_2']) : date('Y-m-d', strtotime('-60 days'));
+                $end_date_2 = isset($_GET['end_date_2']) ? sanitize_text_field($_GET['end_date_2']) : date('Y-m-d', strtotime('-31 days'));
+                return $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category);
+            case 'time_based':
+                $time_period = isset($_GET['time_period']) ? sanitize_text_field($_GET['time_period']) : 'monthly';
+                return $this->get_time_based_report($start_date, $end_date, $time_period, $event_category);
             default:
                 return $this->get_summary_report($start_date, $end_date, $parent_event, $event_category);
         }
@@ -553,6 +611,48 @@ class MindEventsReports {
         return $report_data;
     }
 
+    /**
+     * Get comparison report data
+     *
+     * @param string $start_date_1 Period 1 start date
+     * @param string $end_date_1 Period 1 end date
+     * @param string $start_date_2 Period 2 start date
+     * @param string $end_date_2 Period 2 end date
+     * @param int $event_category Event category ID
+     * @return array Report data
+     */
+    private function get_comparison_report($start_date_1, $end_date_1, $start_date_2, $end_date_2, $event_category = 0) {
+        // Get data for period 1
+        $period_1_data = $this->get_summary_report($start_date_1, $end_date_1, 0, $event_category);
+        
+        // Get data for period 2
+        $period_2_data = $this->get_summary_report($start_date_2, $end_date_2, 0, $event_category);
+        
+        // Calculate differences and percentages
+        $comparison_data = array(
+            'period_1' => $period_1_data,
+            'period_2' => $period_2_data,
+            'differences' => array(),
+            'percentages' => array()
+        );
+        
+        // Calculate differences and percentages for each metric
+        $metrics = array('total_parents', 'total_events', 'total_attendees', 'total_revenue', 'total_profit');
+        
+        foreach ($metrics as $metric) {
+            $value_1 = isset($period_1_data[$metric]) ? floatval($period_1_data[$metric]) : 0;
+            $value_2 = isset($period_2_data[$metric]) ? floatval($period_2_data[$metric]) : 0;
+            
+            $difference = $value_2 - $value_1;
+            $percentage = $value_1 > 0 ? ($difference / $value_1) * 100 : 0;
+            
+            $comparison_data['differences'][$metric] = $difference;
+            $comparison_data['percentages'][$metric] = $percentage;
+        }
+        
+        return $comparison_data;
+    }
+
     private function get_category_report($start_date, $end_date, $event_category = 0) {
         global $wpdb;
         
@@ -701,13 +801,205 @@ class MindEventsReports {
         return $report_data;
     }
 
+    /**
+     * Get time-based report data
+     *
+     * @param string $start_date Start date
+     * @param string $end_date End date
+     * @param string $time_period Time period (weekly, monthly, quarterly, yearly)
+     * @param int $event_category Event category ID
+     * @return array Report data
+     */
+    private function get_time_based_report($start_date, $end_date, $time_period = 'monthly', $event_category = 0) {
+        global $wpdb;
+        
+        // Get all sub events within date range
+        $args = array(
+            'post_type' => 'sub_event',
+            'posts_per_page' => -1,
+            'meta_query' => array(
+                array(
+                    'key' => 'event_date',
+                    'value' => array($start_date, $end_date),
+                    'compare' => 'BETWEEN',
+                    'type' => 'DATE'
+                )
+            )
+        );
+        
+        if ($event_category > 0) {
+            // Get parent events in this category first
+            $parent_args = array(
+                'post_type' => 'events',
+                'posts_per_page' => -1,
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'event_category',
+                        'field' => 'term_id',
+                        'terms' => $event_category,
+                    )
+                )
+            );
+            
+            $parent_events = get_posts($parent_args);
+            $parent_ids = wp_list_pluck($parent_events, 'ID');
+            
+            if (!empty($parent_ids)) {
+                $args['post_parent__in'] = $parent_ids;
+            } else {
+                // No parent events in this category, return empty report
+                return array(
+                    'total_events' => 0,
+                    'total_attendees' => 0,
+                    'total_revenue' => 0,
+                    'total_profit' => 0,
+                    'time_period' => $time_period,
+                    'periods' => array()
+                );
+            }
+        }
+        
+        $sub_events = get_posts($args);
+        
+        // Initialize time periods
+        $periods = array();
+        $current_date = new DateTime($start_date);
+        $end_datetime = new DateTime($end_date);
+        
+        while ($current_date <= $end_datetime) {
+            $period_key = '';
+            $period_label = '';
+            $period_start = clone $current_date;
+            $period_end = clone $current_date;
+            
+            switch ($time_period) {
+                case 'weekly':
+                    // Set to Monday of the week
+                    $current_date->modify('Monday this week');
+                    $period_key = $current_date->format('Y-m-d');
+                    $period_label = 'Week of ' . $current_date->format('M j, Y');
+                    $period_start = clone $current_date;
+                    $period_end = clone $current_date;
+                    $period_end->modify('+6 days');
+                    $current_date->modify('+1 week');
+                    break;
+                    
+                case 'monthly':
+                    $period_key = $current_date->format('Y-m');
+                    $period_label = $current_date->format('F Y');
+                    $period_start = clone $current_date;
+                    $period_start->modify('first day of this month');
+                    $period_end = clone $current_date;
+                    $period_end->modify('last day of this month');
+                    $current_date->modify('+1 month');
+                    break;
+                    
+                case 'quarterly':
+                    $quarter = ceil($current_date->format('n') / 3);
+                    $period_key = $current_date->format('Y') . '-Q' . $quarter;
+                    $period_label = 'Q' . $quarter . ' ' . $current_date->format('Y');
+                    $period_start = clone $current_date;
+                    $period_start->modify('first day of January')->modify('+' . (($quarter - 1) * 3) . ' months');
+                    $period_end = clone $period_start;
+                    $period_end->modify('+2 months')->modify('last day of this month');
+                    $current_date->modify('+3 months');
+                    break;
+                    
+                case 'yearly':
+                    $period_key = $current_date->format('Y');
+                    $period_label = $current_date->format('Y');
+                    $period_start = clone $current_date;
+                    $period_start->modify('January 1st');
+                    $period_end = clone $current_date;
+                    $period_end->modify('December 31st');
+                    $current_date->modify('+1 year');
+                    break;
+            }
+            
+            $periods[$period_key] = array(
+                'label' => $period_label,
+                'start_date' => $period_start->format('Y-m-d'),
+                'end_date' => $period_end->format('Y-m-d'),
+                'events_count' => 0,
+                'attendees' => 0,
+                'revenue' => 0,
+                'profit' => 0,
+                'events' => array()
+            );
+        }
+        
+        // Process each sub event and assign to appropriate period
+        foreach ($sub_events as $sub_event) {
+            $event_date = get_post_meta($sub_event->ID, 'event_date', true);
+            $event_datetime = new DateTime($event_date);
+            
+            // Find the appropriate period for this event
+            foreach ($periods as $period_key => $period) {
+                $period_start = new DateTime($period['start_date']);
+                $period_end = new DateTime($period['end_date']);
+                
+                if ($event_datetime >= $period_start && $event_datetime <= $period_end) {
+                    $attendees_count = get_post_meta($sub_event->ID, 'related_orders_count', true);
+                    $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
+                    $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
+                    
+                    $periods[$period_key]['events_count']++;
+                    $periods[$period_key]['attendees'] += intval($attendees_count);
+                    $periods[$period_key]['revenue'] += floatval($revenue);
+                    $periods[$period_key]['profit'] += floatval($profit);
+                    
+                    $parent_id = wp_get_post_parent_id($sub_event->ID);
+                    $parent_title = $parent_id ? get_the_title($parent_id) : 'No Parent';
+                    
+                    $periods[$period_key]['events'][] = array(
+                        'id' => $sub_event->ID,
+                        'title' => $sub_event->post_title,
+                        'parent_title' => $parent_title,
+                        'date' => $event_date,
+                        'attendees' => $attendees_count,
+                        'revenue' => $revenue,
+                        'profit' => $profit
+                    );
+                    
+                    break;
+                }
+            }
+        }
+        
+        // Calculate totals
+        $total_events = 0;
+        $total_attendees = 0;
+        $total_revenue = 0;
+        $total_profit = 0;
+        
+        foreach ($periods as $period) {
+            $total_events += $period['events_count'];
+            $total_attendees += $period['attendees'];
+            $total_revenue += $period['revenue'];
+            $total_profit += $period['profit'];
+        }
+        
+        return array(
+            'total_events' => $total_events,
+            'total_attendees' => $total_attendees,
+            'total_revenue' => $total_revenue,
+            'total_profit' => $total_profit,
+            'time_period' => $time_period,
+            'periods' => $periods
+        );
+    }
+
     private function display_report_results($report_data) {
         $report_type = isset($_GET['report_type']) ? sanitize_text_field($_GET['report_type']) : 'summary';
         
         echo '<div class="report-results-container" style="background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ccd0d4; border-radius: 4px;">';
         
         // Display summary cards
-        $this->display_summary_cards($report_data);
+        if ($report_type === 'comparison') {
+            $this->display_comparison_summary_cards($report_data);
+        } else {
+            $this->display_summary_cards($report_data);
+        }
         
         // Display detailed results based on report type
         switch ($report_type) {
@@ -722,6 +1014,12 @@ class MindEventsReports {
                 break;
             case 'category':
                 $this->display_category_table($report_data);
+                break;
+            case 'comparison':
+                $this->display_comparison_table($report_data);
+                break;
+            case 'time_based':
+                $this->display_time_based_table($report_data);
                 break;
         }
         
@@ -755,6 +1053,68 @@ class MindEventsReports {
         echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Profit</h3>';
         echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">$' . number_format(floatval($report_data['total_profit']), 2) . '</p>';
         echo '</div>';
+        
+        echo '</div>';
+    }
+
+    /**
+     * Display comparison summary cards
+     *
+     * @param array $report_data Comparison report data
+     */
+    private function display_comparison_summary_cards($report_data) {
+        echo '<div class="summary-cards" style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">';
+        
+        $metrics = array(
+            'total_parents' => array('label' => 'Parent Events', 'color' => '#0073aa'),
+            'total_events' => array('label' => 'Sub Events', 'color' => '#7c7c7c'),
+            'total_attendees' => array('label' => 'Attendees', 'color' => '#46b450'),
+            'total_revenue' => array('label' => 'Revenue', 'color' => '#ffb900'),
+            'total_profit' => array('label' => 'Profit', 'color' => '#46b450')
+        );
+        
+        foreach ($metrics as $key => $metric) {
+            $value_1 = isset($report_data['period_1'][$key]) ? floatval($report_data['period_1'][$key]) : 0;
+            $value_2 = isset($report_data['period_2'][$key]) ? floatval($report_data['period_2'][$key]) : 0;
+            $difference = isset($report_data['differences'][$key]) ? floatval($report_data['differences'][$key]) : 0;
+            $percentage = isset($report_data['percentages'][$key]) ? floatval($report_data['percentages'][$key]) : 0;
+            
+            $profit_color = ($key === 'total_profit' && $value_2 < 0) ? '#dc3232' : $metric['color'];
+            
+            echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid ' . $profit_color . ';">';
+            echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">' . esc_html($metric['label']) . '</h3>';
+            echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
+            echo '<div>';
+            echo '<p style="margin: 0; font-size: 14px; color: #666;">Period 1</p>';
+            if ($key === 'total_revenue' || $key === 'total_profit') {
+                echo '<p style="margin: 0; font-size: 18px; font-weight: bold;">$' . number_format($value_1, 2) . '</p>';
+            } else {
+                echo '<p style="margin: 0; font-size: 18px; font-weight: bold;">' . number_format($value_1) . '</p>';
+            }
+            echo '</div>';
+            echo '<div style="text-align: right;">';
+            echo '<p style="margin: 0; font-size: 14px; color: #666;">Period 2</p>';
+            if ($key === 'total_revenue' || $key === 'total_profit') {
+                echo '<p style="margin: 0; font-size: 18px; font-weight: bold;">$' . number_format($value_2, 2) . '</p>';
+            } else {
+                echo '<p style="margin: 0; font-size: 18px; font-weight: bold;">' . number_format($value_2) . '</p>';
+            }
+            echo '</div>';
+            echo '</div>';
+            echo '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">';
+            echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
+            echo '<span style="font-size: 14px; color: ' . ($difference >= 0 ? '#46b450' : '#dc3232') . ';">';
+            if ($key === 'total_revenue' || $key === 'total_profit') {
+                echo '$' . number_format($difference, 2);
+            } else {
+                echo number_format($difference);
+            }
+            echo '</span>';
+            echo '<span style="font-size: 14px; color: ' . ($percentage >= 0 ? '#46b450' : '#dc3232') . ';">' . number_format($percentage, 1) . '%</span>';
+            echo '</div>';
+            echo '</div>';
+            echo '</div>';
+        }
         
         echo '</div>';
     }
@@ -1011,6 +1371,304 @@ class MindEventsReports {
         echo '<th>$' . number_format($report_data['total_materials_expense'], 2) . '</th>';
         echo '<th>$' . number_format($report_data['total_expenses'], 2) . '</th>';
         echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($report_data['total_profit'], 2) . '</th>';
+        echo '</tr>';
+        echo '</tfoot>';
+        echo '</table>';
+    }
+
+    /**
+     * Display comparison table
+     *
+     * @param array $report_data Comparison report data
+     */
+    private function display_comparison_table($report_data) {
+        $start_date_1 = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : '';
+        $end_date_1 = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : '';
+        $start_date_2 = isset($_GET['start_date_2']) ? sanitize_text_field($_GET['start_date_2']) : '';
+        $end_date_2 = isset($_GET['end_date_2']) ? sanitize_text_field($_GET['end_date_2']) : '';
+        
+        echo '<h2>Comparison Report</h2>';
+        echo '<p><strong>Period 1:</strong> ' . esc_html($start_date_1) . ' to ' . esc_html($end_date_1) . '</p>';
+        echo '<p><strong>Period 2:</strong> ' . esc_html($start_date_2) . ' to ' . esc_html($end_date_2) . '</p>';
+        
+        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th>Metric</th>';
+        echo '<th>Period 1</th>';
+        echo '<th>Period 2</th>';
+        echo '<th>Difference</th>';
+        echo '<th>Change %</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
+        
+        $metrics = array(
+            'total_parents' => 'Parent Events',
+            'total_events' => 'Sub Events',
+            'total_attendees' => 'Attendees',
+            'total_revenue' => 'Revenue',
+            'total_profit' => 'Profit'
+        );
+        
+        foreach ($metrics as $key => $label) {
+            $value_1 = isset($report_data['period_1'][$key]) ? floatval($report_data['period_1'][$key]) : 0;
+            $value_2 = isset($report_data['period_2'][$key]) ? floatval($report_data['period_2'][$key]) : 0;
+            $difference = isset($report_data['differences'][$key]) ? floatval($report_data['differences'][$key]) : 0;
+            $percentage = isset($report_data['percentages'][$key]) ? floatval($report_data['percentages'][$key]) : 0;
+            
+            echo '<tr>';
+            echo '<td><strong>' . esc_html($label) . '</strong></td>';
+            
+            if ($key === 'total_revenue' || $key === 'total_profit') {
+                echo '<td>$' . number_format($value_1, 2) . '</td>';
+                echo '<td>$' . number_format($value_2, 2) . '</td>';
+                echo '<td style="color: ' . ($difference >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($difference, 2) . '</td>';
+            } else {
+                echo '<td>' . number_format($value_1) . '</td>';
+                echo '<td>' . number_format($value_2) . '</td>';
+                echo '<td style="color: ' . ($difference >= 0 ? '#46b450' : '#dc3232') . ';">' . number_format($difference) . '</td>';
+            }
+            
+            echo '<td style="color: ' . ($percentage >= 0 ? '#46b450' : '#dc3232') . ';">' . number_format($percentage, 1) . '%</td>';
+            echo '</tr>';
+        }
+        
+        echo '</tbody>';
+        echo '</table>';
+    }
+
+    /**
+     * Display time-based table with graphs
+     *
+     * @param array $report_data Time-based report data
+     */
+    private function display_time_based_table($report_data) {
+        $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : '';
+        $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : '';
+        $time_period = isset($report_data['time_period']) ? $report_data['time_period'] : 'monthly';
+        
+        echo '<h2>Time-based Report</h2>';
+        echo '<p><strong>Date Range:</strong> ' . esc_html($start_date) . ' to ' . esc_html($end_date) . '</p>';
+        echo '<p><strong>Time Period:</strong> ' . ucfirst(esc_html($time_period)) . '</p>';
+        
+        // Display summary cards
+        echo '<div class="summary-cards" style="display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">';
+        
+        echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid #7c7c7c;">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Sub Events</h3>';
+        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">' . esc_html($report_data['total_events']) . '</p>';
+        echo '</div>';
+        
+        echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid #46b450;">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Attendees</h3>';
+        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">' . esc_html($report_data['total_attendees']) . '</p>';
+        echo '</div>';
+        
+        echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid #ffb900;">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Revenue</h3>';
+        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">$' . number_format(floatval($report_data['total_revenue']), 2) . '</p>';
+        echo '</div>';
+        
+        echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid ' . (floatval($report_data['total_profit']) >= 0 ? '#46b450' : '#dc3232') . ';">';
+        echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Profit</h3>';
+        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">$' . number_format(floatval($report_data['total_profit']), 2) . '</p>';
+        echo '</div>';
+        
+        echo '</div>';
+        
+        // Display graphs
+        echo '<div class="graphs-container" style="margin-bottom: 30px;">';
+        echo '<h3>Performance Over Time</h3>';
+        
+        // Prepare data for charts
+        $period_labels = array();
+        $events_data = array();
+        $attendees_data = array();
+        $revenue_data = array();
+        $profit_data = array();
+        
+        foreach ($report_data['periods'] as $period) {
+            $period_labels[] = $period['label'];
+            $events_data[] = $period['events_count'];
+            $attendees_data[] = $period['attendees'];
+            $revenue_data[] = $period['revenue'];
+            $profit_data[] = $period['profit'];
+        }
+        
+        // Enqueue Chart.js
+        wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', array(), '3.7.1', true);
+        
+        // Add inline script for charts
+        wp_add_inline_script('chartjs', '
+            jQuery(document).ready(function($) {
+                // Revenue and Profit Chart
+                var revenueProfitCtx = document.getElementById("revenue-profit-chart").getContext("2d");
+                var revenueProfitChart = new Chart(revenueProfitCtx, {
+                    type: "line",
+                    data: {
+                        labels: ' . json_encode($period_labels) . ',
+                        datasets: [{
+                            label: "Revenue",
+                            data: ' . json_encode($revenue_data) . ',
+                            borderColor: "#ffb900",
+                            backgroundColor: "rgba(255, 185, 0, 0.1)",
+                            fill: true,
+                            tension: 0.1,
+                            yAxisID: "y"
+                        }, {
+                            label: "Profit",
+                            data: ' . json_encode($profit_data) . ',
+                            borderColor: "' . (floatval($report_data['total_profit']) >= 0 ? '#46b450' : '#dc3232') . '",
+                            backgroundColor: "rgba(70, 180, 80, 0.1)",
+                            fill: true,
+                            tension: 0.1,
+                            yAxisID: "y"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "Revenue and Profit Over Time"
+                            },
+                            legend: {
+                                position: "top"
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: "linear",
+                                display: true,
+                                position: "left",
+                                ticks: {
+                                    callback: function(value) {
+                                        return "$" + value.toLocaleString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Events and Attendees Chart
+                var eventsAttendeesCtx = document.getElementById("events-attendees-chart").getContext("2d");
+                var eventsAttendeesChart = new Chart(eventsAttendeesCtx, {
+                    type: "bar",
+                    data: {
+                        labels: ' . json_encode($period_labels) . ',
+                        datasets: [{
+                            label: "Sub Events",
+                            data: ' . json_encode($events_data) . ',
+                            backgroundColor: "#7c7c7c",
+                            borderColor: "#7c7c7c",
+                            borderWidth: 1,
+                            yAxisID: "y"
+                        }, {
+                            label: "Attendees",
+                            data: ' . json_encode($attendees_data) . ',
+                            backgroundColor: "#46b450",
+                            borderColor: "#46b450",
+                            borderWidth: 1,
+                            yAxisID: "y1"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: "Events and Attendees Over Time"
+                            },
+                            legend: {
+                                position: "top"
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: "linear",
+                                display: true,
+                                position: "left",
+                                title: {
+                                    display: true,
+                                    text: "Sub Events"
+                                }
+                            },
+                            y1: {
+                                type: "linear",
+                                display: true,
+                                position: "right",
+                                title: {
+                                    display: true,
+                                    text: "Attendees"
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        ');
+        
+        // Display chart containers
+        echo '<div style="margin-bottom: 30px;">';
+        echo '<div style="height: 400px; margin-bottom: 20px;">';
+        echo '<canvas id="revenue-profit-chart"></canvas>';
+        echo '</div>';
+        echo '<div style="height: 400px;">';
+        echo '<canvas id="events-attendees-chart"></canvas>';
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+        
+        // Display detailed table
+        echo '<h3>Detailed ' . ucfirst(esc_html($time_period)) . ' Breakdown</h3>';
+        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<thead>';
+        echo '<tr>';
+        echo '<th>Period</th>';
+        echo '<th>Date Range</th>';
+        echo '<th>Sub Events</th>';
+        echo '<th>Attendees</th>';
+        echo '<th>Revenue</th>';
+        echo '<th>Profit</th>';
+        echo '<th>Avg. Revenue/Event</th>';
+        echo '<th>Avg. Profit/Event</th>';
+        echo '</tr>';
+        echo '</thead>';
+        echo '<tbody>';
+        
+        foreach ($report_data['periods'] as $period) {
+            $avg_revenue = $period['events_count'] > 0 ? $period['revenue'] / $period['events_count'] : 0;
+            $avg_profit = $period['events_count'] > 0 ? $period['profit'] / $period['events_count'] : 0;
+            
+            echo '<tr>';
+            echo '<td><strong>' . esc_html($period['label']) . '</strong></td>';
+            echo '<td>' . esc_html($period['start_date']) . ' to ' . esc_html($period['end_date']) . '</td>';
+            echo '<td>' . esc_html($period['events_count']) . '</td>';
+            echo '<td>' . esc_html($period['attendees']) . '</td>';
+            echo '<td>$' . number_format($period['revenue'], 2) . '</td>';
+            echo '<td style="color: ' . ($period['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($period['profit'], 2) . '</td>';
+            echo '<td>$' . number_format($avg_revenue, 2) . '</td>';
+            echo '<td style="color: ' . ($avg_profit >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($avg_profit, 2) . '</td>';
+            echo '</tr>';
+        }
+        
+        echo '</tbody>';
+        echo '<tfoot>';
+        echo '<tr>';
+        echo '<th colspan="2">Totals</th>';
+        echo '<th>' . esc_html($report_data['total_events']) . '</th>';
+        echo '<th>' . esc_html($report_data['total_attendees']) . '</th>';
+        echo '<th>$' . number_format($report_data['total_revenue'], 2) . '</th>';
+        echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($report_data['total_profit'], 2) . '</th>';
+        echo '<th>$' . number_format($report_data['total_events'] > 0 ? $report_data['total_revenue'] / $report_data['total_events'] : 0, 2) . '</th>';
+        echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($report_data['total_events'] > 0 ? $report_data['total_profit'] / $report_data['total_events'] : 0, 2) . '</th>';
         echo '</tr>';
         echo '</tfoot>';
         echo '</table>';
