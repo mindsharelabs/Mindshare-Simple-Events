@@ -13,6 +13,10 @@ class mindEventsWooCommerce {
     public function __construct($event = false) {
         add_action('woocommerce_init', array($this, 'add_event_options'));
         add_action('save_post_events', array($this, 'save_event_options'), 500, 3);
+        
+        // Hook into meta field updates for automatic profit recalculation
+        add_action('updated_post_meta', array($this, 'handle_expense_meta_update'), 10, 4);
+        add_action('added_post_meta', array($this, 'handle_expense_meta_update'), 10, 4);
 
 
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
@@ -855,6 +859,38 @@ class mindEventsWooCommerce {
         
         // Run the full recalculation
         return $this->recalculate_all_sub_event_stats();
+    }
+
+    /**
+     * Handle expense meta field updates and trigger profit recalculation
+     * This function is hooked to 'updated_post_meta' and triggers when
+     * instructor_expense or materials_expense meta fields are updated
+     *
+     * @param int    $meta_id    ID of updated metadata entry
+     * @param int    $object_id  Post ID
+     * @param string $meta_key   Meta key
+     * @param mixed  $meta_value Meta value
+     */
+    public function handle_expense_meta_update($meta_id, $object_id, $meta_key, $meta_value) {
+        // Only proceed if this is an events post type
+        if (get_post_type($object_id) !== 'events') {
+            return;
+        }
+        
+        // Only proceed if the updated meta key is one of our expense fields
+        if ($meta_key !== 'instructor_expense' && $meta_key !== 'materials_expense') {
+            return;
+        }
+        
+        // Get all sub events for this parent event
+        $sub_events = $this->get_sub_events($object_id);
+        
+        if ($sub_events) {
+            // Recalculate profit for each sub event
+            foreach ($sub_events as $sub_event) {
+                $this->update_profit_meta($sub_event->ID);
+            }
+        }
     }
 
 }

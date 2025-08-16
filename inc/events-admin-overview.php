@@ -58,6 +58,7 @@ class MindEventsAdminOverview {
             <th>Attendees</th>
             <th>Orders</th>
             <th>Instructor</th>
+            <th>Estimated Profit</th>
             </tr></thead>';
         echo '<tbody>';
 
@@ -124,10 +125,37 @@ class MindEventsAdminOverview {
                     echo 'No instructor assigned';
                 endif;
                 echo '</td>';
+                
+                // Calculate and display estimated profit
+                echo '<td class="estimated-profit">';
+                $revenue = get_post_meta(get_the_id(), 'total_revenue', true);
+                $profit = get_post_meta(get_the_id(), 'sub_event_profit', true);
+                
+                // Check if instructor cost or materials cost is empty (not set or empty string, but not 0)
+                $parent_id = wp_get_post_parent_id(get_the_id());
+                $instructor_cost = get_post_meta($parent_id, 'instructor_expense', true);
+                $materials_cost = get_post_meta($parent_id, 'materials_expense', true);
+                $costs_empty = ($instructor_cost === '' || $materials_cost === '');
+                
+                // If no attendees, set profit to 0 (no expenses without students)
+                if ($attendee_count === 0) {
+                    $profit = 0;
+                    echo '-';
+                } else {
+                    $profit_color = floatval($profit) >= 0 ? '#46b450' : '#dc3232';
+                    
+                    // Display warning if costs are empty
+                    if ($costs_empty) {
+                        echo '<span style="color: #ffb900; margin-right: 5px;" title="Instructor cost or materials cost not set">⚠️</span>';
+                    }
+                    
+                    echo '<span style="color: ' . $profit_color . ';">$' . number_format(floatval($profit), 2) . '</span>';
+                }
+                echo '</td>';
                 echo '</tr>';
             endwhile;
         else :
-            echo '<tr><td colspan="5">No upcoming events found.</td></tr>';
+            echo '<tr><td colspan="6">No upcoming events found.</td></tr>';
         endif;
 
         echo '</tbody>';

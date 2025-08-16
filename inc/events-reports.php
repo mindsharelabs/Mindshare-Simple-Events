@@ -5,6 +5,7 @@ class MindEventsReports {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_reports_submenu_page'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_reports_scripts'));
+        add_action('admin_init', array($this, 'handle_csv_export'));
     }
 
     public function add_reports_submenu_page() {
@@ -47,7 +48,309 @@ class MindEventsReports {
             .comparison-date-range, .time-period-selector {
                 display: none;
             }
+            .export-button {
+                margin-left: 10px;
+            }
         ');
+    }
+
+    /**
+     * Handle CSV export requests
+     */
+    public function handle_csv_export() {
+        if (!isset($_GET['export_csv']) || !isset($_GET['report_type'])) {
+            return;
+        }
+
+        // Verify nonce for security
+        if (!isset($_GET['csv_export_nonce']) || !wp_verify_nonce($_GET['csv_export_nonce'], 'csv_export_nonce')) {
+            wp_die('Security check failed');
+        }
+
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die('You do not have sufficient permissions to access this page.');
+        }
+
+        // Get report parameters
+        $start_date = isset($_GET['start_date']) ? sanitize_text_field($_GET['start_date']) : '';
+        $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : '';
+        $parent_event = isset($_GET['parent_event']) ? intval($_GET['parent_event']) : 0;
+        $event_category = isset($_GET['event_category']) ? intval($_GET['event_category']) : 0;
+        $report_type = sanitize_text_field($_GET['report_type']);
+        
+        // Additional parameters for specific report types
+        $start_date_2 = isset($_GET['start_date_2']) ? sanitize_text_field($_GET['start_date_2']) : '';
+        $end_date_2 = isset($_GET['end_date_2']) ? sanitize_text_field($_GET['end_date_2']) : '';
+        $time_period = isset($_GET['time_period']) ? sanitize_text_field($_GET['time_period']) : 'monthly';
+
+        // Validate dates
+        if (!strtotime($start_date) || !strtotime($end_date)) {
+            wp_die('Invalid date range');
+        }
+
+        // Get report data based on type
+        $report_data = null;
+        switch ($report_type) {
+            case 'summary':
+                $report_data = $this->get_summary_report($start_date, $end_date, $parent_event, $event_category);
+                break;
+            case 'detailed':
+                $report_data = $this->get_detailed_report($start_date, $end_date, $parent_event, $event_category);
+                break;
+            case 'parent':
+                $report_data = $this->get_parent_report($start_date, $end_date, $parent_event, $event_category);
+                break;
+            case 'category':
+                $report_data = $this->get_category_report($start_date, $end_date, $event_category);
+                break;
+            case 'comparison':
+                if (!strtotime($start_date_2) || !strtotime($end_date_2)) {
+                    wp_die('Invalid comparison date range');
+                }
+                $report_data = $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category);
+                break;
+            case 'time_based':
+                $report_data = $this->get_time_based_report($start_date, $end_date, $time_period, $event_category);
+                break;
+            default:
+                wp_die('Invalid report type');
+        }
+
+        if (!$report_data) {
+            wp_die('No data available for export');
+        }
+
+        // Generate CSV based on report type
+        $csv_content = '';
+        switch ($report_type) {
+            case 'summary':
+                $csv_content = $this->generate_summary_csv($report_data);
+                $filename = 'events_summary_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+            case 'detailed':
+                $csv_content = $this->generate_detailed_csv($report_data);
+                $filename = 'events_detailed_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+            case 'parent':
+                $csv_content = $this->generate_parent_csv($report_data);
+                $filename = 'events_parent_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+            case 'category':
+                $csv_content = $this->generate_category_csv($report_data);
+                $filename = 'events_category_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+            case 'comparison':
+                $csv_content = $this->generate_comparison_csv($report_data);
+                $filename = 'events_comparison_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+            case 'time_based':
+                $csv_content = $this->generate_time_based_csv($report_data);
+                $filename = 'events_time_based_report_' . $start_date . '_to_' . $end_date . '.csv';
+                break;
+        }
+
+        // Output CSV headers
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+        
+        // Output CSV content
+        echo $csv_content;
+        exit;
+    }
+
+    /**
+     * Generate CSV content for summary report
+     */
+    private function generate_summary_csv($report_data) {
+        $csv = "Parent Event,Sub Events,Attendees,Revenue,Instructor Expense,Materials Expense,Total Expenses,Profit\n";
+        
+        foreach ($report_data['parents'] as $parent) {
+            $csv .= '"' . $this->escape_csv_field($parent['title']) . '",';
+            $csv .= $parent['sub_events_count'] . ',';
+            $csv .= $parent['attendees'] . ',';
+            $csv .= $parent['revenue'] . ',';
+            $csv .= $parent['instructor_expense'] . ',';
+            $csv .= $parent['materials_expense'] . ',';
+            $csv .= $parent['total_expenses'] . ',';
+            $csv .= ($parent['attendees'] > 0 ? $parent['profit'] : '-') . "\n";
+        }
+        
+        // Add totals row
+        $csv .= '"TOTALS",,';
+        $csv .= $report_data['total_attendees'] . ',';
+        $csv .= $report_data['total_revenue'] . ',';
+        $csv .= $report_data['total_instructor_expense'] . ',';
+        $csv .= $report_data['total_materials_expense'] . ',';
+        $csv .= $report_data['total_expenses'] . ',';
+        $csv .= $report_data['total_profit'] . "\n";
+        
+        return $csv;
+    }
+
+    /**
+     * Generate CSV content for detailed report
+     */
+    private function generate_detailed_csv($report_data) {
+        $csv = "Event,Parent Event,Instructor,Date,Attendees,Revenue,Instructor Expense,Materials/Attendee,Total Materials,Total Expenses,Profit\n";
+        
+        foreach ($report_data['events'] as $event) {
+            $csv .= '"' . $this->escape_csv_field($event['title']) . '",';
+            $csv .= '"' . $this->escape_csv_field($event['parent_title']) . '",';
+            $csv .= '"' . $this->escape_csv_field($event['instructor']) . '",';
+            $csv .= $event['date'] . ',';
+            $csv .= $event['attendees'] . ',';
+            $csv .= $event['revenue'] . ',';
+            $csv .= $event['instructor_expense'] . ',';
+            $csv .= $event['materials_expense_per_attendee'] . ',';
+            $csv .= $event['total_materials_expense'] . ',';
+            $csv .= $event['total_expenses'] . ',';
+            $csv .= ($event['attendees'] > 0 ? $event['profit'] : '-') . "\n";
+        }
+        
+        // Add totals row
+        $csv .= '"TOTALS",,,,,,';
+        $csv .= $report_data['total_instructor_expense'] . ',,';
+        $csv .= $report_data['total_materials_expense'] . ',';
+        $csv .= $report_data['total_expenses'] . ',';
+        $csv .= $report_data['total_profit'] . "\n";
+        
+        return $csv;
+    }
+
+    /**
+     * Generate CSV content for parent report
+     */
+    private function generate_parent_csv($report_data) {
+        $csv = "Parent Event,Sub Events,Attendees,Revenue,Instructor Expense,Materials Expense,Total Expenses,Profit\n";
+        
+        foreach ($report_data['parents'] as $parent) {
+            $csv .= '"' . $this->escape_csv_field($parent['title']) . '",';
+            $csv .= $parent['sub_events_count'] . ',';
+            $csv .= $parent['attendees'] . ',';
+            $csv .= $parent['revenue'] . ',';
+            $csv .= $parent['instructor_expense'] . ',';
+            $csv .= $parent['materials_expense'] . ',';
+            $csv .= $parent['total_expenses'] . ',';
+            $csv .= ($parent['attendees'] > 0 ? $parent['profit'] : '-') . "\n";
+        }
+        
+        // Add totals row
+        $csv .= '"TOTALS",,';
+        $csv .= $report_data['total_attendees'] . ',';
+        $csv .= $report_data['total_revenue'] . ',';
+        $csv .= $report_data['total_instructor_expense'] . ',';
+        $csv .= $report_data['total_materials_expense'] . ',';
+        $csv .= $report_data['total_expenses'] . ',';
+        $csv .= $report_data['total_profit'] . "\n";
+        
+        return $csv;
+    }
+
+    /**
+     * Generate CSV content for category report
+     */
+    private function generate_category_csv($report_data) {
+        $csv = "Category,Parent Events,Sub Events,Attendees,Revenue,Instructor Expense,Materials Expense,Total Expenses,Profit\n";
+        
+        foreach ($report_data['categories'] as $category) {
+            $csv .= '"' . $this->escape_csv_field($category['name']) . '",';
+            $csv .= $category['parent_events_count'] . ',';
+            $csv .= $category['sub_events_count'] . ',';
+            $csv .= $category['attendees'] . ',';
+            $csv .= $category['revenue'] . ',';
+            $csv .= $category['instructor_expense'] . ',';
+            $csv .= $category['materials_expense'] . ',';
+            $csv .= $category['total_expenses'] . ',';
+            $csv .= ($category['attendees'] > 0 ? $category['profit'] : '-') . "\n";
+        }
+        
+        // Add totals row
+        $csv .= '"TOTALS",,';
+        $csv .= $report_data['total_attendees'] . ',';
+        $csv .= $report_data['total_revenue'] . ',';
+        $csv .= $report_data['total_instructor_expense'] . ',';
+        $csv .= $report_data['total_materials_expense'] . ',';
+        $csv .= $report_data['total_expenses'] . ',';
+        $csv .= $report_data['total_profit'] . "\n";
+        
+        return $csv;
+    }
+
+    /**
+     * Generate CSV content for comparison report
+     */
+    private function generate_comparison_csv($report_data) {
+        $csv = "Metric,Period 1,Period 2,Difference,Change %\n";
+        
+        $metrics = array(
+            'total_parents' => 'Parent Events',
+            'total_events' => 'Sub Events',
+            'total_attendees' => 'Attendees',
+            'total_revenue' => 'Revenue',
+            'total_profit' => 'Profit'
+        );
+        
+        foreach ($metrics as $key => $label) {
+            $value_1 = isset($report_data['period_1'][$key]) ? floatval($report_data['period_1'][$key]) : 0;
+            $value_2 = isset($report_data['period_2'][$key]) ? floatval($report_data['period_2'][$key]) : 0;
+            $difference = isset($report_data['differences'][$key]) ? floatval($report_data['differences'][$key]) : 0;
+            $percentage = isset($report_data['percentages'][$key]) ? floatval($report_data['percentages'][$key]) : 0;
+            
+            $csv .= '"' . $label . '",';
+            if ($key === 'total_revenue' || $key === 'total_profit') {
+                $csv .= '$' . number_format($value_1, 2) . ',';
+                $csv .= '$' . number_format($value_2, 2) . ',';
+                $csv .= '$' . number_format($difference, 2) . ',';
+            } else {
+                $csv .= $value_1 . ',';
+                $csv .= $value_2 . ',';
+                $csv .= $difference . ',';
+            }
+            $csv .= number_format($percentage, 1) . "%\n";
+        }
+        
+        return $csv;
+    }
+
+    /**
+     * Generate CSV content for time-based report
+     */
+    private function generate_time_based_csv($report_data) {
+        $csv = "Period,Date Range,Sub Events,Attendees,Revenue,Profit,Avg. Revenue/Event,Avg. Profit/Event\n";
+        
+        foreach ($report_data['periods'] as $period) {
+            $avg_revenue = $period['events_count'] > 0 ? $period['revenue'] / $period['events_count'] : 0;
+            $avg_profit = $period['events_count'] > 0 ? $period['profit'] / $period['events_count'] : 0;
+            
+            $csv .= '"' . $this->escape_csv_field($period['label']) . '",';
+            $csv .= $period['start_date'] . ' to ' . $period['end_date'] . ',';
+            $csv .= $period['events_count'] . ',';
+            $csv .= $period['attendees'] . ',';
+            $csv .= $period['revenue'] . ',';
+            $csv .= ($period['attendees'] > 0 ? $period['profit'] : '-') . ',';
+            $csv .= $avg_revenue . ',';
+            $csv .= $avg_profit . "\n";
+        }
+        
+        // Add totals row
+        $csv .= '"TOTALS",,';
+        $csv .= $report_data['total_events'] . ',';
+        $csv .= $report_data['total_attendees'] . ',';
+        $csv .= $report_data['total_revenue'] . ',';
+        $csv .= $report_data['total_profit'] . ',';
+        $csv .= ($report_data['total_events'] > 0 ? $report_data['total_revenue'] / $report_data['total_events'] : 0) . ',';
+        $csv .= ($report_data['total_events'] > 0 ? $report_data['total_profit'] / $report_data['total_events'] : 0) . "\n";
+        
+        return $csv;
+    }
+
+    /**
+     * Escape CSV field to handle commas and quotes
+     */
+    private function escape_csv_field($field) {
+        $field = str_replace('"', '""', $field);
+        return $field;
     }
 
     public function display_reports_page() {
@@ -304,6 +607,11 @@ class MindEventsReports {
                 $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                 $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
                 
+                // If no attendees, set profit to 0 (no expenses without students)
+                if (intval($attendees_count) === 0) {
+                    $profit = 0;
+                }
+                
                 $parent_data['attendees'] += intval($attendees_count);
                 $parent_data['revenue'] += floatval($revenue);
                 $parent_data['profit'] += floatval($profit);
@@ -313,9 +621,12 @@ class MindEventsReports {
                 $total_materials_expense = floatval($materials_expense) * intval($attendees_count);
                 $total_expenses = floatval($instructor_expense) + $total_materials_expense;
                 
-                $parent_data['instructor_expense'] += floatval($instructor_expense);
-                $parent_data['materials_expense'] += $total_materials_expense;
-                $parent_data['total_expenses'] += $total_expenses;
+                // Only add expenses if there are attendees
+                if (intval($attendees_count) > 0) {
+                    $parent_data['instructor_expense'] += floatval($instructor_expense);
+                    $parent_data['materials_expense'] += $total_materials_expense;
+                    $parent_data['total_expenses'] += $total_expenses;
+                }
                 
                 $parent_data['sub_events'][] = array(
                     'id' => $sub_event->ID,
@@ -418,6 +729,11 @@ class MindEventsReports {
             $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
             $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
             
+            // If no attendees, set profit to 0 (no expenses without students)
+            if (intval($attendees_count) === 0) {
+                $profit = 0;
+            }
+            
             $report_data['total_attendees'] += intval($attendees_count);
             $report_data['total_revenue'] += floatval($revenue);
             $report_data['total_profit'] += floatval($profit);
@@ -454,9 +770,12 @@ class MindEventsReports {
                 $total_materials_expense = floatval($materials_expense) * intval($attendees_count);
                 $total_expenses = floatval($instructor_expense) + $total_materials_expense;
                 
-                $report_data['total_instructor_expense'] += floatval($instructor_expense);
-                $report_data['total_materials_expense'] += $total_materials_expense;
-                $report_data['total_expenses'] += $total_expenses;
+                // Only add expenses if there are attendees
+                if (intval($attendees_count) > 0) {
+                    $report_data['total_instructor_expense'] += floatval($instructor_expense);
+                    $report_data['total_materials_expense'] += $total_materials_expense;
+                    $report_data['total_expenses'] += $total_expenses;
+                }
             }
             
             // Get customer orders list
@@ -552,6 +871,11 @@ class MindEventsReports {
                 $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                 $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
                 
+                // If no attendees, set profit to 0 (no expenses without students)
+                if (intval($attendees_count) === 0) {
+                    $profit = 0;
+                }
+                
                 $parent_data['attendees'] += intval($attendees_count);
                 $parent_data['revenue'] += floatval($revenue);
                 $parent_data['profit'] += floatval($profit);
@@ -561,9 +885,12 @@ class MindEventsReports {
                 $total_materials_expense = floatval($materials_expense) * intval($attendees_count);
                 $total_expenses = floatval($instructor_expense) + $total_materials_expense;
                 
-                $parent_data['instructor_expense'] += floatval($instructor_expense);
-                $parent_data['materials_expense'] += $total_materials_expense;
-                $parent_data['total_expenses'] += $total_expenses;
+                // Only add expenses if there are attendees
+                if (intval($attendees_count) > 0) {
+                    $parent_data['instructor_expense'] += floatval($instructor_expense);
+                    $parent_data['materials_expense'] += $total_materials_expense;
+                    $parent_data['total_expenses'] += $total_expenses;
+                }
                 
                 $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
                 $instructor_name = '';
@@ -745,6 +1072,11 @@ class MindEventsReports {
                     $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                     $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
                     
+                    // If no attendees, set profit to 0 (no expenses without students)
+                    if (intval($attendees_count) === 0) {
+                        $profit = 0;
+                    }
+                    
                     $parent_data['attendees'] += intval($attendees_count);
                     $parent_data['revenue'] += floatval($revenue);
                     $parent_data['profit'] += floatval($profit);
@@ -754,9 +1086,12 @@ class MindEventsReports {
                     $total_materials_expense = floatval($materials_expense) * intval($attendees_count);
                     $total_expenses = floatval($instructor_expense) + $total_materials_expense;
                     
-                    $parent_data['instructor_expense'] += floatval($instructor_expense);
-                    $parent_data['materials_expense'] += $total_materials_expense;
-                    $parent_data['total_expenses'] += $total_expenses;
+                    // Only add expenses if there are attendees
+                    if (intval($attendees_count) > 0) {
+                        $parent_data['instructor_expense'] += floatval($instructor_expense);
+                        $parent_data['materials_expense'] += $total_materials_expense;
+                        $parent_data['total_expenses'] += $total_expenses;
+                    }
                     
                     $parent_data['sub_events'][] = array(
                         'id' => $sub_event->ID,
@@ -943,6 +1278,11 @@ class MindEventsReports {
                     $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                     $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
                     
+                    // If no attendees, set profit to 0 (no expenses without students)
+                    if (intval($attendees_count) === 0) {
+                        $profit = 0;
+                    }
+                    
                     $periods[$period_key]['events_count']++;
                     $periods[$period_key]['attendees'] += intval($attendees_count);
                     $periods[$period_key]['revenue'] += floatval($revenue);
@@ -994,6 +1334,9 @@ class MindEventsReports {
         
         echo '<div class="report-results-container" style="background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ccd0d4; border-radius: 4px;">';
         
+        // Display export button
+        $this->display_export_button($report_type);
+        
         // Display summary cards
         if ($report_type === 'comparison') {
             $this->display_comparison_summary_cards($report_data);
@@ -1023,6 +1366,26 @@ class MindEventsReports {
                 break;
         }
         
+        echo '</div>';
+    }
+
+    /**
+     * Display export button for reports
+     */
+    private function display_export_button($report_type) {
+        // Get current URL parameters
+        $params = $_GET;
+        $params['export_csv'] = '1';
+        $params['csv_export_nonce'] = wp_create_nonce('csv_export_nonce');
+        
+        // Build export URL
+        $export_url = add_query_arg($params, admin_url('edit.php?post_type=events&page=events-reports'));
+        
+        echo '<div style="margin-bottom: 20px;">';
+        echo '<a href="' . esc_url($export_url) . '" class="button button-secondary export-button">';
+        echo '<span class="dashicons dashicons-download" style="vertical-align: middle; margin-right: 5px;"></span>';
+        echo 'Export ' . ucfirst(esc_html($report_type)) . ' Report to CSV';
+        echo '</a>';
         echo '</div>';
     }
 
@@ -1145,21 +1508,22 @@ class MindEventsReports {
             echo '<td>$' . number_format($parent['instructor_expense'], 2) . '</td>';
             echo '<td>$' . number_format($parent['materials_expense'], 2) . '</td>';
             echo '<td>$' . number_format($parent['total_expenses'], 2) . '</td>';
-            echo '<td style="color: ' . ($parent['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($parent['profit'], 2) . '</td>';
+            echo '<td style="color: ' . ($parent['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($parent['attendees'] > 0 ? '$' . number_format($parent['profit'], 2) : '-') . '</td>';
             echo '</tr>';
             
             // Show sub events as child rows
             if (!empty($parent['sub_events'])) {
                 foreach ($parent['sub_events'] as $sub_event) {
                     echo '<tr class="child-row">';
-                    echo '<td style="padding-left: 30px;">&nbsp;&nbsp;&nbsp;→ ' . esc_html($sub_event['title']) . ' (' . esc_html($sub_event['date']) . ')</td>';
+                    $formatted_date = date('l - F j, Y', strtotime($sub_event['date']));
+                    echo '<td style="padding-left: 30px;">&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . '</td>';
                     echo '<td>-</td>';
                     echo '<td>' . esc_html($sub_event['attendees']) . '</td>';
                     echo '<td>$' . number_format($sub_event['revenue'], 2) . '</td>';
                     echo '<td>-</td>';
                     echo '<td>-</td>';
                     echo '<td>-</td>';
-                    echo '<td style="color: ' . ($sub_event['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($sub_event['profit'], 2) . '</td>';
+                    echo '<td style="color: ' . ($sub_event['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($sub_event['attendees'] > 0 ? '$' . number_format($sub_event['profit'], 2) : '-') . '</td>';
                     echo '</tr>';
                 }
             }
@@ -1211,7 +1575,7 @@ class MindEventsReports {
             echo '<td>$' . number_format(floatval($event['materials_expense_per_attendee']), 2) . '</td>';
             echo '<td>$' . number_format(floatval($event['total_materials_expense']), 2) . '</td>';
             echo '<td>$' . number_format(floatval($event['total_expenses']), 2) . '</td>';
-            echo '<td style="color: ' . (floatval($event['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format(floatval($event['profit']), 2) . '</td>';
+            echo '<td style="color: ' . (floatval($event['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">' . ($event['attendees'] > 0 ? '$' . number_format(floatval($event['profit']), 2) : '-') . '</td>';
             echo '<td style="max-width: 300px;">';
             
             if (!empty($event['customer_orders'])) {
@@ -1254,7 +1618,7 @@ class MindEventsReports {
                    <strong>Instructor Cost:</strong> $' . number_format(floatval($parent['instructor_expense']), 2) . ' |
                    <strong>Materials Cost:</strong> $' . number_format(floatval($parent['materials_expense']), 2) . ' |
                    <strong>Total Expenses:</strong> $' . number_format(floatval($parent['total_expenses']), 2) . ' |
-                   <strong>Total Profit:</strong> <span style="color: ' . (floatval($parent['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format(floatval($parent['profit']), 2) . '</span></p>';
+                   <strong>Total Profit:</strong> <span style="color: ' . (floatval($parent['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">' . ($parent['attendees'] > 0 ? '$' . number_format(floatval($parent['profit']), 2) : '-') . '</span></p>';
             
             if (!empty($parent['sub_events'])) {
                 echo '<table class="wp-list-table widefat fixed striped" style="margin-top: 15px;">';
@@ -1283,7 +1647,7 @@ class MindEventsReports {
                     echo '<td>$' . number_format(floatval($sub_event['materials_expense_per_attendee']), 2) . '</td>';
                     echo '<td>$' . number_format(floatval($sub_event['total_materials_expense']), 2) . '</td>';
                     echo '<td>$' . number_format(floatval($sub_event['total_expenses']), 2) . '</td>';
-                    echo '<td style="color: ' . (floatval($sub_event['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format(floatval($sub_event['profit']), 2) . '</td>';
+                    echo '<td style="color: ' . (floatval($sub_event['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">' . ($sub_event['attendees'] > 0 ? '$' . number_format(floatval($sub_event['profit']), 2) : '-') . '</td>';
                     echo '</tr>';
                 }
                 
@@ -1323,7 +1687,7 @@ class MindEventsReports {
             echo '<td>$' . number_format($category['instructor_expense'], 2) . '</td>';
             echo '<td>$' . number_format($category['materials_expense'], 2) . '</td>';
             echo '<td>$' . number_format($category['total_expenses'], 2) . '</td>';
-            echo '<td style="color: ' . ($category['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($category['profit'], 2) . '</td>';
+            echo '<td style="color: ' . ($category['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($category['attendees'] > 0 ? '$' . number_format($category['profit'], 2) : '-') . '</td>';
             echo '</tr>';
             
             // Show parent events as child rows
@@ -1338,14 +1702,15 @@ class MindEventsReports {
                     echo '<td>$' . number_format($parent['instructor_expense'], 2) . '</td>';
                     echo '<td>$' . number_format($parent['materials_expense'], 2) . '</td>';
                     echo '<td>$' . number_format($parent['total_expenses'], 2) . '</td>';
-                    echo '<td style="color: ' . ($parent['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($parent['profit'], 2) . '</td>';
+                    echo '<td style="color: ' . ($parent['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($parent['attendees'] > 0 ? '$' . number_format($parent['profit'], 2) : '-') . '</td>';
                     echo '</tr>';
                     
                     // Show sub events as grandchild rows
                     if (!empty($parent['sub_events'])) {
                         foreach ($parent['sub_events'] as $sub_event) {
                             echo '<tr class="grandchild-row">';
-                            echo '<td style="padding-left: 60px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ' . esc_html($sub_event['title']) . ' (' . esc_html($sub_event['date']) . ')</td>';
+                            $formatted_date = date('l - F j, Y', strtotime($sub_event['date']));
+                            echo '<td style="padding-left: 60px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . '</td>';
                             echo '<td>-</td>';
                             echo '<td>-</td>';
                             echo '<td>' . esc_html($sub_event['attendees']) . '</td>';
@@ -1353,7 +1718,7 @@ class MindEventsReports {
                             echo '<td>-</td>';
                             echo '<td>-</td>';
                             echo '<td>-</td>';
-                            echo '<td style="color: ' . ($sub_event['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($sub_event['profit'], 2) . '</td>';
+                            echo '<td style="color: ' . ($sub_event['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($sub_event['attendees'] > 0 ? '$' . number_format($sub_event['profit'], 2) : '-') . '</td>';
                             echo '</tr>';
                         }
                     }
@@ -1423,7 +1788,7 @@ class MindEventsReports {
             if ($key === 'total_revenue' || $key === 'total_profit') {
                 echo '<td>$' . number_format($value_1, 2) . '</td>';
                 echo '<td>$' . number_format($value_2, 2) . '</td>';
-                echo '<td style="color: ' . ($difference >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($difference, 2) . '</td>';
+                echo '<td style="color: ' . ($difference >= 0 ? '#46b450' : '#dc3232') . ';">' . ($value_2 > 0 ? '$' . number_format($difference, 2) : '-') . '</td>';
             } else {
                 echo '<td>' . number_format($value_1) . '</td>';
                 echo '<td>' . number_format($value_2) . '</td>';
@@ -1472,7 +1837,7 @@ class MindEventsReports {
         
         echo '<div class="card" style="flex: 1; min-width: 200px; background: #f8f9fa; padding: 20px; border-radius: 4px; border-left: 4px solid ' . (floatval($report_data['total_profit']) >= 0 ? '#46b450' : '#dc3232') . ';">';
         echo '<h3 style="margin: 0 0 10px 0; color: #23282d;">Total Profit</h3>';
-        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">$' . number_format(floatval($report_data['total_profit']), 2) . '</p>';
+        echo '<p style="margin: 0; font-size: 24px; font-weight: bold;">' . ($report_data['total_attendees'] > 0 ? '$' . number_format(floatval($report_data['total_profit']), 2) : '-') . '</p>';
         echo '</div>';
         
         echo '</div>';
@@ -1653,7 +2018,7 @@ class MindEventsReports {
             echo '<td>' . esc_html($period['events_count']) . '</td>';
             echo '<td>' . esc_html($period['attendees']) . '</td>';
             echo '<td>$' . number_format($period['revenue'], 2) . '</td>';
-            echo '<td style="color: ' . ($period['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($period['profit'], 2) . '</td>';
+            echo '<td style="color: ' . ($period['profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($period['attendees'] > 0 ? '$' . number_format($period['profit'], 2) : '-') . '</td>';
             echo '<td>$' . number_format($avg_revenue, 2) . '</td>';
             echo '<td style="color: ' . ($avg_profit >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($avg_profit, 2) . '</td>';
             echo '</tr>';
@@ -1668,7 +2033,7 @@ class MindEventsReports {
         echo '<th>$' . number_format($report_data['total_revenue'], 2) . '</th>';
         echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($report_data['total_profit'], 2) . '</th>';
         echo '<th>$' . number_format($report_data['total_events'] > 0 ? $report_data['total_revenue'] / $report_data['total_events'] : 0, 2) . '</th>';
-        echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">$' . number_format($report_data['total_events'] > 0 ? $report_data['total_profit'] / $report_data['total_events'] : 0, 2) . '</th>';
+        echo '<th style="color: ' . ($report_data['total_profit'] >= 0 ? '#46b450' : '#dc3232') . ';">' . ($report_data['total_attendees'] > 0 ? '$' . number_format($report_data['total_events'] > 0 ? $report_data['total_profit'] / $report_data['total_events'] : 0, 2) : '-') . '</th>';
         echo '</tr>';
         echo '</tfoot>';
         echo '</table>';
