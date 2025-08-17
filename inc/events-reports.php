@@ -32,6 +32,9 @@ class MindEventsReports {
         // Enqueue our custom script
         wp_enqueue_script('events-reports', plugin_dir_url(dirname(__FILE__)) . 'js/events-reports.js', array('jquery', 'jquery-ui-datepicker'), '1.0', true);
         
+        // Enqueue our custom CSS for sortable columns
+        wp_enqueue_style('events-reports-style', plugin_dir_url(dirname(__FILE__)) . 'css/style.css', array(), '1.0');
+        
         // Add inline script for date picker initialization
         wp_add_inline_script('events-reports', '
             jQuery(document).ready(function($) {
@@ -43,13 +46,109 @@ class MindEventsReports {
             });
         ');
         
-        // Add CSS for hiding sections initially
+        // Add CSS for hiding sections initially and styling date picker
         wp_add_inline_style('jquery-ui-datepicker', '
             .comparison-date-range, .time-period-selector {
                 display: none;
             }
             .export-button {
                 margin-left: 10px;
+            }
+            .ui-datepicker {
+                background: #fff;
+                border: 1px solid #ddd;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                border-radius: 4px;
+                z-index: 100 !important;
+            }
+            .ui-datepicker-header {
+                background: #f8f9fa;
+                border-bottom: 1px solid #ddd;
+                border-radius: 4px 4px 0 0;
+                padding: 10px;
+            }
+            .ui-datepicker-title {
+                color: #23282d;
+                font-weight: 600;
+            }
+            .ui-datepicker-calendar {
+                margin: 10px;
+            }
+            .ui-datepicker th {
+                color: #23282d;
+                font-weight: 600;
+                padding: 5px;
+            }
+            .ui-datepicker td {
+                padding: 2px;
+            }
+            .ui-datepicker td a, .ui-datepicker td span {
+                display: block;
+                padding: 5px;
+                text-align: center;
+                text-decoration: none;
+                color: #0073aa;
+                border-radius: 3px;
+            }
+            .ui-datepicker td a:hover {
+                background: #f8f9fa;
+            }
+            .ui-datepicker td .ui-state-active {
+                background: #0073aa;
+                color: #fff;
+            }
+            .ui-datepicker td .ui-state-highlight {
+                background: #fff3cd;
+            }
+            .ui-datepicker-prev, .ui-datepicker-next {
+                cursor: pointer;
+            }
+            .ui-datepicker-prev-hover, .ui-datepicker-next-hover {
+                background: #f8f9fa;
+                border-radius: 3px;
+            }
+            .ui-icon-circle-triangle-w {
+                background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'%2323282d\'%3E%3Cpath d=\'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z\'/%3E%3C/svg%3E") no-repeat center;
+            }
+            .ui-icon-circle-triangle-e {
+                background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'%2323282d\'%3E%3Cpath d=\'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z\'/%3E%3C/svg%3E") no-repeat center;
+            }
+            
+            /* Styles for sortable columns in reports tables */
+            .sortable-column {
+                cursor: pointer;
+                position: relative;
+                padding-right: 20px !important;
+            }
+
+            .sortable-column:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+
+            .sortable-column::after {
+                content: "";
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 0;
+                height: 0;
+                border-left: 4px solid transparent;
+                border-right: 4px solid transparent;
+                opacity: 0.3;
+            }
+
+            .sort-asc::after {
+                border-bottom: 6px solid #333;
+            }
+
+            .sort-desc::after {
+                border-top: 6px solid #333;
+            }
+
+            .sortable-column.sort-asc::after,
+            .sortable-column.sort-desc::after {
+                opacity: 1;
             }
         ');
     }
@@ -77,6 +176,8 @@ class MindEventsReports {
         $end_date = isset($_GET['end_date']) ? sanitize_text_field($_GET['end_date']) : '';
         $parent_event = isset($_GET['parent_event']) ? intval($_GET['parent_event']) : 0;
         $event_category = isset($_GET['event_category']) ? intval($_GET['event_category']) : 0;
+        $include_non_ticketed = isset($_GET['ticketed_only']) && $_GET['ticketed_only'] == '1' ? 'ticketed_only' : 'all';
+        $instructor = isset($_GET['instructor']) ? sanitize_text_field($_GET['instructor']) : '';
         $report_type = sanitize_text_field($_GET['report_type']);
         
         // Additional parameters for specific report types
@@ -93,25 +194,25 @@ class MindEventsReports {
         $report_data = null;
         switch ($report_type) {
             case 'summary':
-                $report_data = $this->get_summary_report($start_date, $end_date, $parent_event, $event_category);
+                $report_data = $this->get_summary_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
                 break;
             case 'detailed':
-                $report_data = $this->get_detailed_report($start_date, $end_date, $parent_event, $event_category);
+                $report_data = $this->get_detailed_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
                 break;
             case 'parent':
-                $report_data = $this->get_parent_report($start_date, $end_date, $parent_event, $event_category);
+                $report_data = $this->get_parent_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
                 break;
             case 'category':
-                $report_data = $this->get_category_report($start_date, $end_date, $event_category);
+                $report_data = $this->get_category_report($start_date, $end_date, $event_category, $include_non_ticketed, $instructor);
                 break;
             case 'comparison':
                 if (!strtotime($start_date_2) || !strtotime($end_date_2)) {
                     wp_die('Invalid comparison date range');
                 }
-                $report_data = $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category);
+                $report_data = $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category, $include_non_ticketed, $instructor);
                 break;
             case 'time_based':
-                $report_data = $this->get_time_based_report($start_date, $end_date, $time_period, $event_category);
+                $report_data = $this->get_time_based_report($start_date, $end_date, $time_period, $event_category, $include_non_ticketed, $instructor);
                 break;
             default:
                 wp_die('Invalid report type');
@@ -384,6 +485,21 @@ class MindEventsReports {
             'order' => 'ASC'
         ));
         
+        // Get all instructors
+        $instructors = get_posts(array(
+            'post_type' => 'instructor',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC'
+        ));
+        
+        // Also get users with instructor role
+        $instructor_users = get_users(array(
+            'role' => 'instructor',
+            'orderby' => 'display_name',
+            'order' => 'ASC'
+        ));
+        
         echo '<div class="report-form-container" style="background: #fff; padding: 20px; margin: 20px 0; border: 1px solid #ccd0d4; border-radius: 4px;">';
         echo '<h2>Report Filters</h2>';
         echo '<form method="get" action="" class="events-reports-form">';
@@ -420,9 +536,6 @@ class MindEventsReports {
         }
         echo '</select>';
         echo '</div>';
-        echo '</div>';
-        
-        echo '<div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">';
         echo '<div class="form-group" style="flex: 1;">';
         echo '<label for="report_type">Report Type:</label>';
         echo '<select id="report_type" name="report_type" class="report-type-selector regular-text">';
@@ -433,6 +546,38 @@ class MindEventsReports {
         echo '<option value="comparison" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'comparison' ? 'selected' : '') . '>Comparison Report</option>';
         echo '<option value="time_based" ' . (isset($_GET['report_type']) && $_GET['report_type'] == 'time_based' ? 'selected' : '') . '>Time-based Report</option>';
         echo '</select>';
+        echo '</div>';
+        
+        echo '<div class="form-group" style="flex: 1;">';
+        echo '<label for="instructor">Instructor:</label>';
+        echo '<select id="instructor" name="instructor" class="regular-text">';
+        echo '<option value="">All Instructors</option>';
+        
+        // Add instructor posts
+        foreach ($instructors as $instructor) {
+            $selected = (isset($_GET['instructor']) && $_GET['instructor'] == 'post_' . $instructor->ID) ? 'selected' : '';
+            echo '<option value="post_' . esc_attr($instructor->ID) . '" ' . $selected . '>' . esc_html($instructor->post_title) . '</option>';
+        }
+        
+        // Add instructor users
+        foreach ($instructor_users as $instructor_user) {
+            $selected = (isset($_GET['instructor']) && $_GET['instructor'] == 'user_' . $instructor_user->ID) ? 'selected' : '';
+            echo '<option value="user_' . esc_attr($instructor_user->ID) . '" ' . $selected . '>' . esc_html($instructor_user->display_name) . '</option>';
+        }
+        
+        echo '</select>';
+        echo '</div>';
+        echo '</div>';
+        
+        // Ticketed events filter on a new line
+        echo '<div class="form-row" style="margin-bottom: 15px;">';
+        echo '<div class="form-group">';
+        echo '<label for="ticketed_only">';
+        $is_checked = (isset($_GET['ticketed_only']) && $_GET['ticketed_only'] == '1') ? 'checked' : '';
+        echo '<input type="checkbox" id="ticketed_only" name="ticketed_only" value="1" ' . $is_checked . '> ';
+        echo 'Show Ticketed Events Only';
+        echo '</label>';
+        echo '<p class="description">Check this box to include only events with tickets in the report.</p>';
         echo '</div>';
         echo '</div>';
         echo '</div>';
@@ -506,6 +651,8 @@ class MindEventsReports {
         $end_date = sanitize_text_field($_GET['end_date']);
         $parent_event = isset($_GET['parent_event']) ? intval($_GET['parent_event']) : 0;
         $event_category = isset($_GET['event_category']) ? intval($_GET['event_category']) : 0;
+        $include_non_ticketed = isset($_GET['ticketed_only']) && $_GET['ticketed_only'] == '1' ? 'ticketed_only' : 'all';
+        $instructor = isset($_GET['instructor']) ? sanitize_text_field($_GET['instructor']) : '';
         $report_type = isset($_GET['report_type']) ? sanitize_text_field($_GET['report_type']) : 'summary';
         
         if (!strtotime($start_date) || !strtotime($end_date)) {
@@ -515,26 +662,26 @@ class MindEventsReports {
         // Get report data based on type
         switch ($report_type) {
             case 'summary':
-                return $this->get_summary_report($start_date, $end_date, $parent_event, $event_category);
+                return $this->get_summary_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
             case 'detailed':
-                return $this->get_detailed_report($start_date, $end_date, $parent_event, $event_category);
+                return $this->get_detailed_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
             case 'parent':
-                return $this->get_parent_report($start_date, $end_date, $parent_event, $event_category);
+                return $this->get_parent_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
             case 'category':
-                return $this->get_category_report($start_date, $end_date, $event_category);
+                return $this->get_category_report($start_date, $end_date, $event_category, $include_non_ticketed, $instructor);
             case 'comparison':
                 $start_date_2 = isset($_GET['start_date_2']) ? sanitize_text_field($_GET['start_date_2']) : date('Y-m-d', strtotime('-60 days'));
                 $end_date_2 = isset($_GET['end_date_2']) ? sanitize_text_field($_GET['end_date_2']) : date('Y-m-d', strtotime('-31 days'));
-                return $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category);
+                return $this->get_comparison_report($start_date, $end_date, $start_date_2, $end_date_2, $event_category, $include_non_ticketed, $instructor);
             case 'time_based':
                 $time_period = isset($_GET['time_period']) ? sanitize_text_field($_GET['time_period']) : 'monthly';
-                return $this->get_time_based_report($start_date, $end_date, $time_period, $event_category);
+                return $this->get_time_based_report($start_date, $end_date, $time_period, $event_category, $include_non_ticketed, $instructor);
             default:
-                return $this->get_summary_report($start_date, $end_date, $parent_event, $event_category);
+                return $this->get_summary_report($start_date, $end_date, $parent_event, $event_category, $include_non_ticketed, $instructor);
         }
     }
 
-    private function get_summary_report($start_date, $end_date, $parent_event = 0, $event_category = 0) {
+    private function get_summary_report($start_date, $end_date, $parent_event = 0, $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         global $wpdb;
         
         // Get parent events within date range
@@ -558,6 +705,18 @@ class MindEventsReports {
         }
         
         $parent_events = get_posts($args);
+        
+        // Filter out non-ticketed events if requested
+        if ($include_non_ticketed === 'ticketed_only') {
+            $ticketed_parent_events = array();
+            foreach ($parent_events as $parent) {
+                $has_tickets = get_post_meta($parent->ID, 'has_tickets', true);
+                if ($has_tickets) {
+                    $ticketed_parent_events[] = $parent;
+                }
+            }
+            $parent_events = $ticketed_parent_events;
+        }
         
         $report_data = array(
             'total_parents' => 0,
@@ -603,6 +762,77 @@ class MindEventsReports {
             );
             
             foreach ($sub_events as $sub_event) {
+                // Get instructor information for filtering
+                $instructor_match = false;
+                $instructor_name = '';
+                
+                // Try instructorID first
+                $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
+                if ($instructor_id) {
+                    $instructor_post = get_post($instructor_id);
+                    if ($instructor_post && $instructor_post->post_type === 'instructor') {
+                        $instructor_name = $instructor_post->post_title;
+                        if ($instructor === 'post_' . $instructor_id) {
+                            $instructor_match = true;
+                        }
+                    } else {
+                        // Try to get user by ID
+                        $instructor_user = get_user_by('id', $instructor_id);
+                        if ($instructor_user) {
+                            $instructor_name = $instructor_user->display_name;
+                            if ($instructor === 'user_' . $instructor_id) {
+                                $instructor_match = true;
+                            }
+                        }
+                    }
+                }
+                
+                // If instructorID didn't work, try instructorEmail
+                if (empty($instructor_name)) {
+                    $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                    if ($instructor_email) {
+                        $instructor_user = get_user_by('email', $instructor_email);
+                        if ($instructor_user) {
+                            $instructor_name = $instructor_user->display_name;
+                            if ($instructor === 'user_' . $instructor_user->ID) {
+                                $instructor_match = true;
+                            }
+                        }
+                    }
+                }
+                
+                // If still empty, try alternative field names
+                if (empty($instructor_name)) {
+                    $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
+                }
+                if (empty($instructor_name)) {
+                    $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+                }
+                
+                // If still empty, try to get instructors from parent event
+                if (empty($instructor_name)) {
+                    $parent_instructors = get_field('instructors', $parent->ID);
+                    if ($parent_instructors && is_array($parent_instructors)) {
+                        $instructor_names = array();
+                        foreach ($parent_instructors as $instructor_user) {
+                            if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                                $instructor_names[] = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_user->ID) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                        if (!empty($instructor_names)) {
+                            $instructor_name = implode(', ', $instructor_names);
+                        }
+                    }
+                }
+                
+                // Skip if instructor filter is set and doesn't match
+                if (!empty($instructor) && !$instructor_match) {
+                    continue;
+                }
+                
                 $attendees_count = get_post_meta($sub_event->ID, 'related_orders_count', true);
                 $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                 $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
@@ -634,7 +864,8 @@ class MindEventsReports {
                     'date' => get_post_meta($sub_event->ID, 'event_date', true),
                     'attendees' => $attendees_count,
                     'revenue' => $revenue,
-                    'profit' => $profit
+                    'profit' => $profit,
+                    'instructor' => $instructor_name
                 );
             }
             
@@ -656,7 +887,7 @@ class MindEventsReports {
         return $report_data;
     }
 
-    private function get_detailed_report($start_date, $end_date, $parent_event = 0, $event_category = 0) {
+    private function get_detailed_report($start_date, $end_date, $parent_event = 0, $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         global $wpdb;
         
         // Get sub events within date range
@@ -713,6 +944,21 @@ class MindEventsReports {
         
         $sub_events = get_posts($args);
         
+        // Filter out non-ticketed events if requested
+        if ($include_non_ticketed === 'ticketed_only') {
+            $ticketed_sub_events = array();
+            foreach ($sub_events as $sub_event) {
+                $parent_id = wp_get_post_parent_id($sub_event->ID);
+                if ($parent_id) {
+                    $has_tickets = get_post_meta($parent_id, 'has_tickets', true);
+                    if ($has_tickets) {
+                        $ticketed_sub_events[] = $sub_event;
+                    }
+                }
+            }
+            $sub_events = $ticketed_sub_events;
+        }
+        
         $report_data = array(
             'total_events' => count($sub_events),
             'total_attendees' => 0,
@@ -725,6 +971,80 @@ class MindEventsReports {
         );
         
         foreach ($sub_events as $sub_event) {
+            // Get instructor information for filtering
+            $instructor_match = false;
+            $instructor_name = '';
+            
+            // Try instructorID first
+            $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
+            if ($instructor_id) {
+                $instructor_post = get_post($instructor_id);
+                if ($instructor_post && $instructor_post->post_type === 'instructor') {
+                    $instructor_name = $instructor_post->post_title;
+                    if ($instructor === 'post_' . $instructor_id) {
+                        $instructor_match = true;
+                    }
+                } else {
+                    // Try to get user by ID
+                    $instructor_user = get_user_by('id', $instructor_id);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                        if ($instructor === 'user_' . $instructor_id) {
+                            $instructor_match = true;
+                        }
+                    }
+                }
+            }
+            
+            // If instructorID didn't work, try instructorEmail
+            if (empty($instructor_name)) {
+                $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                if ($instructor_email) {
+                    $instructor_user = get_user_by('email', $instructor_email);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                        if ($instructor === 'user_' . $instructor_user->ID) {
+                            $instructor_match = true;
+                        }
+                    }
+                }
+            }
+            
+            // If still empty, try alternative field names
+            if (empty($instructor_name)) {
+                $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
+            }
+            if (empty($instructor_name)) {
+                $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+            }
+            
+            // If still empty, try to get instructors from parent event
+            if (empty($instructor_name)) {
+                $parent_id = wp_get_post_parent_id($sub_event->ID);
+                if ($parent_id) {
+                    $parent_instructors = get_field('instructors', $parent_id);
+                    if ($parent_instructors && is_array($parent_instructors)) {
+                        $instructor_names = array();
+                        foreach ($parent_instructors as $instructor_user) {
+                            if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                                $instructor_names[] = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_user->ID) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                        if (!empty($instructor_names)) {
+                            $instructor_name = implode(', ', $instructor_names);
+                        }
+                    }
+                }
+            }
+            
+            // Skip if instructor filter is set and doesn't match
+            if (!empty($instructor) && !$instructor_match) {
+                continue;
+            }
+            
             $attendees_count = get_post_meta($sub_event->ID, 'related_orders_count', true);
             $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
             $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
@@ -742,21 +1062,56 @@ class MindEventsReports {
             $parent_title = $parent_id ? get_the_title($parent_id) : 'No Parent';
             
             // Get instructor information
-            $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
             $instructor_name = '';
+            
+            // Try instructorID first
+            $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
             if ($instructor_id) {
                 $instructor_post = get_post($instructor_id);
                 if ($instructor_post && $instructor_post->post_type === 'instructor') {
                     $instructor_name = $instructor_post->post_title;
+                } else {
+                    // Try to get user by ID
+                    $instructor_user = get_user_by('id', $instructor_id);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                    }
                 }
             }
             
-            // If instructorID didn't work, try alternative field names
+            // If instructorID didn't work, try instructorEmail
+            if (empty($instructor_name)) {
+                $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                if ($instructor_email) {
+                    $instructor_user = get_user_by('email', $instructor_email);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                    }
+                }
+            }
+            
+            // If still empty, try alternative field names
             if (empty($instructor_name)) {
                 $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
             }
             if (empty($instructor_name)) {
                 $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+            }
+            
+            // If still empty, try to get instructors from parent event
+            if (empty($instructor_name) && $parent_id) {
+                $parent_instructors = get_field('instructors', $parent_id);
+                if ($parent_instructors && is_array($parent_instructors)) {
+                    $instructor_names = array();
+                    foreach ($parent_instructors as $instructor_user) {
+                        if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                            $instructor_names[] = $instructor_user->display_name;
+                        }
+                    }
+                    if (!empty($instructor_names)) {
+                        $instructor_name = implode(', ', $instructor_names);
+                    }
+                }
             }
             
             $instructor_expense = 0;
@@ -785,6 +1140,7 @@ class MindEventsReports {
             $report_data['events'][] = array(
                 'id' => $sub_event->ID,
                 'title' => $sub_event->post_title,
+                'parent_id' => $parent_id,
                 'parent_title' => $parent_title,
                 'instructor' => $instructor_name,
                 'date' => get_post_meta($sub_event->ID, 'event_date', true),
@@ -802,7 +1158,7 @@ class MindEventsReports {
         return $report_data;
     }
 
-    private function get_parent_report($start_date, $end_date, $parent_event = 0, $event_category = 0) {
+    private function get_parent_report($start_date, $end_date, $parent_event = 0, $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         global $wpdb;
         
         // Get all parent events or specific one
@@ -826,6 +1182,18 @@ class MindEventsReports {
         }
         
         $parent_events = get_posts($args);
+        
+        // Filter out non-ticketed events if requested
+        if ($include_non_ticketed === 'ticketed_only') {
+            $ticketed_parent_events = array();
+            foreach ($parent_events as $parent) {
+                $has_tickets = get_post_meta($parent->ID, 'has_tickets', true);
+                if ($has_tickets) {
+                    $ticketed_parent_events[] = $parent;
+                }
+            }
+            $parent_events = $ticketed_parent_events;
+        }
         
         $report_data = array(
             'total_parents' => 0,
@@ -867,6 +1235,77 @@ class MindEventsReports {
             );
             
             foreach ($sub_events as $sub_event) {
+                // Get instructor information for filtering
+                $instructor_match = false;
+                $instructor_name = '';
+                
+                // Try instructorID first
+                $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
+                if ($instructor_id) {
+                    $instructor_post = get_post($instructor_id);
+                    if ($instructor_post && $instructor_post->post_type === 'instructor') {
+                        $instructor_name = $instructor_post->post_title;
+                        if ($instructor === 'post_' . $instructor_id) {
+                            $instructor_match = true;
+                        }
+                    } else {
+                        // Try to get user by ID
+                        $instructor_user = get_user_by('id', $instructor_id);
+                        if ($instructor_user) {
+                            $instructor_name = $instructor_user->display_name;
+                            if ($instructor === 'user_' . $instructor_id) {
+                                $instructor_match = true;
+                            }
+                        }
+                    }
+                }
+                
+                // If instructorID didn't work, try instructorEmail
+                if (empty($instructor_name)) {
+                    $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                    if ($instructor_email) {
+                        $instructor_user = get_user_by('email', $instructor_email);
+                        if ($instructor_user) {
+                            $instructor_name = $instructor_user->display_name;
+                            if ($instructor === 'user_' . $instructor_user->ID) {
+                                $instructor_match = true;
+                            }
+                        }
+                    }
+                }
+                
+                // If still empty, try alternative field names
+                if (empty($instructor_name)) {
+                    $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
+                }
+                if (empty($instructor_name)) {
+                    $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+                }
+                
+                // If still empty, try to get instructors from parent event
+                if (empty($instructor_name)) {
+                    $parent_instructors = get_field('instructors', $parent->ID);
+                    if ($parent_instructors && is_array($parent_instructors)) {
+                        $instructor_names = array();
+                        foreach ($parent_instructors as $instructor_user) {
+                            if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                                $instructor_names[] = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_user->ID) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                        if (!empty($instructor_names)) {
+                            $instructor_name = implode(', ', $instructor_names);
+                        }
+                    }
+                }
+                
+                // Skip if instructor filter is set and doesn't match
+                if (!empty($instructor) && !$instructor_match) {
+                    continue;
+                }
+                
                 $attendees_count = get_post_meta($sub_event->ID, 'related_orders_count', true);
                 $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                 $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
@@ -890,23 +1329,6 @@ class MindEventsReports {
                     $parent_data['instructor_expense'] += floatval($instructor_expense);
                     $parent_data['materials_expense'] += $total_materials_expense;
                     $parent_data['total_expenses'] += $total_expenses;
-                }
-                
-                $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
-                $instructor_name = '';
-                if ($instructor_id) {
-                    $instructor_post = get_post($instructor_id);
-                    if ($instructor_post && $instructor_post->post_type === 'instructor') {
-                        $instructor_name = $instructor_post->post_title;
-                    }
-                }
-                
-                // If instructorID didn't work, try alternative field names
-                if (empty($instructor_name)) {
-                    $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
-                }
-                if (empty($instructor_name)) {
-                    $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
                 }
                 
                 $parent_data['sub_events'][] = array(
@@ -946,14 +1368,15 @@ class MindEventsReports {
      * @param string $start_date_2 Period 2 start date
      * @param string $end_date_2 Period 2 end date
      * @param int $event_category Event category ID
+     * @param string $include_non_ticketed Filter for ticketed events
      * @return array Report data
      */
-    private function get_comparison_report($start_date_1, $end_date_1, $start_date_2, $end_date_2, $event_category = 0) {
+    private function get_comparison_report($start_date_1, $end_date_1, $start_date_2, $end_date_2, $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         // Get data for period 1
-        $period_1_data = $this->get_summary_report($start_date_1, $end_date_1, 0, $event_category);
+        $period_1_data = $this->get_summary_report($start_date_1, $end_date_1, 0, $event_category, $include_non_ticketed, $instructor);
         
         // Get data for period 2
-        $period_2_data = $this->get_summary_report($start_date_2, $end_date_2, 0, $event_category);
+        $period_2_data = $this->get_summary_report($start_date_2, $end_date_2, 0, $event_category, $include_non_ticketed, $instructor);
         
         // Calculate differences and percentages
         $comparison_data = array(
@@ -980,7 +1403,7 @@ class MindEventsReports {
         return $comparison_data;
     }
 
-    private function get_category_report($start_date, $end_date, $event_category = 0) {
+    private function get_category_report($start_date, $end_date, $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         global $wpdb;
         
         // Get all event categories
@@ -1021,6 +1444,18 @@ class MindEventsReports {
             );
             
             $parent_events = get_posts($parent_args);
+            
+            // Filter out non-ticketed events if requested
+            if ($include_non_ticketed === 'ticketed_only') {
+                $ticketed_parent_events = array();
+                foreach ($parent_events as $parent) {
+                    $has_tickets = get_post_meta($parent->ID, 'has_tickets', true);
+                    if ($has_tickets) {
+                        $ticketed_parent_events[] = $parent;
+                    }
+                }
+                $parent_events = $ticketed_parent_events;
+            }
             
             $category_data = array(
                 'id' => $category->term_id,
@@ -1068,6 +1503,77 @@ class MindEventsReports {
                 );
                 
                 foreach ($sub_events as $sub_event) {
+                    // Get instructor information for filtering
+                    $instructor_match = false;
+                    $instructor_name = '';
+                    
+                    // Try instructorID first
+                    $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
+                    if ($instructor_id) {
+                        $instructor_post = get_post($instructor_id);
+                        if ($instructor_post && $instructor_post->post_type === 'instructor') {
+                            $instructor_name = $instructor_post->post_title;
+                            if ($instructor === 'post_' . $instructor_id) {
+                                $instructor_match = true;
+                            }
+                        } else {
+                            // Try to get user by ID
+                            $instructor_user = get_user_by('id', $instructor_id);
+                            if ($instructor_user) {
+                                $instructor_name = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_id) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If instructorID didn't work, try instructorEmail
+                    if (empty($instructor_name)) {
+                        $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                        if ($instructor_email) {
+                            $instructor_user = get_user_by('email', $instructor_email);
+                            if ($instructor_user) {
+                                $instructor_name = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_user->ID) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If still empty, try alternative field names
+                    if (empty($instructor_name)) {
+                        $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
+                    }
+                    if (empty($instructor_name)) {
+                        $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+                    }
+                    
+                    // If still empty, try to get instructors from parent event
+                    if (empty($instructor_name)) {
+                        $parent_instructors = get_field('instructors', $parent->ID);
+                        if ($parent_instructors && is_array($parent_instructors)) {
+                            $instructor_names = array();
+                            foreach ($parent_instructors as $instructor_user) {
+                                if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                                    $instructor_names[] = $instructor_user->display_name;
+                                    if ($instructor === 'user_' . $instructor_user->ID) {
+                                        $instructor_match = true;
+                                    }
+                                }
+                            }
+                            if (!empty($instructor_names)) {
+                                $instructor_name = implode(', ', $instructor_names);
+                            }
+                        }
+                    }
+                    
+                    // Skip if instructor filter is set and doesn't match
+                    if (!empty($instructor) && !$instructor_match) {
+                        continue;
+                    }
+                    
                     $attendees_count = get_post_meta($sub_event->ID, 'related_orders_count', true);
                     $revenue = get_post_meta($sub_event->ID, 'total_revenue', true);
                     $profit = get_post_meta($sub_event->ID, 'sub_event_profit', true);
@@ -1099,7 +1605,8 @@ class MindEventsReports {
                         'date' => get_post_meta($sub_event->ID, 'event_date', true),
                         'attendees' => $attendees_count,
                         'revenue' => $revenue,
-                        'profit' => $profit
+                        'profit' => $profit,
+                        'instructor' => $instructor_name
                     );
                 }
                 
@@ -1143,9 +1650,10 @@ class MindEventsReports {
      * @param string $end_date End date
      * @param string $time_period Time period (weekly, monthly, quarterly, yearly)
      * @param int $event_category Event category ID
+     * @param string $include_non_ticketed Filter for ticketed events
      * @return array Report data
      */
-    private function get_time_based_report($start_date, $end_date, $time_period = 'monthly', $event_category = 0) {
+    private function get_time_based_report($start_date, $end_date, $time_period = 'monthly', $event_category = 0, $include_non_ticketed = 'all', $instructor = '') {
         global $wpdb;
         
         // Get all sub events within date range
@@ -1195,6 +1703,21 @@ class MindEventsReports {
         }
         
         $sub_events = get_posts($args);
+        
+        // Filter out non-ticketed events if requested
+        if ($include_non_ticketed === 'ticketed_only') {
+            $ticketed_sub_events = array();
+            foreach ($sub_events as $sub_event) {
+                $parent_id = wp_get_post_parent_id($sub_event->ID);
+                if ($parent_id) {
+                    $has_tickets = get_post_meta($parent_id, 'has_tickets', true);
+                    if ($has_tickets) {
+                        $ticketed_sub_events[] = $sub_event;
+                    }
+                }
+            }
+            $sub_events = $ticketed_sub_events;
+        }
         
         // Initialize time periods
         $periods = array();
@@ -1265,6 +1788,80 @@ class MindEventsReports {
         
         // Process each sub event and assign to appropriate period
         foreach ($sub_events as $sub_event) {
+            // Get instructor information for filtering
+            $instructor_match = false;
+            $instructor_name = '';
+            
+            // Try instructorID first
+            $instructor_id = get_post_meta($sub_event->ID, 'instructorID', true);
+            if ($instructor_id) {
+                $instructor_post = get_post($instructor_id);
+                if ($instructor_post && $instructor_post->post_type === 'instructor') {
+                    $instructor_name = $instructor_post->post_title;
+                    if ($instructor === 'post_' . $instructor_id) {
+                        $instructor_match = true;
+                    }
+                } else {
+                    // Try to get user by ID
+                    $instructor_user = get_user_by('id', $instructor_id);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                        if ($instructor === 'user_' . $instructor_id) {
+                            $instructor_match = true;
+                        }
+                    }
+                }
+            }
+            
+            // If instructorID didn't work, try instructorEmail
+            if (empty($instructor_name)) {
+                $instructor_email = get_post_meta($sub_event->ID, 'instructorEmail', true);
+                if ($instructor_email) {
+                    $instructor_user = get_user_by('email', $instructor_email);
+                    if ($instructor_user) {
+                        $instructor_name = $instructor_user->display_name;
+                        if ($instructor === 'user_' . $instructor_user->ID) {
+                            $instructor_match = true;
+                        }
+                    }
+                }
+            }
+            
+            // If still empty, try alternative field names
+            if (empty($instructor_name)) {
+                $instructor_name = get_post_meta($sub_event->ID, 'instructor', true);
+            }
+            if (empty($instructor_name)) {
+                $instructor_name = get_post_meta($sub_event->ID, 'event_instructor', true);
+            }
+            
+            // If still empty, try to get instructors from parent event
+            if (empty($instructor_name)) {
+                $parent_id = wp_get_post_parent_id($sub_event->ID);
+                if ($parent_id) {
+                    $parent_instructors = get_field('instructors', $parent_id);
+                    if ($parent_instructors && is_array($parent_instructors)) {
+                        $instructor_names = array();
+                        foreach ($parent_instructors as $instructor_user) {
+                            if (is_object($instructor_user) && isset($instructor_user->display_name)) {
+                                $instructor_names[] = $instructor_user->display_name;
+                                if ($instructor === 'user_' . $instructor_user->ID) {
+                                    $instructor_match = true;
+                                }
+                            }
+                        }
+                        if (!empty($instructor_names)) {
+                            $instructor_name = implode(', ', $instructor_names);
+                        }
+                    }
+                }
+            }
+            
+            // Skip if instructor filter is set and doesn't match
+            if (!empty($instructor) && !$instructor_match) {
+                continue;
+            }
+            
             $event_date = get_post_meta($sub_event->ID, 'event_date', true);
             $event_datetime = new DateTime($event_date);
             
@@ -1294,7 +1891,9 @@ class MindEventsReports {
                     $periods[$period_key]['events'][] = array(
                         'id' => $sub_event->ID,
                         'title' => $sub_event->post_title,
+                        'parent_id' => $parent_id,
                         'parent_title' => $parent_title,
+                        'instructor' => $instructor_name,
                         'date' => $event_date,
                         'attendees' => $attendees_count,
                         'revenue' => $revenue,
@@ -1484,24 +2083,24 @@ class MindEventsReports {
 
     private function display_summary_table($report_data) {
         echo '<h2>Parent Event Summary</h2>';
-        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<table class="wp-list-table widefat fixed striped sortable-table">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>Parent Event</th>';
-        echo '<th>Sub Events</th>';
-        echo '<th>Attendees</th>';
-        echo '<th>Revenue</th>';
-        echo '<th>Instructor Expense</th>';
-        echo '<th>Materials Expense</th>';
-        echo '<th>Total Expenses</th>';
-        echo '<th>Profit</th>';
+        echo '<th class="sortable-column" data-column="0" data-type="text">Parent Event</th>';
+        echo '<th class="sortable-column" data-column="1" data-type="numeric">Sub Events</th>';
+        echo '<th class="sortable-column" data-column="2" data-type="numeric">Attendees</th>';
+        echo '<th class="sortable-column" data-column="3" data-type="numeric">Revenue</th>';
+        echo '<th class="sortable-column" data-column="4" data-type="numeric">Instructor Expense</th>';
+        echo '<th class="sortable-column" data-column="5" data-type="numeric">Materials Expense</th>';
+        echo '<th class="sortable-column" data-column="6" data-type="numeric">Total Expenses</th>';
+        echo '<th class="sortable-column" data-column="7" data-type="numeric">Profit</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
         
         foreach ($report_data['parents'] as $parent) {
             echo '<tr>';
-            echo '<td><strong>' . esc_html($parent['title']) . '</strong></td>';
+            echo '<td><strong><a href="' . get_edit_post_link($parent['id']) . '" target="_blank">' . esc_html($parent['title']) . '</a></strong></td>';
             echo '<td>' . esc_html($parent['sub_events_count']) . '</td>';
             echo '<td>' . esc_html($parent['attendees']) . '</td>';
             echo '<td>$' . number_format($parent['revenue'], 2) . '</td>';
@@ -1516,7 +2115,7 @@ class MindEventsReports {
                 foreach ($parent['sub_events'] as $sub_event) {
                     echo '<tr class="child-row">';
                     $formatted_date = date('l - F j, Y', strtotime($sub_event['date']));
-                    echo '<td style="padding-left: 30px;">&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . '</td>';
+                    echo '<td style="padding-left: 30px;" data-date="' . esc_attr($sub_event['date']) . '">&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . ' - ' . esc_html($sub_event['title']) . '</td>';
                     echo '<td>-</td>';
                     echo '<td>' . esc_html($sub_event['attendees']) . '</td>';
                     echo '<td>$' . number_format($sub_event['revenue'], 2) . '</td>';
@@ -1546,29 +2145,29 @@ class MindEventsReports {
 
     private function display_detailed_table($report_data) {
         echo '<h2>Detailed Event Information</h2>';
-        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<table class="wp-list-table widefat fixed striped sortable-table">';
         echo '<thead><tr>
-            <th>Event</th>
-            <th>Parent Event</th>
-            <th>Instructor</th>
-            <th>Date</th>
-            <th>Attendees</th>
-            <th>Revenue</th>
-            <th>Instructor Expense</th>
-            <th>Materials/Attendee</th>
-            <th>Total Materials</th>
-            <th>Total Expenses</th>
-            <th>Profit</th>
-            <th>Customer Orders</th>
+            <th class="sortable-column" data-column="0" data-type="text">Event</th>
+            <th class="sortable-column" data-column="1" data-type="text">Parent Event</th>
+            <th class="sortable-column" data-column="2" data-type="text">Instructor</th>
+            <th class="sortable-column" data-column="3" data-type="date">Date</th>
+            <th class="sortable-column" data-column="4" data-type="numeric">Attendees</th>
+            <th class="sortable-column" data-column="5" data-type="numeric">Revenue</th>
+            <th class="sortable-column" data-column="6" data-type="numeric">Instructor Expense</th>
+            <th class="sortable-column" data-column="7" data-type="numeric">Materials/Attendee</th>
+            <th class="sortable-column" data-column="8" data-type="numeric">Total Materials</th>
+            <th class="sortable-column" data-column="9" data-type="numeric">Total Expenses</th>
+            <th class="sortable-column" data-column="10" data-type="numeric">Profit</th>
+            <th class="sortable-column" data-column="11" data-type="text">Customer Orders</th>
             </tr></thead>';
         echo '<tbody>';
         
         foreach ($report_data['events'] as $event) {
             echo '<tr>';
             echo '<td><a href="' . get_edit_post_link($event['id']) . '" target="_blank">' . esc_html($event['title']) . '</a></td>';
-            echo '<td>' . esc_html($event['parent_title']) . '</td>';
+            echo '<td><a href="' . get_edit_post_link($event['parent_id']) . '" target="_blank">' . esc_html($event['parent_title']) . '</a></td>';
             echo '<td>' . esc_html($event['instructor']) . '</td>';
-            echo '<td>' . esc_html(date('F j, Y', strtotime($event['date']))) . '</td>';
+            echo '<td data-date="' . esc_attr($event['date']) . '">' . esc_html(date('F j, Y', strtotime($event['date']))) . '</td>';
             echo '<td>' . esc_html($event['attendees']) . '</td>';
             echo '<td>$' . number_format(floatval($event['revenue']), 2) . '</td>';
             echo '<td>$' . number_format(floatval($event['instructor_expense']), 2) . '</td>';
@@ -1611,7 +2210,7 @@ class MindEventsReports {
         
         foreach ($report_data['parents'] as $parent) {
             echo '<div class="parent-section" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 4px;">';
-            echo '<h3>' . esc_html($parent['title']) . '</h3>';
+            echo '<h3><a href="' . get_edit_post_link($parent['id']) . '" target="_blank">' . esc_html($parent['title']) . '</a></h3>';
             echo '<p><strong>Sub Events:</strong> ' . esc_html($parent['sub_events_count']) . ' |
                    <strong>Total Attendees:</strong> ' . esc_html($parent['attendees']) . ' |
                    <strong>Total Revenue:</strong> $' . number_format(floatval($parent['revenue']), 2) . ' |
@@ -1621,18 +2220,18 @@ class MindEventsReports {
                    <strong>Total Profit:</strong> <span style="color: ' . (floatval($parent['profit']) >= 0 ? '#46b450' : '#dc3232') . ';">' . ($parent['attendees'] > 0 ? '$' . number_format(floatval($parent['profit']), 2) : '-') . '</span></p>';
             
             if (!empty($parent['sub_events'])) {
-                echo '<table class="wp-list-table widefat fixed striped" style="margin-top: 15px;">';
+                echo '<table class="wp-list-table widefat fixed striped sortable-table" style="margin-top: 15px;">';
                 echo '<thead><tr>
-                    <th>Sub Event</th>
-                    <th>Instructor</th>
-                    <th>Date</th>
-                    <th>Attendees</th>
-                    <th>Revenue</th>
-                    <th>Instructor Cost</th>
-                    <th>Materials/Attendee</th>
-                    <th>Total Materials</th>
-                    <th>Total Expenses</th>
-                    <th>Profit</th>
+                    <th class="sortable-column" data-column="0" data-type="text">Sub Event</th>
+                    <th class="sortable-column" data-column="1" data-type="text">Instructor</th>
+                    <th class="sortable-column" data-column="2" data-type="date">Date</th>
+                    <th class="sortable-column" data-column="3" data-type="numeric">Attendees</th>
+                    <th class="sortable-column" data-column="4" data-type="numeric">Revenue</th>
+                    <th class="sortable-column" data-column="5" data-type="numeric">Instructor Cost</th>
+                    <th class="sortable-column" data-column="6" data-type="numeric">Materials/Attendee</th>
+                    <th class="sortable-column" data-column="7" data-type="numeric">Total Materials</th>
+                    <th class="sortable-column" data-column="8" data-type="numeric">Total Expenses</th>
+                    <th class="sortable-column" data-column="9" data-type="numeric">Profit</th>
                     </tr></thead>';
                 echo '<tbody>';
                 
@@ -1640,7 +2239,7 @@ class MindEventsReports {
                     echo '<tr>';
                     echo '<td><a href="' . get_edit_post_link($sub_event['id']) . '" target="_blank">' . esc_html($sub_event['title']) . '</a></td>';
                     echo '<td>' . esc_html($sub_event['instructor']) . '</td>';
-                    echo '<td>' . esc_html(date('F j, Y', strtotime($sub_event['date']))) . '</td>';
+                    echo '<td data-date="' . esc_attr($sub_event['date']) . '">' . esc_html(date('F j, Y', strtotime($sub_event['date']))) . '</td>';
                     echo '<td>' . esc_html($sub_event['attendees']) . '</td>';
                     echo '<td>$' . number_format(floatval($sub_event['revenue']), 2) . '</td>';
                     echo '<td>$' . number_format(floatval($sub_event['instructor_expense']), 2) . '</td>';
@@ -1661,18 +2260,18 @@ class MindEventsReports {
 
     private function display_category_table($report_data) {
         echo '<h2>Category Report</h2>';
-        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<table class="wp-list-table widefat fixed striped sortable-table">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>Category</th>';
-        echo '<th>Parent Events</th>';
-        echo '<th>Sub Events</th>';
-        echo '<th>Attendees</th>';
-        echo '<th>Revenue</th>';
-        echo '<th>Instructor Expense</th>';
-        echo '<th>Materials Expense</th>';
-        echo '<th>Total Expenses</th>';
-        echo '<th>Profit</th>';
+        echo '<th class="sortable-column" data-column="0" data-type="text">Category</th>';
+        echo '<th class="sortable-column" data-column="1" data-type="numeric">Parent Events</th>';
+        echo '<th class="sortable-column" data-column="2" data-type="numeric">Sub Events</th>';
+        echo '<th class="sortable-column" data-column="3" data-type="numeric">Attendees</th>';
+        echo '<th class="sortable-column" data-column="4" data-type="numeric">Revenue</th>';
+        echo '<th class="sortable-column" data-column="5" data-type="numeric">Instructor Expense</th>';
+        echo '<th class="sortable-column" data-column="6" data-type="numeric">Materials Expense</th>';
+        echo '<th class="sortable-column" data-column="7" data-type="numeric">Total Expenses</th>';
+        echo '<th class="sortable-column" data-column="8" data-type="numeric">Profit</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -1694,7 +2293,7 @@ class MindEventsReports {
             if (!empty($category['parent_events'])) {
                 foreach ($category['parent_events'] as $parent) {
                     echo '<tr class="child-row">';
-                    echo '<td style="padding-left: 30px;">&nbsp;&nbsp;&nbsp;→ ' . esc_html($parent['title']) . '</td>';
+                    echo '<td style="padding-left: 30px;">&nbsp;&nbsp;&nbsp;→ <a href="' . get_edit_post_link($parent['id']) . '" target="_blank">' . esc_html($parent['title']) . '</a></td>';
                     echo '<td>-</td>';
                     echo '<td>' . esc_html($parent['sub_events_count']) . '</td>';
                     echo '<td>' . esc_html($parent['attendees']) . '</td>';
@@ -1710,7 +2309,7 @@ class MindEventsReports {
                         foreach ($parent['sub_events'] as $sub_event) {
                             echo '<tr class="grandchild-row">';
                             $formatted_date = date('l - F j, Y', strtotime($sub_event['date']));
-                            echo '<td style="padding-left: 60px;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . '</td>';
+                            echo '<td style="padding-left: 60px;" data-date="' . esc_attr($sub_event['date']) . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ ' . esc_html($formatted_date) . '</td>';
                             echo '<td>-</td>';
                             echo '<td>-</td>';
                             echo '<td>' . esc_html($sub_event['attendees']) . '</td>';
@@ -1993,17 +2592,17 @@ class MindEventsReports {
         
         // Display detailed table
         echo '<h3>Detailed ' . ucfirst(esc_html($time_period)) . ' Breakdown</h3>';
-        echo '<table class="wp-list-table widefat fixed striped">';
+        echo '<table class="wp-list-table widefat fixed striped sortable-table">';
         echo '<thead>';
         echo '<tr>';
-        echo '<th>Period</th>';
-        echo '<th>Date Range</th>';
-        echo '<th>Sub Events</th>';
-        echo '<th>Attendees</th>';
-        echo '<th>Revenue</th>';
-        echo '<th>Profit</th>';
-        echo '<th>Avg. Revenue/Event</th>';
-        echo '<th>Avg. Profit/Event</th>';
+        echo '<th class="sortable-column" data-column="0" data-type="text">Period</th>';
+        echo '<th class="sortable-column" data-column="1" data-type="date">Date Range</th>';
+        echo '<th class="sortable-column" data-column="2" data-type="numeric">Sub Events</th>';
+        echo '<th class="sortable-column" data-column="3" data-type="numeric">Attendees</th>';
+        echo '<th class="sortable-column" data-column="4" data-type="numeric">Revenue</th>';
+        echo '<th class="sortable-column" data-column="5" data-type="numeric">Profit</th>';
+        echo '<th class="sortable-column" data-column="6" data-type="numeric">Avg. Revenue/Event</th>';
+        echo '<th class="sortable-column" data-column="7" data-type="numeric">Avg. Profit/Event</th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
@@ -2014,7 +2613,7 @@ class MindEventsReports {
             
             echo '<tr>';
             echo '<td><strong>' . esc_html($period['label']) . '</strong></td>';
-            echo '<td>' . esc_html($period['start_date']) . ' to ' . esc_html($period['end_date']) . '</td>';
+            echo '<td data-date="' . esc_attr($period['start_date']) . '">' . esc_html($period['start_date']) . ' to ' . esc_html($period['end_date']) . '</td>';
             echo '<td>' . esc_html($period['events_count']) . '</td>';
             echo '<td>' . esc_html($period['attendees']) . '</td>';
             echo '<td>$' . number_format($period['revenue'], 2) . '</td>';
