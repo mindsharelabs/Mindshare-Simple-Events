@@ -113,7 +113,10 @@ class MindEventsReports {
             .ui-icon-circle-triangle-e {
                 background: url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'%2323282d\'%3E%3Cpath d=\'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z\'/%3E%3C/svg%3E") no-repeat center;
             }
-            
+        ');
+        
+        // Add CSS for sortable columns to the events-reports-style
+        wp_add_inline_style('events-reports-style', '
             /* Styles for sortable columns in reports tables */
             .sortable-column {
                 cursor: pointer;
