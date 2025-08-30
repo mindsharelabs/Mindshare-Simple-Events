@@ -563,12 +563,12 @@ class mindEventCalendar
   }
 
 
-  public function get_front_list($calDate = '')
+  public function get_front_list($calDate = '', $args = array())
   {
     if ($calDate == 'archive'):
       $this->is_archive = true;
       $this->show_past_events = false;
-      $args = array(
+      $default = array(
         'meta_query' => array(
           'relation' => 'AND',
           array(
@@ -590,7 +590,7 @@ class mindEventCalendar
         'posts_per_page' => -1
       );
     else:
-      $args = array(
+      $default = array(
         'orderby' => 'meta_value',
         'meta_key' => 'event_time_stamp',
         'meta_type' => 'DATETIME',
@@ -600,6 +600,8 @@ class mindEventCalendar
         'posts_per_page' => -1
       );
     endif;
+
+    $args = wp_parse_args($args, $default);
 
     $eventDates = $this->get_sub_events($args);
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
