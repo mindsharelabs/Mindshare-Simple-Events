@@ -66,14 +66,6 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		});
 
 
-		
-			
-		
-		
-
-
-		
-
 
 		$(document).on('click', '.add-offer', function (event) {
 			var element = $(this).parent('.single-offer'),

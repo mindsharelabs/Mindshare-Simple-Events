@@ -101,8 +101,7 @@ class mindEventsAjax {
   public function selectday() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'selectday'){
 
-      $date = $_POST['date'];
-      mapi_write_log($date);
+      $date = $_POST['date']; //format: Y-m-d
       $eventID = $_POST['eventid'];
       $insideHTML = '';
 
