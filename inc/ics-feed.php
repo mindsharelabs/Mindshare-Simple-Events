@@ -15,14 +15,14 @@ $args = array(
 			'compare' => 'EXISTS',
 		  ),
 		  array(
-			'key' => 'event_time_stamp', // Check the start date field
+			'key' => 'event_start_time_stamp', // Check the start date field
 			'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
 			'compare' => '>=', // Return the ones greater than today's date
 			'type' => 'DATETIME' // Let WordPress know we're working with date
 		  )
 		),
 		'orderby' => 'meta_value',
-		'meta_key' => 'event_time_stamp',
+		'meta_key' => 'event_start_time_stamp',
 		'meta_type' => 'DATETIME',
 		'order'            => 'ASC',
 		'post_type'        => 'sub_event',

@@ -456,7 +456,7 @@ class mindEventsWooCommerce {
             ),
           ),
           'orderby'          => 'meta_value',
-          'meta_key'         => 'event_time_stamp',
+          'meta_key'         => 'event_start_time_stamp',
           'meta_type'        => 'DATETIME',
           'order'            => 'ASC',
           'post_type'        => 'sub_event',

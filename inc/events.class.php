@@ -417,7 +417,7 @@ class mindEventCalendar
         ),
       ),
       'orderby' => 'meta_value',
-      'meta_key' => 'event_time_stamp',
+      'meta_key' => 'event_start_time_stamp',
       'meta_type' => 'DATETIME',
       'order' => 'ASC',
       'post_type' => 'sub_event',
@@ -426,7 +426,7 @@ class mindEventCalendar
     );
     if ($this->show_past_events == false) {
       $args['meta_query'][] = array(
-        'key' => 'event_time_stamp', // Check the start date field
+        'key' => 'event_start_time_stamp', // Check the start date field
         'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
         'compare' => '>=', // Return the ones greater than today's date
         'type' => 'DATETIME' // Let WordPress know we're working with date
@@ -465,7 +465,7 @@ class mindEventCalendar
         ),
       ),
       'orderby' => 'meta_value',
-      'meta_key' => 'event_time_stamp',
+      'meta_key' => 'event_start_time_stamp',
       'meta_type' => 'DATETIME',
       'order' => 'ASC',
       'post_type' => 'sub_event',
@@ -476,7 +476,7 @@ class mindEventCalendar
 
     if ($this->show_past_events === false) {
       $args['meta_query'][] = array(
-        'key' => 'event_time_stamp', // Check the start date field
+        'key' => 'event_start_time_stamp', // Check the start date field
         'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
         'compare' => '>=', // Return the ones greater than today's date
         'type' => 'DATETIME' // Let WordPress know we're working with date
@@ -572,7 +572,7 @@ class mindEventCalendar
         'meta_query' => array(
           'relation' => 'AND',
           array(
-            'key' => 'event_time_stamp', // Check the start date field
+            'key' => 'event_start_time_stamp', // Check the start date field
             'value' => array(
               date('Y-m-d H:i:s'), // Current date and time
               date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
@@ -582,7 +582,7 @@ class mindEventCalendar
           ),
         ),
         'orderby' => 'meta_value',
-        'meta_key' => 'event_time_stamp',
+        'meta_key' => 'event_start_time_stamp',
         'meta_type' => 'DATETIME',
         'order' => 'ASC',
         'post_type' => 'sub_event',
@@ -592,7 +592,7 @@ class mindEventCalendar
     else:
       $default = array(
         'orderby' => 'meta_value',
-        'meta_key' => 'event_time_stamp',
+        'meta_key' => 'event_start_time_stamp',
         'meta_type' => 'DATETIME',
         'order' => 'ASC',
         'post_type' => 'sub_event',
@@ -1162,7 +1162,6 @@ class mindEventCalendar
   public function update_sub_event($sub_event, $meta, $parentID)
   {
     $unique = $this->build_unique_key($parentID, $meta['event_date'], $meta);
-    $meta['event_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['starttime']));
     $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['starttime']));
     $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['endtime']));
     $meta['unique_event_key'] = $unique;
@@ -1196,11 +1195,10 @@ class mindEventCalendar
     //if it doesnt exist, add it
     if (empty($check_query->have_posts())):
       $terms = wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids'));
-      $meta['event_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['starttime']));
       $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['starttime']));
       $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['endtime']));
       $meta['unique_event_key'] = $unique;
-      $meta['event_date'] = $date;
+      //$meta['event_date'] = $date;
 
       // $meta['linked_product'] = $meta['linked_product'];
 

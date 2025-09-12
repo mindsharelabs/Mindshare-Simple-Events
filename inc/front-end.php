@@ -47,12 +47,12 @@ function mindevents_single_datespan($id) {
         'post_parent'    => $id,
         'posts_per_page' => 1,
         'orderby'        => 'meta_value',
-        'meta_key'       => 'event_time_stamp',
+        'meta_key'       => 'event_start_time_stamp',
         'meta_type'      => 'DATETIME',
         'order'          => 'ASC',
         'meta_query'     => array(
             array(
-                'key'     => 'event_time_stamp',
+                'key'     => 'event_start_time_stamp',
                 'value'   => $now,
                 'compare' => '>=',
                 'type'    => 'DATETIME'
@@ -159,18 +159,18 @@ function make_generate_ics_feed() {
          'compare' => 'EXISTS',
        ),
        'date_clause' => array(
-         'key' => 'event_date',
+         'key' => 'event_start_time_stamp',
          'compare' => 'EXISTS',
        ),
        array(
-       'key' => 'event_time_stamp', // Check the start date field
+       'key' => 'event_start_time_stamp', // Check the start date field
        'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
        'compare' => '>=', // Return the ones greater than today's date
        'type' => 'DATETIME' // Let WordPress know we're working with date
      )
      ),
      'orderby' => 'meta_value',
-     'meta_key' => 'event_time_stamp',
+     'meta_key' => 'event_start_time_stamp',
      'meta_type' => 'DATETIME',
      'order'            => 'ASC',
      'post_type'        => 'sub_event',
@@ -298,7 +298,7 @@ function make_get_event_add_to_calendar_links($event_id) {
 
 
     ob_start();
-    $html = '<div class="add-to-calendar-dropdown">';
+    $html = '<div class="add-to-calendar-dropdown mt-0">';
         $html .= '<button class="add-to-calendar-button btn btn-sm btn-light">Add to Calendar <i class="fas fa-angle-down"></i></button>';
         $html .= '<ul class="add-to-calendar-menu">';
             $html .= '<li><a href="' . esc_url($gcal_url) . '" target="_blank" rel="noopener">Google Calendar</a></li>';
