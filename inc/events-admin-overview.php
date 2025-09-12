@@ -111,16 +111,10 @@ class MindEventsAdminOverview {
                 echo '<td class="event-instructor">';
                 $instructor = get_post_meta(get_the_id(), 'instructorID', true);
                 $parent_id = wp_get_post_parent_id(get_the_id());
-                $parent_ininstructors = get_field('instructors', $parent_id);
                 if($instructor) :
                     //get user object
                     $instructor_user = get_user_by('id', $instructor);
                     echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
-                elseif($parent_ininstructors) :
-                    foreach($parent_ininstructors as $instructor_user) :
-                        echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
-                        if (next($parent_ininstructors)) echo '<br>';
-                    endforeach;
                 else :
                     echo 'No instructor assigned';
                 endif;

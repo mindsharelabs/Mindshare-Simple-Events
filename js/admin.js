@@ -49,7 +49,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		      $days.droppable('destroy');
 		    }
 
-		    $('.event').draggable({
+		    $('.event').not('.disable').draggable({
 		      helper: 'clone',
 		      revert: 'invalid',
 		      appendTo: 'body',

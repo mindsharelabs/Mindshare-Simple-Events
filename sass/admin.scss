@@ -422,72 +422,76 @@ table.event-attendees {
             background: rgba(1, 1, 1, .1);
         }
 
-        div.shadow-event,
-        div.event {
-            position: relative;
-            display: flex;
-            flex-wrap: nowrap;
-            overflow-x: hidden;
-
-            a {
-                color: $dark;
-            }
-
-            &.disable {
-                opacity: .4;
-            }
-
-            span {
-                font-size: .8em;
-                padding: 5px;
-                margin: 2px 0px;
-                background: #858585;
-                line-height: 1.2em;
-                width: 100%;
-
-                a {
-                    text-decoration: none;
-                }
-
-                &.new {
-                    background: $success;
-                }
-
-                &.delete {
-                    flex-basis: 17%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    text-align: center;
-                    font-size: .9em;
-                    background: #fff;
-                    color: $danger;
-                    padding: 0 2px;
-
-                    &:hover {
-                        background: $danger;
-                        color: #fff;
-                    }
-                }
-            }
-
-            &.event {
-                font-weight: bold;
-
-                span {
-                    width: 83%;
-
-                    &:hover {
-                        opacity: .9;
-                        cursor: pointer;
-                    }
-                }
-            }
-
+        &.drop-hover {
+            background: color.adjust($success, $lightness: 30%); 
         }
 
     }
 
+
+}
+
+div.shadow-event,
+div.event {
+    position: relative;
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: hidden;
+
+    a {
+        color: $dark;
+    }
+
+    &.disable {
+        opacity: .4;
+    }
+
+    span {
+        font-size: .8em;
+        padding: 5px;
+        margin: 2px 0px;
+        background: #858585;
+        line-height: 1.2em;
+        width: 100%;
+
+        a {
+            text-decoration: none;
+        }
+
+        &.new {
+            background: $success;
+        }
+
+        &.delete {
+            flex-basis: 17%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: .9em;
+            background: #fff;
+            color: $danger;
+            padding: 0 2px;
+
+            &:hover {
+                background: $danger;
+                color: #fff;
+            }
+        }
+    }
+
+    &.event {
+        font-weight: bold;
+
+        span {
+            width: 83%;
+
+            &:hover {
+                opacity: .9;
+                cursor: pointer;
+            }
+        }
+    }
 
 }
 
