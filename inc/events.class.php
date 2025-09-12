@@ -294,7 +294,7 @@ class mindEventCalendar
       if ($isPast)
         $classes .= $this->classes['past'] . ' ';
 
-      $out .= '<div class="' . trim($classes) . '">';
+      $out .= '<div class="' . trim($classes) . '" data-date="' . $date->format('Y-m-d') . '">';
       // Add mobile weekday+date display
       $dayName = $date->format('l'); // Full weekday name
       $monthName = $date->format('F'); // Full month name
@@ -1125,6 +1125,8 @@ class mindEventCalendar
 
 
         $starttime = get_post_meta($event->ID, 'starttime', true);
+        $start_date_timestamp = get_post_meta($event->ID, 'event_start_time_stamp', true);
+        $end_date_timestamp = get_post_meta($event->ID, 'event_end_time_stamp', true);
         $endtime = get_post_meta($event->ID, 'endtime', true);
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = $this->get_event_color($event->ID);
@@ -1135,7 +1137,7 @@ class mindEventCalendar
 
 
 
-        $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '">';
+        $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '" data-startdate="' . $start_date_timestamp . '" data-enddate="' . $end_date_timestamp . '">';
         $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color . ';" data-subid="' . $event->ID . '">';
         if ($child_event):
           $insideHTML .= $starttime . ' - ' . $endtime;

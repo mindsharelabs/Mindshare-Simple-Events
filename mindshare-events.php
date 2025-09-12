@@ -122,11 +122,17 @@ class mindEvents {
     wp_register_style('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.css', array(), '1.3.5', 'all');
     wp_enqueue_style('timepicker-js');
 
+    wp_register_script('timepicker-js', 'https://cdnjs.cloudflare.com/ajax/libs/timepicker/1.3.5/jquery.timepicker.min.js', array('jquery'), '1.3.5', true);
+		wp_enqueue_script('timepicker-js');
+
     wp_register_script('fontawesome-js', 'https://kit.fontawesome.com/bed26df994.js', array(), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('fontawesome-js');
 
     wp_register_script('mindevents-js', plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE), array('jquery', 'timepicker-js'), MINDEVENTS_PLUGIN_VERSION, true);
 		wp_enqueue_script('mindevents-js');
+
+    wp_enqueue_script( 'jquery-ui-draggable' );
+    wp_enqueue_script( 'jquery-ui-droppable' );
 
     $data = array(
       'ajax_url' => admin_url( 'admin-ajax.php' ),

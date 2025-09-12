@@ -33,6 +33,82 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		}
 		initDatePicker();
 
+		function initDragDrop() {
+		  try {
+		    if (!$.fn.draggable || !$.fn.droppable) { 
+		      console.warn('jQuery UI draggable/droppable not available.');
+		      return; 
+		    }
+		    // Guarded cleanup to avoid "cannot call methods on ... prior to initialization"
+		    var $events = $('.event');
+		    var $days = $('.day-container');
+		    if ($events.filter('.ui-draggable').length) {
+		      $events.draggable('destroy');
+		    }
+		    if ($days.filter('.ui-droppable').length) {
+		      $days.droppable('destroy');
+		    }
+
+		    $('.event').draggable({
+		      helper: 'clone',
+		      revert: 'invalid',
+		      appendTo: 'body',
+		      zIndex: 10000,
+		      start: function(){ window.mindeventsIsDragging = true; },
+		      stop: function(){ setTimeout(function(){ window.mindeventsIsDragging = false; }, 0); }
+		    });
+
+		    $('.day-container').droppable({
+		      accept: '.event',
+		      tolerance: 'pointer',
+		      hoverClass: 'drop-hover',
+		      drop: function(event, ui) {
+		        var $target = $(this);
+		        var toDate = $target.data('date') || $target.find('.calendar-day').attr('datetime') || null;
+		        var $drag = $(ui.draggable);
+				var startdatestamp = $drag.data('startdate');
+				var enddatestamp = $drag.data('enddate');
+
+		        var fromDate = $drag.closest('.day-container').data('date') || $drag.prevAll('.calendar-day:first').attr('datetime') || null;
+		        var eventid = $drag.find('[data-subid]').data('subid') || $drag.data('subid') || null;
+
+		        // Move in DOM for visual confirmation
+		        $drag.css({top: '', left: '', position: 'static'}).appendTo($target);
+				
+				
+				if (toDate && startdatestamp && enddatestamp && eventid) {
+					console.log('Moving event ID ' + eventid + ' from ' + fromDate + ' to ' + toDate);
+					$.ajax({
+						url : mindeventsSettings.ajax_url,
+						type : 'post',
+						data : {
+							action : MINDEVENTS_PREPEND + 'moveevent',
+							new_date : toDate,
+							start_date : startdatestamp,
+							end_date : enddatestamp,
+							eventid : eventid,
+							parentid : mindeventsSettings.post_id,
+						},
+		            success: function(response) {
+		              console.log('Event moved successfully:', response);
+		            },
+		            error: function(xhr, status, error) {
+		              console.error('Error moving event:', error);
+		            }
+		          });
+		        }
+
+
+
+
+		        
+		      }
+		    });
+		  } catch (e) { console.error(e); }
+		}
+		initDragDrop();
+
+
 
 		$(document).on('change', 'input', function() {
 			$(this).removeClass('validate');
@@ -64,6 +140,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 				$('.ticket-option').hide();
 			}
 		});
+
 
 
 
@@ -103,8 +180,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 
 		$(document).on('click', '.calendar-day', function (event) {
-			console.log('click');
-
+			
+			if (window.mindeventsIsDragging) { return; }
 			var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
 					return $(this).val() == "";
 			});
@@ -137,6 +214,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 						occurrence : occurrence.length
 					},
 					success: function(response) {
+						console.log(response);
 						thisDay.removeClass('loading');
 						thisDay.find('.la-ball-fall').remove();
 						if(response.html) {
@@ -212,6 +290,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 						eventsCalendar.attr('style', false);
 						eventsCalendar.html(response.html);
+						initDragDrop();
 						$(button).disabled = false;
 					},
 					error: function (response) {
@@ -244,6 +323,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 				},
 				success: function(response) {
 					eventsCalendar.html(response.data.html);
+					initDragDrop();
 					$('#editBox').fadeOut(200, function() {
 						$(this).remove();
 					});
@@ -274,11 +354,6 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			var occurance = $(this).data('occurance');
 			var user_id = $(this).data('user_id');
 			var akey = $(this).data('akey');
-
-			console.log(occurance);
-			console.log(user_id);
-			console.log(mindeventsSettings.post_id);
-			console.log(button);
 
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
@@ -321,8 +396,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			var thisEvent = $(this).parent('.event');
 			var eventid = $(this).data('subid');
 			var calendarContainer = $('#eventsCalendar')
-			console.log(eventid);
-
+	
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
 				type : 'post',
@@ -341,6 +415,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					$('#editBox').html(response.data.html);
 					initTimePicker();
 					initDatePicker();
+					initDragDrop();
 				},
 				error: function (response) {
 					console.log('An error occurred.');
@@ -416,6 +491,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					success: function(response) {
 							$('#errorBox').removeClass('show').html('');
 							eventsCalendar.html(response.html);
+							initDragDrop();
 							eventsCalendar.attr('style', false);
 
 					},
@@ -534,7 +610,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 				if (attendeeCell) {
 					const attendeeCount = parseInt(attendeeCell.getAttribute('data-count'), 10);	
 					if (attendeeCount === minCount) {
-						attendeeCell.style.ackgroundColor = `rgba(255, 0, 0, .3)`;
+						attendeeCell.style.backgroundColor = `rgba(255, 0, 0, .3)`;
 					} else if (attendeeCount === maxCount) {
 						attendeeCell.style.backgroundColor = `rgba(0, 255, 0, .3)`;
 						attendeeCell.style.fontWeight = 'bold';
