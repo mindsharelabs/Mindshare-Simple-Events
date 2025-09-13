@@ -738,78 +738,49 @@ class mindEventCalendar
         $html .= '</div>';
       endif;
 
-      if ($meta['event_date'][0]):
-        $starttime = date($this->time_format, strtotime($meta['event_start_time_stamp'][0]));
-        $endtime = date($this->time_format, strtotime($meta['event_end_time_stamp'][0]));
-        //if event ends on the same day, only show time for endtime
-        
+      if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
+        $start_date = strtotime($meta['event_start_time_stamp'][0]);
+        $end_date = strtotime($meta['event_end_time_stamp'][0]);
+        $start_date_str = date('Y-m-d', $start_date);
+        $end_date_str = date('Y-m-d', $end_date);
+        $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
+        $endtime = date($this->time_format, $end_date); // Only show time for end
 
-
-        $html .= '<div class="meta-item time-span col-6 col-md-2">';
-          if (date('Y-m-d', strtotime($meta['event_start_time_stamp'][0])) == date('Y-m-d', strtotime($meta['event_end_time_stamp'][0]))):
-           
-            $html .= '<div class="starttime endtime">';
-              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Event Time') . '</span>';
-              $html .= '<span class="value eventstarttime">' . $starttime . ' - ' . $endtime . '</span>';
-            $html .= "</div>";
-          else:
-            $html .= '<div class="starttime">';
-              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Datew') . '</span>';
-              $html .= '<span class="value eventstarttime">' . $starttime . '</span>';
-            $html .= "</div>";
-
-            $html .= '<div class="endtime">';
-              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
-              $html .= '<span class="value eventendtime">' . $endtime . '</span>';
-            $html .= '</div>';
-          endif;
-         
-
+        $html .= '<div class="meta-item">';
+        if ($start_date_str == $end_date_str) {
+            // Same day: show date and start time, then just end time
+            $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
+        } else {
+            // Different days: show full start and end
+            $html .= '<span class="value eventdate"><strong>' . $starttime . ' - ' . date($this->date_format . ' ' . $this->time_format, $end_date) . '</strong></span>';
+        }
         $html .= '</div>';
-
       endif;
 
 
 
       if ($description):
-        $html .= '<div class="meta-item description col-12 col-md-7">';
-        $html .= '<span class="value eventdescription d-block">' . $description . '</span>';
-        $html .= make_get_event_add_to_calendar_links($event);
-
-        if (isset($meta['instructorID'][0])):
-          //get instructor by email
-          $instructor = get_user_by('id', $meta['instructorID'][0]);
-          if ($instructor):
-            $display_profile_publicly = get_field('display_profile_publicly', 'user_' . $instructor->ID);
-            if ($display_profile_publicly):
-              $html .= '<div class="meta-item instructor mt-4">';
-              $html .= '<span class="label fw-bold small ">' . apply_filters(MINDEVENTS_PREPEND . 'instructor_label', 'INSTRUCTOR') . '</span>';
-              if ($instructor):
-                $author_link = get_author_posts_url($instructor->ID);
-                $html .= '<div class="instructor-name">';
-                  $html .= '<a href="' . $author_link . '" title="' . $instructor->display_name . '">';
-                    $html .= $instructor->display_name;
-                  $html .= '</a>';
-                $html .= '</div>';
-              endif;
-              $html .= '</div>';
-            endif;
-          endif;
-        endif;
-
-
-
+        $html .= '<div class="meta-item">';
+        $html .= '<span class="value eventdescription">' . $description . '</span></br>';
+        $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
         $html .= '</div>';
       endif;
 
+      $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
 
 
-      if ($display_link):  //hide individual links because if this is a series
-        if ($meta['linked_product'][0]):
 
+
+      $html .= '</div>';
+
+      $offers = unserialize($meta['offers'][0]);
+      $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
+      if ($offers || $has_tickets):
+
+        $html .= '<div class="right-content">';
+        if ($has_tickets && $meta['linked_product'][0]):
           $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
           $product = wc_get_product($meta['linked_product'][0]);
-
 
           if ($product):
 
@@ -825,16 +796,46 @@ class mindEventCalendar
             ));
 
           endif;
+        elseif (count($offers) > 0):
 
-        elseif ($meta['offers'][0]):
-          $offers = unserialize($meta['offers'][0]);
-          $html .= '<div class="offers meta-item col-12 col-md-3">';
           foreach ($offers as $key => $offer):
+            $offer['background'] = $color;
+            $offer['color'] = $this->getContrastColor($color);
             $html .= $this->build_offer_link($offer);
           endforeach;
-          $html .= '</div>';
+
+
+        else:
+
+          //get first sub event
+          $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
+          if ($sub_events):
+            $sub_event = $sub_events[0];
+            $meta = get_post_meta($sub_event->ID);
+            $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+            $product = wc_get_product($meta['linked_product'][0]);
+            if ($product):
+
+              $html .= $this->build_offer_link(array(
+                'label' => $meta['wooLabel'][0],
+                'price' => $product->get_price(),
+                'link' => $product->get_permalink(),
+                'background' => $color,
+                'color' => $this->getContrastColor($color),
+                'product_id' => $meta['linked_product'][0],
+                'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                'quantity' => 1
+              ));
+
+            endif;
+          endif;
+
         endif;
-      endif;
+
+        $html .= '</div>';
+      endif; //end if offers
+
+
 
       $html .= '</div>';
     endif;
@@ -1025,20 +1026,25 @@ class mindEventCalendar
       endif;
 
       if ($meta['event_date'][0]):
-        $date = new DateTime($meta['event_date'][0]);
-        $starttime = date($this->date_format . ' ' . $this->time_format, strtotime($meta['event_start_time_stamp'][0]));
-        $endtime = date($this->date_format . ' ' . $this->time_format, strtotime($meta['event_end_time_stamp'][0]));
+        $start_date = strtotime($meta['event_start_time_stamp'][0]);
+        $end_date = strtotime($meta['event_end_time_stamp'][0]);
+        $start_date_str = date('Y-m-d', $start_date);
+        $end_date_str = date('Y-m-d', $end_date);
+        $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
+        $endtime = date($this->time_format, $end_date); // Only show time for end
+
         $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventdate"><strong>' . $date->format('F j, Y') . ' @ ' . $starttime . ($endtime ? ' - ' . $endtime : '') . '</strong></span>';
+        if ($start_date_str == $end_date_str) {
+            // Same day: show date and start time, then just end time
+            $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
+        } else {
+            // Different days: show full start and end
+            $html .= '<span class="value eventdate"><strong>' . $starttime . ' - ' . date($this->date_format . ' ' . $this->time_format, $end_date) . '</strong></span>';
+        }
         $html .= '</div>';
       endif;
 
 
-      if (isset($meta['eventCost'][0])):
-        $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventcost">' . $meta['eventCost'][0] . '</span>';
-        $html .= '</div>';
-      endif;
 
       if ($description):
         $html .= '<div class="meta-item">';
