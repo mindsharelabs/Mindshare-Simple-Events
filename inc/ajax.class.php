@@ -326,10 +326,12 @@ class mindEventsAjax {
       // Canonical timestamp metas
       update_post_meta( $event_id, 'event_start_time_stamp', $newStart->format($fmtDT) );
       update_post_meta( $event_id, 'event_end_time_stamp',   $newEnd->format($fmtDT) );
+
+
       // Keep simple fields in sync for UI
-      update_post_meta( $event_id, 'event_date', $newDate->format($fmtD) );
-      update_post_meta( $event_id, 'starttime',  $newStart->format('H:i') );
-      update_post_meta( $event_id, 'endtime',    $newEnd->format('H:i') );
+      // update_post_meta( $event_id, 'event_date', $newDate->format($fmtD) );
+      // update_post_meta( $event_id, 'starttime',  $newStart->format('H:i') );
+      // update_post_meta( $event_id, 'endtime',    $newEnd->format('H:i') );
 
 
 
@@ -338,9 +340,9 @@ class mindEventsAjax {
         // change the title of the linked product to match the new date
         $product = wc_get_product($linked_product);
         if($product) :
-          mapi_write_log(get_the_title($parentid));
+          
           $new_title = get_the_title($parentid) . ' | ' . $newStart->format('D, M j g:i a') . ' - ' . $newEnd->format('g:i a');
-          mapi_write_log($new_title);
+
           $product->set_name($new_title);
           $product->save();
         endif;

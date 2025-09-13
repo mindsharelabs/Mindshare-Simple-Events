@@ -23,6 +23,9 @@ class mindEventCalendar
 
   private $is_archive = false;
 
+  private $date_format;
+  private $time_format;
+
 
   private $classes = [
     'calendar' => 'mindEventCalendar',
@@ -67,6 +70,8 @@ class mindEventCalendar
     $date = new DateTime('now');
     $date->modify('first day of next month');
     $this->next_month = $date->format('m');
+    $this->time_format = get_option('time_format');
+    $this->date_format = get_option('date_format');
 
     $this->currency_symbol = (isset($this->options[MINDEVENTS_PREPEND . 'currency_symbol']) ? $this->options[MINDEVENTS_PREPEND . 'currency_symbol'] : '$');
     $this->calendar_start_day = (isset($this->options[MINDEVENTS_PREPEND . 'start_day']) ? $this->options[MINDEVENTS_PREPEND . 'start_day'] : 'Monday');
@@ -408,7 +413,7 @@ class mindEventCalendar
       'meta_query' => array(
         // 'relation' => 'AND',
         'start_clause' => array(
-          'key' => 'starttime',
+          'key' => 'event_start_time_stamp',
           'compare' => 'EXISTS',
         ),
         'date_clause' => array(
@@ -456,7 +461,7 @@ class mindEventCalendar
       'meta_query' => array(
         'relation' => 'AND',
         'start_clause' => array(
-          'key' => 'starttime',
+          'key' => 'event_start_time_stamp',
           'compare' => 'EXISTS',
         ),
         'date_clause' => array(
@@ -538,11 +543,13 @@ class mindEventCalendar
 
 
   private function get_event_label($event)
-  {
+  { 
+
+    
 
     $html = '';
-    $starttime = get_post_meta($event->ID, 'starttime', true);
-    $endtime = get_post_meta($event->ID, 'endtime', true);
+    $starttime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_start_time_stamp', true)));
+    $endtime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_end_time_stamp', true)));
     $is_featured = get_post_meta($event->post_parent, 'is_featured', true);
     //if in past add class
     $is_past = $this->today->format('Y-m-d') > get_post_meta($event->ID, 'event_date', true) ? true : false;
@@ -636,15 +643,16 @@ class mindEventCalendar
   public function renderList()
   {
     $now = getdate($this->now->getTimestamp());
-    $out = '<div id="mindCalanderList" class="event-list ' . $this->classes['calendar'] . '">';
+    $out = '<div id="mindCalanderList" class="event-list mt-4 ' . $this->classes['calendar'] . '">';
     if (is_array($this->dailyHtml)):
+      
+
+
       foreach ($this->dailyHtml as $year => $year_items):
         foreach ($year_items as $month => $month_items):
+          $out .= '<h2 class="month-display text-center">' . date('F', mktime(0, 0, 0, $month, 1, $year)) . '</h2>';
           foreach ($month_items as $day => $daily_items):
-            $date = (new DateTime())->setDate($year, $month, $day);
-            $date_format = 'D, M j';
             $out .= '<div class="list_day_container row">';
-            $out .= '<div class="day-label"><time class="calendar-day" datetime="' . $date->format('Y-m-d') . '"><i class="fa-solid fa-calendar-star me-2"></i>' . $date->format($date_format) . '</time></div>';
             foreach ($daily_items as $key => $dHTML):
               $out .= $dHTML;
             endforeach;
@@ -697,6 +705,12 @@ class mindEventCalendar
       endif;
 
       $html = '<div class="item_meta_container row">';
+
+      $html .= '<div class="event-meta-header col-12 d-flex justify-content-between align-items-center mb-2" ' . ($style_str ? 'style="' . implode(' ', $style_str) . '"' : '') . '>';
+        $html .= '<h2 class="event-date fw-bold text-dark h4">' . date($this->date_format, strtotime($meta['event_date'][0])) . '</h2>';
+      $html .= '</div>';
+
+
       if ($is_past):
         $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
       endif;
@@ -725,17 +739,31 @@ class mindEventCalendar
       endif;
 
       if ($meta['event_date'][0]):
+        $starttime = date($this->time_format, strtotime($meta['event_start_time_stamp'][0]));
+        $endtime = date($this->time_format, strtotime($meta['event_end_time_stamp'][0]));
+        //if event ends on the same day, only show time for endtime
+        
+
+
         $html .= '<div class="meta-item time-span col-6 col-md-2">';
+          if (date('Y-m-d', strtotime($meta['event_start_time_stamp'][0])) == date('Y-m-d', strtotime($meta['event_end_time_stamp'][0]))):
+           
+            $html .= '<div class="starttime endtime">';
+              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Event Time') . '</span>';
+              $html .= '<span class="value eventstarttime">' . $starttime . ' - ' . $endtime . '</span>';
+            $html .= "</div>";
+          else:
+            $html .= '<div class="starttime">';
+              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Datew') . '</span>';
+              $html .= '<span class="value eventstarttime">' . $starttime . '</span>';
+            $html .= "</div>";
 
-          $html .= '<div class="starttime">';
-            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'start_time_label', 'Start Time') . '</span>';
-            $html .= '<span class="value eventstarttime">' . $meta['starttime'][0] . '</span>';
-          $html .= "</div>";
-
-          $html .= '<div class="endtime">';
-            $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
-            $html .= '<span class="value eventendtime">' . $meta['endtime'][0] . '</span>';
-          $html .= '</div>';
+            $html .= '<div class="endtime">';
+              $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'end_time_label', 'End Time') . '</span>';
+              $html .= '<span class="value eventendtime">' . $endtime . '</span>';
+            $html .= '</div>';
+          endif;
+         
 
         $html .= '</div>';
 
@@ -998,8 +1026,10 @@ class mindEventCalendar
 
       if ($meta['event_date'][0]):
         $date = new DateTime($meta['event_date'][0]);
+        $starttime = date($this->date_format . ' ' . $this->time_format, strtotime($meta['event_start_time_stamp'][0]));
+        $endtime = date($this->date_format . ' ' . $this->time_format, strtotime($meta['event_end_time_stamp'][0]));
         $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventdate"><strong>' . $date->format('F j, Y') . ' @ ' . $meta['starttime'][0] . ($meta['endtime'][0] ? ' - ' . $meta['endtime'][0] : '') . '</strong></span>';
+        $html .= '<span class="value eventdate"><strong>' . $date->format('F j, Y') . ' @ ' . $starttime . ($endtime ? ' - ' . $endtime : '') . '</strong></span>';
         $html .= '</div>';
       endif;
 
@@ -1124,10 +1154,13 @@ class mindEventCalendar
         endif;
 
 
-        $starttime = get_post_meta($event->ID, 'starttime', true);
-        $start_date_timestamp = get_post_meta($event->ID, 'event_start_time_stamp', true);
-        $end_date_timestamp = get_post_meta($event->ID, 'event_end_time_stamp', true);
-        $endtime = get_post_meta($event->ID, 'endtime', true);
+        $starttime = get_post_meta($event->ID, 'event_start_time_stamp', true);
+
+
+        $starttime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_start_time_stamp', true)));
+        $endtime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_end_time_stamp', true)));
+
+
         $date = get_post_meta($event->ID, 'event_date', true);
         $color = $this->get_event_color($event->ID);
         $text_color = $this->getContrastColor($color);
@@ -1137,7 +1170,7 @@ class mindEventCalendar
 
 
 
-        $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '" data-startdate="' . $start_date_timestamp . '" data-enddate="' . $end_date_timestamp . '">';
+        $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '" data-startdate="' . $starttime . '" data-enddate="' . $endtime . '">';
         $insideHTML .= '<span class="edit" style="color:' . $text_color . '; background:' . $color . ';" data-subid="' . $event->ID . '">';
         if ($child_event):
           $insideHTML .= $starttime . ' - ' . $endtime;
@@ -1164,8 +1197,8 @@ class mindEventCalendar
   public function update_sub_event($sub_event, $meta, $parentID)
   {
     $unique = $this->build_unique_key($parentID, $meta['event_date'], $meta);
-    $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['starttime']));
-    $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['endtime']));
+    $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['event_start_time_stamp']));
+    $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['event_end_time_stamp']));
     $meta['unique_event_key'] = $unique;
     foreach ($meta as $key => $value):
       update_post_meta($sub_event, $key, $value);
@@ -1197,8 +1230,8 @@ class mindEventCalendar
     //if it doesnt exist, add it
     if (empty($check_query->have_posts())):
       $terms = wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids'));
-      $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['starttime']));
-      $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['endtime']));
+      $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['event_start_time_stamp']));
+      $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['event_end_time_stamp']));
       $meta['unique_event_key'] = $unique;
       //$meta['event_date'] = $date;
 
@@ -1234,12 +1267,12 @@ class mindEventCalendar
 
   private function build_unique_key($eventID, $date = '', $times = '')
   {
-    return sanitize_title($eventID . '_' . $date . '_' . $times['starttime'] . '-' . $times['endtime']);
+    return sanitize_title($eventID . '_' . $date . '_' . $times['event_start_time_stamp'] . '-' . $times['event_end_time_stamp']);
   }
 
   private function build_title($parentID, $date = '', $times = '')
   {
-    $title = get_the_title($parentID) . ' | ' . $date . ' | ' . $times['starttime'] . '-' . $times['endtime'];
+    $title = get_the_title($parentID) . ' | ' . $date . ' | ' . $times['event_start_time_stamp'] . '-' . $times['event_end_time_stamp'];
     return apply_filters('mind_events_title', $title, $date, $times, $this);
   }
 
