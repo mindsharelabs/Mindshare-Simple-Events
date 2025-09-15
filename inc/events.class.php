@@ -1012,22 +1012,16 @@ class mindEventCalendar
         $html .= '</a>';
         $html .= '</div>';
       endif;
-      mapi_write_log($meta);
       if ($meta['event_date'][0]):
-        $start_date = date('Y-m-d', strtotime($meta['event_start_time_stamp'][0]));
-        $end_date = date('Y-m-d', strtotime($meta['event_end_time_stamp'][0]));
-        mapi_write_log('start date: ' . $start_date);
-        mapi_write_log('end date: ' . $end_date);
-        $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
-        $endtime = date($this->time_format, $end_date); // Only show time for end
-
+        $start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+        $end_date = new DateTimeImmutable($meta['event_end_time_stamp'][0]);
         $html .= '<div class="meta-item">';
-        if ($start_date == $end_date) {
-            // Same day: show date and start time, then just end time
-            $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
+        if ($start_date->format('Y-m-d') === $end_date->format('Y-m-d')) {
+        // Same day: show date and start time, then just end time
+          $html .= '<span class="value eventdate"><strong>' . $start_date->format('F j, Y') . ' @ ' . $start_date->format($this->time_format) . ' - ' . $end_date->format($this->time_format) . '</strong></span>';
         } else {
             // Different days: show full start and end
-            $html .= '<span class="value eventdate"><strong>' . $starttime . ' - ' . date($this->date_format . ' ' . $this->time_format, $end_date) . '</strong></span>';
+          $html .= '<span class="value eventdate"><strong>' . $start_date->format($this->date_format . ' ' . $this->time_format) . ' - ' . $end_date->format($this->date_format . ' ' . $this->time_format) . '</strong></span>';
         }
         $html .= '</div>';
       endif;
