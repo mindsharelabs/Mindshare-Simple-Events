@@ -254,8 +254,7 @@ class mindEventCalendar
    *
    * @return string
    */
-  public function render()
-  {
+  public function render() {
     $out = '';
     if (!is_admin()):
       $out .= $this->get_calendar_nav_links();
@@ -406,8 +405,7 @@ class mindEventCalendar
   }
 
 
-  public function get_all_events($args = array())
-  {
+  public function get_all_events($args = array()) {
 
     $defaults = array(
       'meta_query' => array(
@@ -453,8 +451,7 @@ class mindEventCalendar
 
   }
 
-  public function get_sub_events($args = array())
-  {
+  public function get_sub_events($args = array()) {
 
 
     $defaults = array(
@@ -509,8 +506,7 @@ class mindEventCalendar
 
 
 
-  public function get_front_calendar()
-  {
+  public function get_front_calendar() {
 
     $this->setStartOfWeek($this->calendar_start_day);
 
@@ -542,8 +538,7 @@ class mindEventCalendar
   }
 
 
-  private function get_event_label($event)
-  { 
+  private function get_event_label($event) { 
 
     
 
@@ -608,7 +603,7 @@ class mindEventCalendar
     endif;
 
     $args = wp_parse_args($args, $default);
-    mapi_write_log($args);
+    // mapi_write_log($args);
 
     $eventDates = $this->get_sub_events($args);
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
@@ -674,14 +669,16 @@ class mindEventCalendar
     $meta = get_post_meta($event);
 
   
-    $is_past = $this->today->format('Y-m-d') > $meta['event_date'][0] ? true : false;
+    $is_past = $this->today->format('Y-m-d') > $meta['event_start_time_stamp'][0] ? true : false;
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
     $parent_event_type = get_post_meta($parentID, 'event_type', true);
     if ($parent_event_type == 'single-event'):
       $series_start_date = get_post_meta($parentID, 'first_event_date', true);
+      
       $series_end_date = get_post_meta($parentID, 'last_event_date', true);
+      
       $series_started = $this->today->format('Y-m-d') > $series_start_date ? true : false;
       $series_ended = $this->today->format('Y-m-d') > $series_end_date ? true : false;
     endif;
@@ -735,7 +732,7 @@ class mindEventCalendar
             $html .= '</div>';
           $html .= '</div>';
         endif;
-
+        
         if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
           $start_date = strtotime($meta['event_start_time_stamp'][0]);
           $end_date = strtotime($meta['event_end_time_stamp'][0]);
@@ -765,7 +762,6 @@ class mindEventCalendar
         endif;
 
         $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
-
 
 
       $offers = unserialize($meta['offers'][0]);
@@ -910,14 +906,12 @@ class mindEventCalendar
 
 
 
-  private function get_variation_sku_from_date($eventID, $start_date)
-  {
+  private function get_variation_sku_from_date($eventID, $start_date){
     return sanitize_title($eventID . '_' . $start_date);
   }
 
 
-  private function get_event_color($eventID)
-  {
+  private function get_event_color($eventID){
     $meta = get_post_meta($eventID);
     $color = (isset($meta['eventColor'][0]) ? $meta['eventColor'][0] : false);
     if (!$color):
@@ -953,8 +947,7 @@ class mindEventCalendar
   }
 
 
-  public function get_cal_meta_html($event = '')
-  {
+  public function get_cal_meta_html($event = '') {
     $meta = get_post_meta($event);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
@@ -1019,17 +1012,17 @@ class mindEventCalendar
         $html .= '</a>';
         $html .= '</div>';
       endif;
-
+      mapi_write_log($meta);
       if ($meta['event_date'][0]):
-        $start_date = strtotime($meta['event_start_time_stamp'][0]);
-        $end_date = strtotime($meta['event_end_time_stamp'][0]);
-        $start_date_str = date('Y-m-d', $start_date);
-        $end_date_str = date('Y-m-d', $end_date);
+        $start_date = date('Y-m-d', strtotime($meta['event_start_time_stamp'][0]));
+        $end_date = date('Y-m-d', strtotime($meta['event_end_time_stamp'][0]));
+        mapi_write_log('start date: ' . $start_date);
+        mapi_write_log('end date: ' . $end_date);
         $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
         $endtime = date($this->time_format, $end_date); // Only show time for end
 
         $html .= '<div class="meta-item">';
-        if ($start_date_str == $end_date_str) {
+        if ($start_date == $end_date) {
             // Same day: show date and start time, then just end time
             $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
         } else {
@@ -1209,8 +1202,7 @@ class mindEventCalendar
 
 
 
-  public function add_sub_event($date, $meta, $eventID, $args = array())
-  {
+  public function add_sub_event($date, $meta, $eventID, $args = array()){
     $unique = $this->build_unique_key($eventID, $date, $meta);
     $return = array();
 
@@ -1231,12 +1223,8 @@ class mindEventCalendar
     //if it doesnt exist, add it
     if (empty($check_query->have_posts())):
       $terms = wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids'));
-      $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['event_start_time_stamp']));
-      $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($date . ' ' . $meta['event_end_time_stamp']));
-      $meta['unique_event_key'] = $unique;
-      //$meta['event_date'] = $date;
 
-      // $meta['linked_product'] = $meta['linked_product'];
+      $meta['unique_event_key'] = $unique;
 
       do_action(MINDEVENTS_PREPEND . 'before_add_sub_event', $eventID, $meta);
 

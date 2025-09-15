@@ -102,13 +102,15 @@ class mindEventsAjax {
 
   public function selectday() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'selectday'){
-
-      $date = $_POST['date']; //format: Y-m-d
+      $date = $_POST['date']; 
       $eventID = $_POST['eventid'];
       $insideHTML = '';
 
       $meta = $this->reArrayMeta($_POST['meta']['event']);
+     
       $meta['event_date'] = $date;
+
+      
       // Normalize date/time into timestamp metas
       $tz     = wp_timezone();
       $fmtDT  = 'Y-m-d H:i:s';
@@ -116,13 +118,11 @@ class mindEventsAjax {
       $end_time   = isset($meta['endtime'])   ? $meta['endtime']   : $start_time;
       $startDT = date_create_immutable($date . ' ' . $start_time, $tz);
       $endDT   = date_create_immutable($date . ' ' . $end_time,   $tz);
+
       if ($startDT && $endDT) {
         $meta['event_start_time_stamp'] = $startDT->format($fmtDT);
         $meta['event_end_time_stamp']   = $endDT->format($fmtDT);
-        // Ensure simple fields reflect timestamps
-        $meta['event_date'] = $startDT->format('Y-m-d');
-        $meta['starttime']  = $startDT->format('H:i');
-        $meta['endtime']    = $endDT->format('H:i');
+
       }
       $dispStart = isset($startDT) && $startDT ? $startDT->format('H:i') : (isset($meta['starttime']) ? $meta['starttime'] : '');
       $dispEnd   = isset($endDT) && $endDT ? $endDT->format('H:i') : (isset($meta['endtime']) ? $meta['endtime'] : '');
