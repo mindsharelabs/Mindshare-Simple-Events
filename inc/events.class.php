@@ -570,8 +570,7 @@ class mindEventCalendar
   }
 
 
-  public function get_front_list($calDate = '', $args = array())
-  {
+  public function get_front_list($calDate = '', $args = array()){
     if ($calDate == 'archive'):
       $this->is_archive = true;
       $this->show_past_events = false;
@@ -609,6 +608,7 @@ class mindEventCalendar
     endif;
 
     $args = wp_parse_args($args, $default);
+    mapi_write_log($args);
 
     $eventDates = $this->get_sub_events($args);
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
@@ -640,9 +640,8 @@ class mindEventCalendar
    *
    * @return string
    */
-  public function renderList()
-  {
-    $now = getdate($this->now->getTimestamp());
+  public function renderList()  {
+
     $out = '<div id="mindCalanderList" class="event-list mt-4 ' . $this->classes['calendar'] . '">';
     if (is_array($this->dailyHtml)):
       
@@ -669,8 +668,7 @@ class mindEventCalendar
   }
 
 
-  public function get_list_item_html($event = '', $display_link = true)
-  {
+  public function get_list_item_html($event = '', $display_link = true) {
 
 
     $meta = get_post_meta($event);
@@ -706,72 +704,69 @@ class mindEventCalendar
 
       $html = '<div class="item_meta_container row">';
 
-      $html .= '<div class="event-meta-header col-12 d-flex justify-content-between align-items-center mb-2" ' . ($style_str ? 'style="' . implode(' ', $style_str) . '"' : '') . '>';
-        $html .= '<h2 class="event-date fw-bold text-dark h4">' . date($this->date_format, strtotime($meta['event_date'][0])) . '</h2>';
-      $html .= '</div>';
+        $html .= '<div class="event-meta-header col-12 d-flex justify-content-between align-items-center mb-2" ' . ($style_str ? 'style="' . implode(' ', $style_str) . '"' : '') . '>';
+          $html .= '<h2 class="event-date fw-bold text-dark h4">' . date($this->date_format, strtotime($meta['event_date'][0])) . '</h2>';
+        $html .= '</div>';
 
 
-      if ($is_past):
-        $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
-      endif;
-
-      if ($parent_event_type == 'single-event'):
-        if ($series_started && !$series_ended):
-          $html .= '<div class="series-started alert alert-info"><strong>This multiday event has started.</strong></div>';
+        if ($is_past):
+          $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
         endif;
-        if ($series_ended):
-          $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
-        endif;
-      endif;
 
-      if ($this->is_archive):
-        $html .= '<div class="col-12">';
-          $html .= '<div class="row">';
-            if ($sub_event_obj->post_parent):
-              $html .= '<div class="meta-item col-12 col-md-9">';
-                $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-                  $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-                $html .= '</a>';
-              $html .= '</div>';
-            endif;
+        if ($parent_event_type == 'single-event'):
+          if ($series_started && !$series_ended):
+            $html .= '<div class="series-started alert alert-info"><strong>This multiday event has started.</strong></div>';
+          endif;
+          if ($series_ended):
+            $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
+          endif;
+        endif;
+
+        if ($this->is_archive):
+          $html .= '<div class="col-12">';
+            $html .= '<div class="row">';
+              if ($sub_event_obj->post_parent):
+                $html .= '<div class="meta-item col-12 col-md-9">';
+                  $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                    $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+                  $html .= '</a>';
+                $html .= '</div>';
+              endif;
+            $html .= '</div>';
           $html .= '</div>';
-        $html .= '</div>';
-      endif;
+        endif;
 
-      if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
-        $start_date = strtotime($meta['event_start_time_stamp'][0]);
-        $end_date = strtotime($meta['event_end_time_stamp'][0]);
-        $start_date_str = date('Y-m-d', $start_date);
-        $end_date_str = date('Y-m-d', $end_date);
-        $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
-        $endtime = date($this->time_format, $end_date); // Only show time for end
+        if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
+          $start_date = strtotime($meta['event_start_time_stamp'][0]);
+          $end_date = strtotime($meta['event_end_time_stamp'][0]);
+          $start_date_str = date('Y-m-d', $start_date);
+          $end_date_str = date('Y-m-d', $end_date);
+          $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
+          $endtime = date($this->time_format, $end_date); // Only show time for end
 
-        $html .= '<div class="meta-item">';
-        if ($start_date_str == $end_date_str) {
-            // Same day: show date and start time, then just end time
-            $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
-        } else {
-            // Different days: show full start and end
-            $html .= '<span class="value eventdate"><strong>' . $starttime . ' - ' . date($this->date_format . ' ' . $this->time_format, $end_date) . '</strong></span>';
-        }
-        $html .= '</div>';
-      endif;
-
-
-
-      if ($description):
-        $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventdescription">' . $description . '</span></br>';
-        $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
-        $html .= '</div>';
-      endif;
-
-      $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
+          $html .= '<div class="meta-item">';
+          if ($start_date_str == $end_date_str) {
+              // Same day: show date and start time, then just end time
+              $html .= '<span class="value eventdate"><strong>' . date('F j, Y', $start_date) . ' @ ' . date($this->time_format, $start_date) . ' - ' . $endtime . '</strong></span>';
+          } else {
+              // Different days: show full start and end
+              $html .= '<span class="value eventdate"><strong>' . $starttime . ' - ' . date($this->date_format . ' ' . $this->time_format, $end_date) . '</strong></span>';
+          }
+          $html .= '</div>';
+        endif;
 
 
 
+        if ($description):
+          $html .= '<div class="meta-item">';
+            $html .= '<span class="value eventdescription">' . $description . '</span></br>';
+            $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
+          $html .= '</div>';
+        endif;
 
-      $html .= '</div>';
+        $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
+
+
 
       $offers = unserialize($meta['offers'][0]);
       $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
