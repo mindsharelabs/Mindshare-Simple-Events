@@ -24,19 +24,6 @@ jQuery(document).ready(function ($) {
   // Trigger change on page load to set initial state
   $(".report-type-selector").trigger("change");
 
-  // Function to export report to CSV
-  $(".export-csv").on("click", function (e) {
-    e.preventDefault();
-
-    var reportType = $(this).data("report-type");
-    var formData =
-      $(".events-reports-form").serialize() +
-      "&export=csv&report_type=" +
-      reportType;
-
-    window.location.href = ajaxurl + "?" + formData;
-  });
-
   // Function to handle date range presets
   $(".date-preset").on("click", function (e) {
     e.preventDefault();
@@ -122,15 +109,13 @@ jQuery(document).ready(function ($) {
   });
   // Function to handle table column sorting
   $(document).on("click", ".sortable-column", function () {
-    console.log("Column clicked"); // Debug log
     var $table = $(this).closest("table");
     var columnIndex = $(this).data("column");
     var sortType = $(this).data("type") || "text";
     var currentDirection = $(this).data("sort-direction") || "asc";
     var newDirection = currentDirection === "asc" ? "desc" : "asc";
 
-    console.log("Column index:", columnIndex); // Debug log
-    console.log("Sort type:", sortType); // Debug log
+    
 
     // Update sort direction data attribute
     $(this).data("sort-direction", newDirection);
@@ -208,26 +193,7 @@ jQuery(document).ready(function ($) {
           }
         }
 
-        console.log(
-          "Parsed date A:",
-          aValue,
-          "from",
-          aDataValue ||
-            $(a)
-              .find("td:eq(" + columnIndex + ")")
-              .text()
-              .trim()
-        );
-        console.log(
-          "Parsed date B:",
-          bValue,
-          "from",
-          bDataValue ||
-            $(b)
-              .find("td:eq(" + columnIndex + ")")
-              .text()
-              .trim()
-        );
+        
       }
 
       // Compare values
@@ -255,7 +221,7 @@ jQuery(document).ready(function ($) {
           .first();
 
         if ($dateHeader.length > 0) {
-          console.log("Auto-sorting by date column");
+          
           var columnIndex = $dateHeader.data("column");
 
           // Set as ascending sort
@@ -317,18 +283,7 @@ jQuery(document).ready(function ($) {
               }
             }
 
-            console.log(
-              "Auto-sort - Parsed date A:",
-              aValue,
-              "from",
-              aDataValue || aValue
-            );
-            console.log(
-              "Auto-sort - Parsed date B:",
-              bValue,
-              "from",
-              bDataValue || bValue
-            );
+            
 
             // Sort ascending
             if (aValue < bValue) return -1;
