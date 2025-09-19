@@ -475,6 +475,7 @@ class mindEventCalendar
       'suppress_filters' => true,
       'posts_per_page' => -1
     );
+    
 
     if ($this->show_past_events === false) {
       $args['meta_query'][] = array(
@@ -497,9 +498,9 @@ class mindEventCalendar
     if (is_admin()):
       unset($defaults['post_parent']);
     endif;
-
+    
     $args = wp_parse_args($args, $defaults);
-
+    
     return get_posts($args);
 
   }
@@ -1185,9 +1186,8 @@ class mindEventCalendar
   public function update_sub_event($sub_event, $meta, $parentID)
   {
     $unique = $this->build_unique_key($parentID, $meta['event_date'], $meta);
-    $meta['event_start_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['event_start_time_stamp']));
-    $meta['event_end_time_stamp'] = date('Y-m-d H:i:s', strtotime($meta['event_date'] . ' ' . $meta['event_end_time_stamp']));
     $meta['unique_event_key'] = $unique;
+    
     foreach ($meta as $key => $value):
       update_post_meta($sub_event, $key, $value);
     endforeach;
@@ -1260,9 +1260,14 @@ class mindEventCalendar
   }
 
 
-  public function delete_sub_events()
+  public function delete_sub_events($parentID = '')
   {
-    $sub_events = $this->get_sub_events();
+    $sub_events = $this->get_sub_events(array(
+      'post_type' => 'sub_event',
+      'post_status' => 'any',
+      'posts_per_page' => -1,
+      'post_parent' => $parentID
+    ));
     if (is_array($sub_events) && count($sub_events) > 0) {
       foreach ($sub_events as $event) {
         do_action(MINDEVENTS_PREPEND . 'before_delete_sub_event', $event->ID);

@@ -170,7 +170,7 @@ class mindEventsAjax {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'clearevents'){
       $eventID = $_POST['eventid'];
       $event = new mindEventCalendar($eventID);
-      $return = $event->delete_sub_events();
+      $return = $event->delete_sub_events($eventID);
       $return = array(
         'html' => $event->get_calendar(),
         'success' => $return
@@ -288,6 +288,7 @@ class mindEventsAjax {
           $meta['endtime']    = $endDT->format('H:i');
         }
       }
+     
       $event->update_sub_event($id, $meta, $_POST['parentid']);
 
 
@@ -302,7 +303,9 @@ class mindEventsAjax {
 
   public function moveevent() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'moveevent'){
-      // Expecting POST of: new_date (Y-m-d), start_date (Y-m-d H:i:s), end_date (Y-m-d H:i:s), eventid (int)
+      
+      mapi_write_log($_POST);
+
       $parentid = isset($_POST['parentid']) ? absint($_POST['parentid']) : 0;
       $raw_new_date  = isset($_POST['new_date'])   ? sanitize_text_field( wp_unslash( $_POST['new_date'] ) )   : '';
       $raw_start     = isset($_POST['start_date']) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
@@ -329,9 +332,9 @@ class mindEventsAjax {
 
 
       // Keep simple fields in sync for UI
-      // update_post_meta( $event_id, 'event_date', $newDate->format($fmtD) );
-      // update_post_meta( $event_id, 'starttime',  $newStart->format('H:i') );
-      // update_post_meta( $event_id, 'endtime',    $newEnd->format('H:i') );
+      update_post_meta( $event_id, 'event_date', $newDate->format($fmtD) );
+      update_post_meta( $event_id, 'starttime',  $newStart->format('H:i') );
+      update_post_meta( $event_id, 'endtime',    $newEnd->format('H:i') );
 
 
 
