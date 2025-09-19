@@ -63,7 +63,7 @@ function mindevents_single_datespan($id) {
     if ($sub_events->have_posts()) {
         $sub_events->the_post();
         $next_event = get_post();
-        $next_event_date = get_post_meta($next_event->ID, 'event_date', true);
+        $next_event_date = get_post_meta($next_event->ID, 'event_start_time_stamp', true);
         $next_event_date_obj = new DateTime($next_event_date);
         $startdate = $next_event_date_obj->format('F j, Y');
         

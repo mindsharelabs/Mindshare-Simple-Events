@@ -77,7 +77,7 @@ class MindEventsAdminOverview {
                 endif;
 
                 $linked_product = get_post_meta(get_the_id(), 'linked_product', true);
-                $date = get_post_meta(get_the_id(), 'event_date', true);
+                $date = get_post_meta(get_the_id(), 'event_start_time_stamp', true);
                 $attendee_count = is_array($attendees) ? count($attendees) : 0;
 
                 echo '<tr>';

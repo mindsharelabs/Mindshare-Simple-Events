@@ -102,15 +102,18 @@ class mindEventsAjax {
 
   public function selectday() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'selectday'){
+      mapi_write_log($_POST);
       $date = $_POST['date']; 
-      $eventID = $_POST['eventid'];
-      $insideHTML = '';
-
-      $meta = $this->reArrayMeta($_POST['meta']['event']);
-     
+      $meta = $_POST['meta']['event'];
       $meta['event_date'] = $date;
 
-      
+
+      $eventID = $_POST['eventid'];
+      $insideHTML = '';
+     
+      $dateformat = get_option('date_format');
+      $timeformat = get_option('time_format');
+
       // Normalize date/time into timestamp metas
       $tz     = wp_timezone();
       $fmtDT  = 'Y-m-d H:i:s';
@@ -124,8 +127,6 @@ class mindEventsAjax {
         $meta['event_end_time_stamp']   = $endDT->format($fmtDT);
 
       }
-      $dispStart = isset($startDT) && $startDT ? $startDT->format('H:i') : (isset($meta['starttime']) ? $meta['starttime'] : '');
-      $dispEnd   = isset($endDT) && $endDT ? $endDT->format('H:i') : (isset($meta['endtime']) ? $meta['endtime'] : '');
 
       if($meta['eventColor'] == '') :
         $meta['eventColor'] = '#2d8703';
@@ -148,7 +149,7 @@ class mindEventsAjax {
 
         $insideHTML .= '<div class="event" id="event-' . $added_event_id . '">';
           $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
-            $insideHTML .= $dispStart . '-' . $dispEnd;
+            $insideHTML .= $startDT->format($timeformat) . '-' . $endDT->format($timeformat);
           $insideHTML .= '</span>';
           if(is_admin()) :
             $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
@@ -223,72 +224,22 @@ class mindEventsAjax {
 
   }
 
-  private function reArrayMeta($metaStart) {
-    $meta = array();
-    $meta['event_date'] = (isset($metaStart['event_date']) ? $metaStart['event_date'] : '');
-    $meta['starttime'] = $metaStart['starttime'];
-    $meta['endtime'] = $metaStart['endtime'];
-    $meta['eventColor'] = $metaStart['eventColor'];
-    $meta['eventDescription'] = $metaStart['eventDescription'];
-
-    $meta['offers'] = array();
-
-    $meta = array_merge($meta, $metaStart);
-    if(isset($metaStart['event'])) :
-      foreach ($metaStart['event']['offerlabel'] as $key => $label) :
-        $meta['offers'][$key]['label'] = $label;
-      endforeach;
-
-      foreach ($metaStart['event']['offerprice'] as $key => $price) :
-        $meta['offers'][$key]['price'] = $price;
-      endforeach;
-
-      foreach ($metaStart['event']['offerlink'] as $key => $link) :
-        $meta['offers'][$key]['link'] = $link;
-      endforeach;
-    elseif(isset($metaStart['offerlabel'])) :
-      foreach ($metaStart['offerlabel'] as $key => $label) :
-        $meta['offers'][$key]['label'] = $label;
-      endforeach;
-
-      foreach ($metaStart['offerprice'] as $key => $price) :
-        $meta['offers'][$key]['price'] = $price;
-      endforeach;
-
-      foreach ($metaStart['offerlink'] as $key => $link) :
-        $meta['offers'][$key]['link'] = $link;
-      endforeach;
-    endif;
-
-    return $meta;
-  }
-
 
   public function updatesubevent() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'updatesubevent'){
 
       $id = $_POST['eventid'];
+      $meta = $_POST['meta'];
+
+      $event_start_time_stamp = date('Y-m-d H:i:s', strtotime($_POST['meta']['event_date'] . ' ' . $_POST['meta']['starttime']));
+      $event_end_time_stamp = date('Y-m-d H:i:s', strtotime($_POST['meta']['event_date'] . ' ' . $_POST['meta']['endtime']));
+
+
+      $meta['event_start_time_stamp'] = $event_start_time_stamp;
+      $meta['event_end_time_stamp']   = $event_end_time_stamp;
+
       $event = new mindEventCalendar($_POST['parentid'], $_POST['meta']['event_date']);
-      $meta = $this->reArrayMeta($_POST['meta']);
-      // Normalize provided date/time to timestamp metas
-      $tz     = wp_timezone();
-      $fmtDT  = 'Y-m-d H:i:s';
-      $date   = isset($meta['event_date']) ? $meta['event_date'] : '';
-      $start_time = isset($meta['starttime']) ? $meta['starttime'] : '';
-      $end_time   = isset($meta['endtime'])   ? $meta['endtime']   : $start_time;
-      if ($date && $start_time) {
-        $startDT = date_create_immutable($date . ' ' . $start_time, $tz);
-        $endDT   = date_create_immutable($date . ' ' . $end_time,   $tz);
-        if ($startDT && $endDT) {
-          $meta['event_start_time_stamp'] = $startDT->format($fmtDT);
-          $meta['event_end_time_stamp']   = $endDT->format($fmtDT);
-          // Keep simple fields in sync
-          $meta['event_date'] = $startDT->format('Y-m-d');
-          $meta['starttime']  = $startDT->format('H:i');
-          $meta['endtime']    = $endDT->format('H:i');
-        }
-      }
-     
+
       $event->update_sub_event($id, $meta, $_POST['parentid']);
 
 
@@ -304,8 +255,7 @@ class mindEventsAjax {
   public function moveevent() {
     if($_POST['action'] == MINDEVENTS_PREPEND . 'moveevent'){
       
-      mapi_write_log($_POST);
-
+   
       $parentid = isset($_POST['parentid']) ? absint($_POST['parentid']) : 0;
       $raw_new_date  = isset($_POST['new_date'])   ? sanitize_text_field( wp_unslash( $_POST['new_date'] ) )   : '';
       $raw_start     = isset($_POST['start_date']) ? sanitize_text_field( wp_unslash( $_POST['start_date'] ) ) : '';
@@ -332,10 +282,6 @@ class mindEventsAjax {
 
 
       // Keep simple fields in sync for UI
-      update_post_meta( $event_id, 'event_date', $newDate->format($fmtD) );
-      update_post_meta( $event_id, 'starttime',  $newStart->format('H:i') );
-      update_post_meta( $event_id, 'endtime',    $newEnd->format('H:i') );
-
 
 
       $linked_product = get_post_meta($event_id, 'linked_product', true);
@@ -454,36 +400,30 @@ class mindEventsAjax {
     $tz = wp_timezone();
     $startTS = isset($values['event_start_time_stamp'][0]) ? $values['event_start_time_stamp'][0] : '';
     $endTS   = isset($values['event_end_time_stamp'][0])   ? $values['event_end_time_stamp'][0]   : '';
-    if ($startTS) {
-      try {
-        $startDT = date_create_immutable($startTS, $tz);
-      } catch (Exception $e) { $startDT = false; }
-    } else { $startDT = false; }
-    if ($endTS) {
-      try {
-        $endDT = date_create_immutable($endTS, $tz);
-      } catch (Exception $e) { $endDT = false; }
-    } else { $endDT = false; }
 
-    $event_date_val = $startDT ? $startDT->format('Y-m-d') : ( isset($values['event_date'][0]) ? $values['event_date'][0] : '' );
-    $start_time_val = $startDT ? $startDT->format('H:i')   : ( isset($values['starttime'][0])  ? $values['starttime'][0]  : '' );
-    $end_time_val   = $endDT   ? $endDT->format('H:i')     : ( isset($values['endtime'][0])    ? $values['endtime'][0]    : '' );
+    //get wordpress date format
+    $dateformat = get_option('date_format');
+    $timeformat = get_option('time_format');
+
+    $startDate = new DateTimeImmutable($startTS, $tz);
+    $endDate = new DateTimeImmutable($endTS, $tz);
+
     $html = '<fieldset id="subEventEdit" class="container mindevents-forms event-times">';
       $html .= '<h3>Edit Occurance</h3>';
       $html .= '<div class="time-block">';
 
         $form_html = '<div class="form-section third">';
           $form_html .= '<p class="label"><label for="event_date">Event Occurrence Date</label></p>';
-          $form_html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $event_date_val . '" placeholder="">';
+          $form_html .= '<input type="text" class="required datepicker" name="event_date" id="event_date" value="' . $startDate->format( $dateformat) . '" placeholder="" disabled>';
         $form_html .= '</div>';
 
         $form_html .= '<div class="form-section third">';
           $form_html .= '<p class="label"><label for="starttime">Event Occurrence Start</label></p>';
-          $form_html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $start_time_val . '" placeholder="">';
+          $form_html .= '<input type="text" class="timepicker required" name="starttime" id="starttime" value="' . $startDate->format($timeformat) . '" placeholder="">';
         $form_html .= '</div>';
         $form_html .= '<div class="form-section third">';
           $form_html .= '<p class="label"><label for="endtime">Event Occurrence End</label></p>';
-          $form_html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $end_time_val . '" placeholder="">';
+          $form_html .= '<input type="text" class="timepicker" name="endtime" id="endtime" value="' . $endDate->format($timeformat) . '" placeholder="">';
         $form_html .= '</div>';
 
         $form_html .= '<div class="form-section">';
@@ -510,7 +450,7 @@ class mindEventsAjax {
         
         
         $html .= '<input type="hidden" name="parentID" value="' . $parentID . '">';
-        $html .= '<input type="hidden" name="event_date" value="' . $event_date_val . '">';
+        $html .= '<input type="hidden" name="event_date" value="' . $startDate->format($dateformat) . '">';
 
         $html .= '<div class="buttonContainer">';
           $html .= '<button

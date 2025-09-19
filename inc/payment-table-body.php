@@ -17,7 +17,7 @@ if ($events_query->have_posts()) :
             $attendees = (isset($all_attendees[$sub_event_id]) && is_array($all_attendees[$sub_event_id])) ? $all_attendees[$sub_event_id] : array();
         endif;
 
-        $date = get_post_meta($sub_event_id, 'event_date', true);
+        $date = get_post_meta($sub_event_id, 'event_start_time_stamp', true);
         $sold_tickets = is_array($attendees) ? count($attendees) : 0;
         
         // Count checked in attendees

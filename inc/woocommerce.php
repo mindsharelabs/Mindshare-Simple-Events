@@ -447,11 +447,7 @@ class mindEventsWooCommerce {
           'meta_query' => array(
             // 'relation' => 'AND',
             'start_clause' => array(
-              'key' => 'starttime',
-              'compare' => 'EXISTS',
-            ),
-            'date_clause' => array(
-              'key' => 'event_date',
+              'key' => 'event_start_time_stamp',
               'compare' => 'EXISTS',
             ),
           ),

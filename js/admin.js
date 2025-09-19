@@ -312,6 +312,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 			var meta = $('#subEventEdit').serializeObject();
 
+			
+
 			$.ajax({
 				url : mindeventsSettings.ajax_url,
 				type : 'post',

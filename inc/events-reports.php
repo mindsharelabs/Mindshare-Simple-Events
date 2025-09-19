@@ -741,7 +741,7 @@ class MindEventsReports {
                 'posts_per_page' => -1,
                 'meta_query' => array(
                     array(
-                        'key' => 'event_date',
+                        'key' => 'event_start_time_stamp',
                         'value' => array($start_date, $end_date),
                         'compare' => 'BETWEEN',
                         'type' => 'DATE'
@@ -864,7 +864,7 @@ class MindEventsReports {
                 $parent_data['sub_events'][] = array(
                     'id' => $sub_event->ID,
                     'title' => $sub_event->post_title,
-                    'date' => get_post_meta($sub_event->ID, 'event_date', true),
+                    'date' => get_post_meta($sub_event->ID, 'event_start_time_stamp', true),
                     'attendees' => $attendees_count,
                     'revenue' => $revenue,
                     'profit' => $profit,
@@ -899,7 +899,7 @@ class MindEventsReports {
             'posts_per_page' => -1,
             'meta_query' => array(
                 array(
-                    'key' => 'event_date',
+                    'key' => 'event_start_time_stamp',
                     'value' => array($start_date, $end_date),
                     'compare' => 'BETWEEN',
                     'type' => 'DATE'
@@ -1146,7 +1146,7 @@ class MindEventsReports {
                 'parent_id' => $parent_id,
                 'parent_title' => $parent_title,
                 'instructor' => $instructor_name,
-                'date' => get_post_meta($sub_event->ID, 'event_date', true),
+                'date' => get_post_meta($sub_event->ID, 'event_start_time_stamp', true),
                 'attendees' => $attendees_count,
                 'revenue' => $revenue,
                 'instructor_expense' => $instructor_expense,
@@ -1214,7 +1214,7 @@ class MindEventsReports {
                 'posts_per_page' => -1,
                 'meta_query' => array(
                     array(
-                        'key' => 'event_date',
+                        'key' => 'event_start_time_stamp',
                         'value' => array($start_date, $end_date),
                         'compare' => 'BETWEEN',
                         'type' => 'DATE'
@@ -1337,7 +1337,7 @@ class MindEventsReports {
                 $parent_data['sub_events'][] = array(
                     'id' => $sub_event->ID,
                     'title' => $sub_event->post_title,
-                    'date' => get_post_meta($sub_event->ID, 'event_date', true),
+                    'date' => get_post_meta($sub_event->ID, 'event_start_time_stamp', true),
                     'attendees' => $attendees_count,
                     'revenue' => $revenue,
                     'instructor' => $instructor_name,
@@ -1482,7 +1482,7 @@ class MindEventsReports {
                     'posts_per_page' => -1,
                     'meta_query' => array(
                         array(
-                            'key' => 'event_date',
+                            'key' => 'event_start_time_stamp',
                             'value' => array($start_date, $end_date),
                             'compare' => 'BETWEEN',
                             'type' => 'DATE'
@@ -1605,7 +1605,7 @@ class MindEventsReports {
                     $parent_data['sub_events'][] = array(
                         'id' => $sub_event->ID,
                         'title' => $sub_event->post_title,
-                        'date' => get_post_meta($sub_event->ID, 'event_date', true),
+                        'date' => get_post_meta($sub_event->ID, 'event_start_time_stamp', true),
                         'attendees' => $attendees_count,
                         'revenue' => $revenue,
                         'profit' => $profit,
@@ -1665,7 +1665,7 @@ class MindEventsReports {
             'posts_per_page' => -1,
             'meta_query' => array(
                 array(
-                    'key' => 'event_date',
+                    'key' => 'event_start_time_stamp',
                     'value' => array($start_date, $end_date),
                     'compare' => 'BETWEEN',
                     'type' => 'DATE'
@@ -1865,7 +1865,7 @@ class MindEventsReports {
                 continue;
             }
             
-            $event_date = get_post_meta($sub_event->ID, 'event_date', true);
+            $event_date = get_post_meta($sub_event->ID, 'event_start_time_stamp', true);
             $event_datetime = new DateTime($event_date);
             
             // Find the appropriate period for this event
