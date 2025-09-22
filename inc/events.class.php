@@ -1220,7 +1220,7 @@ class mindEventCalendar
         'post_excerpt' => '',
         'post_status' => 'publish',
         'post_type' => 'sub_event',
-        'post_parent' => $this->eventID,
+        'post_parent' => $eventID,
         'context' => '',
         'meta_input' => $meta,
         'tax_input' => array(
