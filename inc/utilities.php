@@ -68,3 +68,27 @@ add_action( 'acf/include_fields', function() {
 ) );
 } );
 
+
+
+add_action( 'template_redirect', 'redirect_child_cpt_to_parent' );
+
+function redirect_child_cpt_to_parent() {
+    // Replace 'your_custom_post_type' with the actual slug of your custom post type
+    $target_post_type = 'sub_event'; 
+
+    if ( is_singular( $target_post_type ) ) {
+        global $post;
+
+        // Check if the current post has a parent
+        if ( $post->post_parent ) {
+            // Get the permalink of the parent post
+            $parent_permalink = get_permalink( $post->post_parent );
+
+            // If a parent permalink exists, redirect to it
+            if ( $parent_permalink ) {
+                wp_redirect( $parent_permalink, 301 ); // 301 for permanent redirect
+                exit;
+            }
+        }
+    }
+}

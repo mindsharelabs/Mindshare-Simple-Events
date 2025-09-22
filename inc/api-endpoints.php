@@ -56,7 +56,7 @@ function make_events_routes_v2() {
           'enum'        => array( 'ASC', 'DESC' ),
         ),
         'categories' => array(
-          'description' => 'Comma-separated category slugs to match on the PARENT event post.',
+          'description' => 'Comma-separated event_category slugs applied to sub_events.',
           'type'        => 'string',
         ),
         'search' => array(
@@ -168,7 +168,7 @@ function make_events( $request ) {
 
   // If categories or search apply to PARENT posts, find parent IDs first
   $parent_ids = $parent;
-  $need_parent_query = ( ! empty( $cats ) || ! empty( $search ) );
+  $need_parent_query = ( ! empty( $search ) );
   if ( $need_parent_query ) {
     $parent_q = array(
       'post_type'      => 'post', // Adjust if your parent event post_type differs
@@ -176,12 +176,7 @@ function make_events( $request ) {
       'fields'         => 'ids',
       's'              => $search ?: '',
     );
-
-    // Category filter by slugs (built-in taxonomy)
-    if ( ! empty( $cats ) ) {
-      $parent_q['category_name'] = $cats; // Comma-separated slugs supported by WP
-    }
-
+    
     $parent_ids_found = get_posts( $parent_q );
     if ( is_wp_error( $parent_ids_found ) ) {
       return new WP_REST_Response( array( 'success' => false, 'message' => 'Parent query failed.' ), 500 );
@@ -199,7 +194,7 @@ function make_events( $request ) {
       return wp_send_json_success( array( 'events' => array(), 'total' => 0, 'total_pages' => 0, 'page' => $page, 'per_page' => $per_page ) );
     }
   }
-
+  
   // Build main query args for sub_event
   $args = array(
     'post_type'      => 'sub_event',
@@ -212,6 +207,22 @@ function make_events( $request ) {
     'order'          => $order,
     'meta_query'     => $meta_query,
   );
+
+  // Apply category filter directly to sub_event taxonomy (event_category)
+  if ( ! empty( $cats ) ) {
+    $cat_slugs = array_filter( array_map( 'sanitize_title', array_map( 'trim', explode( ',', $cats ) ) ) );
+    if ( ! empty( $cat_slugs ) ) {
+      $args['tax_query'] = array(
+        array(
+          'taxonomy'         => 'event_category',
+          'field'            => 'slug',
+          'terms'            => $cat_slugs,
+          'include_children' => true,
+          'operator'         => 'IN',
+        ),
+      );
+    }
+  }
 
   if ( ! empty( $parent_ids ) ) {
     $args['post_parent__in'] = $parent_ids;
