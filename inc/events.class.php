@@ -849,27 +849,37 @@ class mindEventCalendar
         $stock = $product->get_stock_quantity();
       endif;
 
-      $html .= '<button 
-             data-product_id="' . $offer['product_id'] . '"
-             data-quantity="' . $offer['quantity'] . '"
-             data-event_date="' . $offer['event_date'] . '"
-             class="btn btn-primary mb-3 mindevents-add-to-cart" 
-             ' . ($stock ? '' : 'disabled') . '
-             >';
+      // Build price display with sale information
+      $price_display = '';
+      if ($product && $product->is_on_sale()) {
+        $sale_price = $product->get_sale_price();
+        $regular_price = $product->get_regular_price();
+        $price_display = $this->currency_symbol . $sale_price . ' <span class="sale-original-price">(was ' . $this->currency_symbol . $regular_price . ')</span>';
+      } else {
+        $price_display = ($offer['price'] ? $this->currency_symbol . $offer['price'] : '');
+      }
+
+      $html .= '<button
+              data-product_id="' . $offer['product_id'] . '"
+              data-quantity="' . $offer['quantity'] . '"
+              data-event_date="' . $offer['event_date'] . '"
+              class="btn btn-primary mb-3 mindevents-add-to-cart"
+              ' . ($stock ? '' : 'disabled') . '
+              >';
 
 
-      if ($in_cart):
-        $html .= '<span class="in-cart fw-bold d-block">Item In Cart</span><span class="small d-block">Add more (+1)</span>';
-      else:
-        if ($stock):
-          $html .= '<span class="d-inline-block fw-bold">' . $offer['label'] . ' - ' . ($offer['price'] ? $this->currency_symbol . $offer['price'] : '') . '</span>';
-          if ($stock > 0):
-            $html .= '<span class="small d-block"> (' . $stock . ' Available)</span>';
-          endif;
-        else:
-          $html .= 'Out of Stock';
-        endif;
-      endif;
+       if ($in_cart):
+         $html .= '<span class="in-cart fw-bold d-block">Item In Cart</span><span class="small d-block">Add more (+1)</span>';
+       else:
+         if ($stock):
+           $html .= '<span class="d-inline-block fw-bold">' . $offer['label'] . ' - ' . $price_display . '</span>';
+           if ($stock > 0):
+             $html .= '<span class="small d-block"> (' . $stock . ' Available)</span>';
+           endif;
+         else:
+           $html .= 'Out of Stock';
+         endif;
+       endif;
 
       $html .= '</button>';
 
@@ -944,6 +954,10 @@ class mindEventCalendar
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
+    // Fetch product to check for sale
+    $linked_product_id = get_post_meta($event, 'linked_product', true);
+    $product = wc_get_product($linked_product_id);
+
     //add a filter for event image
     $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail(get_post_parent($event), 'medium', array('class' => 'event-image')), $event);
     $is_past = $this->today->format('Y-m-d G:i:s') > $meta['event_start_time_stamp'][0] ? true : false;
@@ -970,6 +984,11 @@ class mindEventCalendar
       endif;
 
       $html = '<div class="meta_inner_container ' . ($is_past ? 'past-event' : '') . '" style="' . implode(' ', $style_str) . '">';
+
+      // Add sale banner if product is on sale
+      if ($product && $product->is_on_sale()) {
+        $html .= '<div class="sale-banner">Sale!</div>';
+      }
 
       $html .= '<button class="event-meta-close"><i class="fas fa-times"></i></button>';
 
