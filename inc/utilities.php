@@ -92,3 +92,80 @@ function redirect_child_cpt_to_parent() {
         }
     }
 }
+
+
+
+add_action('add_meta_boxes', function() {
+    add_meta_box(
+        'sub_event_post_info',
+        'Sub Event Post Information',
+        'output_sub_event_post_info',
+        'sub_event',
+        'normal',
+        'default'
+    );
+	add_meta_box(
+        'sub_event_custom_meta',
+        'Sub Event Custom Meta',
+        'output_sub_event_custom_meta_table',
+        'sub_event',
+        'normal',
+        'default'
+    );
+	
+});
+
+function output_sub_event_custom_meta_table($post) {
+    $meta = get_post_meta($post->ID);
+    if (empty($meta)) {
+        echo '<p>No custom meta found for this sub_event.</p>';
+        return;
+    }
+    echo '<table class="widefat striped">';
+    echo '<thead><tr><th>Meta Key</th><th>Meta Value</th></tr></thead><tbody>';
+    foreach ($meta as $key => $values) {
+        // Only show custom meta (skip WordPress internals)
+        if (strpos($key, '_') === 0) continue;
+        foreach ($values as $value) {
+            echo '<tr>';
+            echo '<td>' . esc_html($key) . '</td>';
+            echo '<td>' . esc_html($value) . '</td>';
+            echo '</tr>';
+        }
+    }
+    echo '</tbody></table>';
+}
+
+
+function output_sub_event_post_info($post) {
+    echo '<table class="widefat striped">';
+    echo '<thead><tr><th>Info</th><th>Value</th></tr></thead><tbody>';
+
+    // Parent post
+    if ($post->post_parent) {
+        $parent = get_post($post->post_parent);
+        echo '<tr><td>Parent Post</td><td><a href="' . esc_url(get_edit_post_link($parent->ID)) . '">' . esc_html($parent->post_title) . ' (ID: ' . $parent->ID . ')</a></td></tr>';
+    } else {
+        echo '<tr><td>Parent Post</td><td>None</td></tr>';
+    }
+
+    // Date published
+    echo '<tr><td>Date Published</td><td>' . esc_html(get_the_date('Y-m-d H:i:s', $post)) . '</td></tr>';
+
+    // Author
+    $author = get_userdata($post->post_author);
+	if($author) :
+    echo '<tr><td>Author</td><td>' . esc_html($author ? $author->display_name : 'Unknown') . '</td></tr>';
+	else : 
+		$parent_author = get_userdata($parent->post_author);
+		echo '<tr><td>Author</td><td>Inherited from Parent: ' . esc_html($parent_author ? $parent_author->display_name : 'Unknown') . '</td></tr>';
+	endif;
+
+    // Post status
+    echo '<tr><td>Status</td><td>' . esc_html($post->post_status) . '</td></tr>';
+
+    // Post ID
+    echo '<tr><td>Post ID</td><td>' . esc_html($post->ID) . '</td></tr>';
+
+    echo '</tbody></table>';
+}

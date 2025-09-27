@@ -1229,11 +1229,12 @@ class mindEventCalendar
       $terms = wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids'));
 
       $meta['unique_event_key'] = $unique;
+      $parent_author = get_post_field('post_author', $eventID);
 
       do_action(MINDEVENTS_PREPEND . 'before_add_sub_event', $eventID, $meta);
 
       $defaults = array(
-        'post_author' => get_current_user_id(),
+        'post_author' => $parent_author,
         'post_content' => '',
         'post_title' => $this->build_title($eventID, $date, $meta),
         'post_excerpt' => '',
