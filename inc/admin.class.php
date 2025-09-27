@@ -217,8 +217,6 @@ class mindeventsAdmin {
   static function display_attendees_metabox($post) {
 
     $attendees = get_post_meta($post->ID, 'attendees', true);
-    
-
     $event_type = get_post_meta($post->ID, 'event_type', true);
 
     if($event_type == 'single-event') :

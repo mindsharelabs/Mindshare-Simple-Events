@@ -81,71 +81,72 @@ class MindEventsAdminOverview {
                 $attendee_count = is_array($attendees) ? count($attendees) : 0;
 
                 echo '<tr>';
-                echo '<td class="event-title">';
-                echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
-                echo '</td>';
-                echo '<td class="event-actions">';
-                echo '<div class="button-group">';
-                echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
-                echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
-                if ($linked_product) :
-                    echo '<a href="' . get_edit_post_link($linked_product) . '" target="_blank" class="button button-small button-secondary">Edit Product</a>';
-                endif;
-                echo '</div>';
-                echo '</td>';
-                echo '<td class="event-date">' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
-                echo '<td class="attendee-count" data-count="' . esc_html($attendee_count) . '">' . esc_html($attendee_count) . '</td>';
-                echo '<td class="event-orders">';
-                if ($attendee_count > 0) :
-                    foreach ($attendees as $attendee) :
-                        $order = wc_get_order($attendee['order_id']);
-                        if(!$order) continue;
-                        $user = get_userdata($order->get_customer_id());
-                        echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
-                        if (next($attendees)) echo '<br>';
-                    endforeach;
-                else :
-                    echo 'No orders';
-                endif;
-                echo '</td>';
-                echo '<td class="event-instructor">';
-                $instructor = get_post_meta(get_the_id(), 'instructorID', true);
-                $parent_id = wp_get_post_parent_id(get_the_id());
-                if($instructor) :
-                    //get user object
-                    $instructor_user = get_user_by('id', $instructor);
-                    echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
-                else :
-                    echo 'No instructor assigned';
-                endif;
-                echo '</td>';
+                    echo '<td class="event-title">';
+                        echo '<strong><a href="' . get_edit_post_link($parent_id) . '" target="_blank">' . esc_html(get_the_title($parent_id)) . '</a></strong>';
+                    echo '</td>';
+                    echo '<td class="event-actions">';
+                        echo '<div class="button-group">';
+                            echo '<a href="' . get_edit_post_link($parent_id) . '" target="_blank" class="button button-small button-secondary">Edit Event</a>';
+                            echo '<a href="' . get_permalink($parent_id) . '" target="_blank" class="button button-small button-secondary">View Event</a>';
+                            if ($linked_product) :
+                                echo '<a href="' . get_edit_post_link($linked_product) . '" target="_blank" class="button button-small button-secondary">Edit Product</a>';
+                            endif;
+                        echo '</div>';
+                    echo '</td>';
+                    echo '<td class="event-date">' . esc_html(date('F j, Y', strtotime($date))) . '</td>';
+                    echo '<td class="attendee-count" data-count="' . esc_html($attendee_count) . '">' . esc_html($attendee_count) . '</td>';
+                    echo '<td class="event-orders">';
+                        if ($attendee_count > 0) :
+                            foreach ($attendees as $attendee) :
+                                $order = wc_get_order($attendee['order_id']);
+                                if(!$order) continue;
+                                $user = get_userdata($order->get_customer_id());
+                                echo '<a href="' . get_edit_post_link($attendee['order_id']) . '" target="_blank">#' . $order->get_order_number() . ' - ' . esc_html($user->display_name) . '</a>';
+                                if (next($attendees)) echo '<br>';
+                            endforeach;
+                        else :
+                            echo 'No orders';
+                        endif;
+                    echo '</td>';
+                    echo '<td class="event-instructor">';
+                        $instructor = get_post_meta(get_the_id(), 'instructorID', true);
+                        $parent_id = wp_get_post_parent_id(get_the_id());
+                        if($instructor) :
+                            //get user object
+                            $instructor_user = get_user_by('id', $instructor);
+                            if(!is_object($instructor_user)) continue;
+                            echo '<a href="' . get_edit_user_link($instructor_user->ID) . '" target="_blank">' . esc_html($instructor_user->display_name) . '</a>';
+                        else :
+                            echo 'No instructor assigned';
+                        endif;
+                    echo '</td>';
                 
-                // Calculate and display estimated profit
-                echo '<td class="estimated-profit">';
-                $revenue = get_post_meta(get_the_id(), 'total_revenue', true);
-                $profit = get_post_meta(get_the_id(), 'sub_event_profit', true);
-                
-                // Check if instructor cost or materials cost is empty (not set or empty string, but not 0)
-                $parent_id = wp_get_post_parent_id(get_the_id());
-                $instructor_cost = get_post_meta($parent_id, 'instructor_expense', true);
-                $materials_cost = get_post_meta($parent_id, 'materials_expense', true);
-                $costs_empty = ($instructor_cost === '' || $materials_cost === '');
-                
-                // If no attendees, set profit to 0 (no expenses without students)
-                if ($attendee_count === 0) {
-                    $profit = 0;
-                    echo '-';
-                } else {
-                    $profit_color = floatval($profit) >= 0 ? '#46b450' : '#dc3232';
-                    
-                    // Display warning if costs are empty
-                    if ($costs_empty) {
-                        echo '<span style="color: #ffb900; margin-right: 5px;" title="Instructor cost or materials cost not set">⚠️</span>';
-                    }
-                    
-                    echo '<span style="color: ' . $profit_color . ';">$' . number_format(floatval($profit), 2) . '</span>';
-                }
-                echo '</td>';
+                    // Calculate and display estimated profit
+                    echo '<td class="estimated-profit">';
+                        $revenue = get_post_meta(get_the_id(), 'total_revenue', true);
+                        $profit = get_post_meta(get_the_id(), 'sub_event_profit', true);
+                        
+                        // Check if instructor cost or materials cost is empty (not set or empty string, but not 0)
+                        $parent_id = wp_get_post_parent_id(get_the_id());
+                        $instructor_cost = get_post_meta($parent_id, 'instructor_expense', true);
+                        $materials_cost = get_post_meta($parent_id, 'materials_expense', true);
+                        $costs_empty = ($instructor_cost === '' || $materials_cost === '');
+                        
+                        // If no attendees, set profit to 0 (no expenses without students)
+                        if ($attendee_count === 0) {
+                            $profit = 0;
+                            echo '-';
+                        } else {
+                            $profit_color = floatval($profit) >= 0 ? '#46b450' : '#dc3232';
+                            
+                            // Display warning if costs are empty
+                            if ($costs_empty) {
+                                echo '<span style="color: #ffb900; margin-right: 5px;" title="Instructor cost or materials cost not set">⚠️</span>';
+                            }
+                            
+                            echo '<span style="color: ' . $profit_color . ';">$' . number_format(floatval($profit), 2) . '</span>';
+                        }
+                    echo '</td>';
                 echo '</tr>';
             endwhile;
         else :
