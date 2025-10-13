@@ -547,10 +547,10 @@ class mindEventCalendar
     $is_featured = get_post_meta($event->post_parent, 'is_featured', true);
     //if in past add class
     $is_past = $this->today->format('Y-m-d G:i:s') > get_post_meta($event->ID, 'event_start_time_stamp', true) ? true : false;
-    $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . '">';
+    $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . ' ' . ($is_featured ? 'featured-event' : '') . '">';
       
 
-    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'cal-thumb');
+    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), ($is_featured ? 'cal-thumb' : 'medium'));
     if ($thumb && $is_featured) {
       $html .= '<div class="event-thumb">' . $thumb . '</div>';
     }

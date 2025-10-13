@@ -108,6 +108,9 @@
                   border: 3px solid #fff;
                 }
               }
+              &.featured-event {
+                flex-direction: column;
+              }
             }
             
           }
