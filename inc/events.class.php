@@ -550,9 +550,9 @@ class mindEventCalendar
     $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . ' ' . ($is_featured ? 'featured-event' : '') . '">';
       
 
-    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), ($is_featured ? 'cal-thumb' : 'medium'));
+    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'medium');
     if ($thumb && $is_featured) {
-      $html .= '<div class="event-thumb">' . $thumb . '</div>';
+      $html .= '<div class="event-thumb mb-2">' . $thumb . '</div>';
     }
 
       $html .= '<div class="event-meta">';
@@ -684,7 +684,6 @@ class mindEventCalendar
     endif;
 
 
-
     if ($meta):
       $style_str = array();
 
@@ -764,39 +763,15 @@ class mindEventCalendar
         $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
 
 
+        
+        $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
+        if ($has_tickets):
 
-      $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
-      if ($has_tickets):
-
-        $html .= '<div class="right-content">';
-        if ($has_tickets && $meta['linked_product'][0]):
-          $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-          $product = wc_get_product($meta['linked_product'][0]);
-
-          if ($product):
-
-            $html .= $this->build_offer_link(array(
-              'label' => $meta['wooLabel'][0],
-              'price' => $product->get_price(),
-              'link' => $product->get_permalink(),
-              'background' => $color,
-              'color' => $this->getContrastColor($color),
-              'product_id' => $meta['linked_product'][0],
-              'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-              'quantity' => 1
-            ));
-
-          endif;
-      
-        else:
-
-          //get first sub event
-          $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
-          if ($sub_events):
-            $sub_event = $sub_events[0];
-            $meta = get_post_meta($sub_event->ID);
+          $html .= '<div class="right-content">';
+          if ($has_tickets && $meta['linked_product'][0]):
             $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
             $product = wc_get_product($meta['linked_product'][0]);
+
             if ($product):
 
               $html .= $this->build_offer_link(array(
@@ -811,12 +786,36 @@ class mindEventCalendar
               ));
 
             endif;
+
+            //get first sub event
+            $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
+            if ($sub_events):
+              $sub_event = $sub_events[0];
+              $meta = get_post_meta($sub_event->ID);
+              $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+              $product = wc_get_product($meta['linked_product'][0]);
+              if ($product):
+
+                $html .= $this->build_offer_link(array(
+                  'label' => $meta['wooLabel'][0],
+                  'price' => $product->get_price(),
+                  'link' => $product->get_permalink(),
+                  'background' => $color,
+                  'color' => $this->getContrastColor($color),
+                  'product_id' => $meta['linked_product'][0],
+                  'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                  'quantity' => 1
+                ));
+
+              endif;
+            endif;
+
           endif;
-
-        endif;
-
-        $html .= '</div>';
-      endif; //end if offers
+          $html .= '</div>';
+        
+        
+          
+        endif; //end if offers
 
 
 
@@ -962,7 +961,7 @@ class mindEventCalendar
     $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail(get_post_parent($event), 'medium', array('class' => 'event-image')), $event);
     $is_past = $this->today->format('Y-m-d G:i:s') > $meta['event_start_time_stamp'][0] ? true : false;
 
-
+    $is_featured = get_post_meta($parentID, 'is_featured', true);
 
     $parent_event_type = get_post_meta($parentID, 'event_type', true);
     if ($parent_event_type == 'single-event'):
@@ -976,7 +975,7 @@ class mindEventCalendar
       $style_str = array();
       $color = $this->get_event_color($event);
       $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt(get_post_parent($event)));
-
+      
 
       if ($color):
         $style_str['background'] = 'background:' . $color . ';';
@@ -995,9 +994,9 @@ class mindEventCalendar
 
       if ($image):
         $html .= '<div class="featured-image">';
-        $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-        $html .= $image;
-        $html .= '</a>';
+          $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+            $html .= $image;
+          $html .= '</a>';
         $html .= '</div>';
       endif;
 
@@ -1018,9 +1017,9 @@ class mindEventCalendar
 
       if ($sub_event_obj->post_parent):
         $html .= '<div class="meta-item">';
-        $html .= '<a style="' . implode(' ', $style_str) . '" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-        $html .= '<h3 class="event-title mt-0">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-        $html .= '</a>';
+            $html .= '<a style="' . implode(' ', $style_str) . '" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+            $html .= '<h3 class="event-title mt-0">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+            $html .= '</a>';
         $html .= '</div>';
       endif;
       if ($meta['event_start_time_stamp'][0]):
@@ -1041,10 +1040,17 @@ class mindEventCalendar
 
       if ($description):
         $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventdescription">' . $description . '</span></br>';
-        // $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
+          $html .= '<span class="value eventdescription">' . $description . '</span></br>';
         $html .= '</div>';
       endif;
+      if($is_featured) :
+        $html .= '<div class="meta-item link mt-4">';
+          $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" class="btn btn-light" style="' . $style_str['border-color'] . '">Learn More</a>';
+        $html .= '</div>';
+      endif;
+      
+      
+
 
       $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
 
