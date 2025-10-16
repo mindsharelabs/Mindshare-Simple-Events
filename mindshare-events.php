@@ -3,7 +3,7 @@
  * Plugin Name: Mindshare Simple Events
  * Plugin URI:https://mind.sh/are
  * Description: A simple events plugin, for sites that just need the basics.
- * Version: 1.4.5
+ * Version: 1.5.5
  * Author: Mindshare Labs, Inc
  * Author URI: https://mind.sh/are
  */
@@ -22,7 +22,7 @@ class mindEvents {
     }
     //Define all the constants
     $this->define( 'MINDEVENTS_ABSPATH', dirname( MINDEVENTS_PLUGIN_FILE ) . '/' );
-    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.4.6');
+    $this->define( 'MINDEVENTS_PLUGIN_VERSION', '1.5.5');
     $this->define( 'MINDEVENTS_PREPEND', 'mindevents_' );
 
 
@@ -72,6 +72,7 @@ class mindEvents {
     include MINDEVENTS_ABSPATH . 'inc/events-admin-overview.php';
     include MINDEVENTS_ABSPATH . 'inc/events-reports.php';
     include MINDEVENTS_ABSPATH . 'inc/api-endpoints.php';
+    include MINDEVENTS_ABSPATH . 'inc/member-calendar/member-calendar.php';
     
 
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
