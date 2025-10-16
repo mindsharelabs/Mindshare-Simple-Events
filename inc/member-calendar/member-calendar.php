@@ -2,10 +2,8 @@
 // Hook to add a new section to WooCommerce My Account dashboard
 add_filter('woocommerce_account_menu_items', function ($items){
     // Add "Member Calendar" before "Logout"
-    $logout = $items['customer-logout'];
-    unset($items['customer-logout']);
     $items['member-calendar'] = __('Member Calendar', 'mindshare-simple-events');
-    $items['customer-logout'] = $logout;
+
     return $items;
 });
 
@@ -17,6 +15,9 @@ add_action('init', function(){
 
 // Content for the Member Calendar section
 add_action('woocommerce_account_member-calendar_endpoint', function (){
+    if ( ! function_exists('wc_memberships_is_user_active_member') || ! wc_memberships_is_user_active_member(get_current_user_id()) ) {
+        return;
+    }
     $calendar = new mindEventCalendar('');
     $args = array(
         'post_type' => 'sub_event',
