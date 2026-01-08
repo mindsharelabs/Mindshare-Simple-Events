@@ -41,30 +41,30 @@ class mindeventsAdmin {
   		MINDEVENTS_PREPEND . 'event_options',
   		'Calendar Options',
   		array('mindeventsAdmin', 'display_event_options_metabox' ),
-  		'events',
-  		'side',
-  		'default'
-  	);
+        'events',
+        'side',
+        'default'
+      );
 
 
     add_meta_box(
   		MINDEVENTS_PREPEND . 'attendees',
   		'Event Attendees',
-  		array('mindeventsAdmin', 'display_attendees_metabox' ),
-  		'events',
-  		'normal',
-  		'default'
-  	);
+        array('mindeventsAdmin', 'display_attendees_metabox' ),
+        'events',
+        'normal',
+        'default'
+      );
 
     add_meta_box(
   		MINDEVENTS_PREPEND . 'product_event_info', //id
   		'Event Details', //title
   		array('mindeventsAdmin', 'display_product_event_info' ), //callback
-  		'product', // screen
-  		'normal', //context
-  		'default', //priority
-      null //callback_args
-  	);
+        'product', // screen
+        'normal', //context
+        'default', //priority
+        null //callback_args
+      );
 
     
 
@@ -160,6 +160,14 @@ class mindeventsAdmin {
         echo '</div>';
       echo '</div>';
 
+
+    // Add Featured checkbox before closing div
+    $is_featured = get_post_meta(get_the_ID(), 'is_featured', true);
+    echo '<div class="form-section">';
+      echo '<p class="label"><label for="event_meta_is_featured">';
+      echo '<input type="checkbox" name="event_meta[is_featured]" id="event_meta_is_featured" value="1" ' . checked($is_featured, '1', false) . '> Featured Event';
+      echo '</label></p>';
+    echo '</div>';
 
     // Add Featured checkbox before closing div
     $is_featured = get_post_meta(get_the_ID(), 'is_featured', true);

@@ -48,8 +48,7 @@ echo '<main role="main" aria-label="Content">';
         do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
         do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
         echo '<div id="publicCalendar" class="container">';
-          
-          echo $calendar->get_front_list('archive');
+          echo $calendar->get_front_list();
         echo '</div>';
       echo '</div>';
 

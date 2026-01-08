@@ -36,26 +36,22 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 		});
 
 		//on resize close all event meta
-		$(window).on('resize', function () {
-			closeAllEventMeta();
-		});
+		// $(window).on('resize', function () {
+		// 	closeAllEventMeta();
+		// });
 
 
 		$(document).on('click', '.sub-event-toggle', function (event) {
-			closeAllEventMeta();
+			
 			var eventid = $(this).data('eventid');
 			
-			//if on desktop:
-			
-
 			//if on mobile:
 			if ($(window).width() < 768) {
 				var metaContainer = $(this).closest('.day-container').after('<div class="meta-container row"></div>');
 			} else {
+				
 				var metaContainer = $(this).closest('.week-row').after('<div class="meta-container row"></div>');
 			}
-
-
 
 			metaContainer = metaContainer.next('.meta-container').html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
 			
@@ -68,10 +64,11 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 					eventid : eventid
 				},
 				success: function(response) {
+					closeAllEventMeta();
 					metaContainer.html(response.data.html);
 					//after the responce is loeaded, scroll into view
 					scrollIntoView(metaContainer);
-					// console.log(response);
+					
 				},
 				error: function (response) {
 					console.log('An error occurred.');
