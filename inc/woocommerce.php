@@ -288,20 +288,22 @@ class mindEventsWooCommerce {
         if(wp_is_post_autosave( $post_id )) return;
         if(wp_is_post_revision( $post_id )) return;
 
-
+        // mapi_write_log('Creating WooCommerce Product for Event: ' . $post_id);
         
         $event_type = get_post_meta($post_id, 'event_type', true);
         $has_tickets = get_post_meta($post_id, 'has_tickets', true);
         if(!$has_tickets) :
             return;
         endif;
-       
         
-        //a Single event means this event will only have one ticket, but span multiple dayes. 
+        mapi_write_log('Event Type: ' . $event_type);
+        
+        //a Single event means this event will only have one ticket, but span multiple days. 
         if($event_type == 'single-event') :
             $meta = get_post_meta($post_id);
 
             $product_id = $this->build_product($post_id, $meta);
+            // mapi_write_log('Created/Updated Product ID: ' . $product_id);
             
             $this->sync_meta($post_id, $product_id);
 
@@ -326,6 +328,8 @@ class mindEventsWooCommerce {
 
 
     private function build_product($post_id, $meta) {
+        // mapi_write_log('Building Product for Event/Post ID: ' . $post_id);
+        // mapi_write_log($meta);
         $post = get_post($post_id);
 
         $start_date = (isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : $meta['first_event_date'][0]);
@@ -339,7 +343,9 @@ class mindEventsWooCommerce {
         $sku_id = wc_get_product_id_by_sku($sku);
         $product_id = (isset($meta['linked_product'][0]) ? $meta['linked_product'][0] : false);
 
-        //defauly to the product that already exists by sku because skus are unique
+        //mapi_write_log('SKU: ' . $sku . ' | SKU Product ID: ' . $sku_id . ' | Linked Product ID: ' . $product_id);
+
+        //default to the product that already exists by sku because skus are unique
         if($sku_id) :
             $product_id = $sku_id;
         endif;
@@ -374,7 +380,7 @@ class mindEventsWooCommerce {
 
         $price = $product->get_regular_price();
      
-        
+        //mapi_write_log('Building Product: ' . $title . ' | Price: ' . $price . ' | New Product: ' . ($new_product ? 'Yes' : 'No'));
         if($new_product) :
             $product->set_sku($sku);
             $product->set_name($title);
@@ -410,10 +416,12 @@ class mindEventsWooCommerce {
      */
 
     private function sync_meta($sub_event_id, $product_id) {
+        // mapi_write_log('Syncing Meta for Sub Event ID: ' . $sub_event_id . ' with Product ID: ' . $product_id);
         $post = get_post($sub_event_id);
         $meta = get_post_meta($sub_event_id);
-        $parent_id = $post->post_parent;
+        $parent_id = ($post->post_parent == 0 ? $sub_event_id : $post->post_parent);
         $event_type = get_post_meta($parent_id, 'event_type', true);
+        // mapi_write_log('Parent Event ID: ' . $parent_id . ' | Event Type: ' . $event_type);
        
         $start_date = (isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : $meta['first_event_date'][0]);
         $end_date = (isset($meta['event_end_time_stamp'][0]) ? $meta['event_end_time_stamp'][0] : $meta['last_event_date'][0]);

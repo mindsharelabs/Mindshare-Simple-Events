@@ -991,6 +991,7 @@ class mindEventCalendar
   public function get_cal_meta_html($event = '')
   {
     $meta = get_post_meta($event);
+    mapi_write_log($meta);
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
@@ -1086,7 +1087,7 @@ class mindEventCalendar
       endif;
       if ($is_featured):
         $html .= '<div class="meta-item link mt-4">';
-        $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" class="btn btn-light" style="' . $style_str['border-color'] . '">Learn More</a>';
+        $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" class="btn btn-light" style="' . (isset($style_str['border-color']) ? $style_str['border-color'] : '') . '">Learn More</a>';
         $html .= '</div>';
       endif;
 
@@ -1099,8 +1100,12 @@ class mindEventCalendar
 
 
       $html .= '</div>';
-
-      $offers = unserialize($meta['offers'][0]);
+      mapi_write_log($meta);
+      if(isset($meta['offers'])):
+        $offers = unserialize($meta['offers'][0]);
+      else:
+        $offers = false;
+      endif;
       $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
       if ($offers || $has_tickets):
 
