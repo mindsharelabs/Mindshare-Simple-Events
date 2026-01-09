@@ -20,10 +20,13 @@ class mindEventsWooCommerce {
 
 
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
- 
+
 
         //attendee management
         add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
+        add_action('woocommerce_checkout_order_processed', array($this, 'capture_order_event_meta'), 20, 3);
+        add_action('woocommerce_new_order', array($this, 'capture_order_event_meta'), 20, 2);
+        add_action('woocommerce_checkout_create_order_line_item', array($this, 'attach_line_item_event_meta'), 20, 4);
 
         // Initialize order stats for existing sub events (run once, but more efficiently)
         add_action('wp_loaded', array($this, 'maybe_initialize_order_stats'));
@@ -113,6 +116,9 @@ class mindEventsWooCommerce {
             
             $this->add_attendee($order);
             $this->schedule_hook($order);
+            if ($order_obj) :
+                $this->update_order_event_meta($order_obj);
+            endif;
         endif;
 
         // Update order stats for affected sub events
@@ -152,6 +158,211 @@ class mindEventsWooCommerce {
             endforeach;
         endif;
     }
+
+    /**
+     * Ensure upcoming event details are mirrored onto the order meta so AutomateWoo
+     * can use them for triggers and email variables.
+     *
+     * @param int            $order_id    Order ID.
+     * @param array|null     $posted_data Raw checkout data (unused).
+     * @param WC_Order|null  $order_obj   WC_Order instance when available.
+     */
+    public function capture_order_event_meta( $order_id, $posted_data = null, $order_obj = null ) {
+        if ( $order_obj instanceof WC_Order ) {
+            $this->update_order_event_meta( $order_obj );
+            return;
+        }
+
+        $order = wc_get_order( $order_id );
+        if ( $order instanceof WC_Order ) {
+            $this->update_order_event_meta( $order );
+        }
+    }
+
+    /**
+     * Persist event start/end data on the order itself.
+     *
+     * @param int|WC_Order $order Order object or ID.
+     */
+    private function update_order_event_meta( $order ) {
+        if ( ! $order ) {
+            return;
+        }
+
+        if ( is_numeric( $order ) ) {
+            $order = wc_get_order( $order );
+        }
+
+        if ( ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        $events = array();
+
+        foreach ( $order->get_items( 'line_item' ) as $item_id => $item ) {
+            $product_id = $item->get_product_id();
+            if ( ! $product_id ) {
+                continue;
+            }
+
+            $start = get_post_meta( $product_id, 'linkedEventStartDate', true );
+            $end   = get_post_meta( $product_id, 'linkedEventEndDate', true );
+
+            if ( ! $start && ! $end ) {
+                continue;
+            }
+
+            $sort_value = $start ? strtotime( $start ) : ( $end ? strtotime( $end ) : PHP_INT_MAX );
+
+            $events[] = array(
+                'item_id'    => $item_id,
+                'product_id' => $product_id,
+                'title'      => $item->get_name(),
+                'start'      => $start,
+                'end'        => $end,
+                'sort'       => $sort_value,
+            );
+        }
+
+        $order_id = $order->get_id();
+
+        if ( empty( $events ) ) {
+            delete_post_meta( $order_id, '_mindevents_event_start' );
+            delete_post_meta( $order_id, '_mindevents_event_end' );
+            delete_post_meta( $order_id, '_mindevents_event_title' );
+            delete_post_meta( $order_id, '_mindevents_event_schedule' );
+            delete_post_meta( $order_id, '_mindevents_event_schedule_text' );
+            return;
+        }
+
+        usort(
+            $events,
+            function ( $a, $b ) {
+                return $a['sort'] <=> $b['sort'];
+            }
+        );
+
+        $primary       = $events[0];
+        $primary_start = $primary['start'] ? $primary['start'] : $primary['end'];
+        $primary_end   = $primary['end'];
+
+        if ( $primary_start ) {
+            update_post_meta( $order_id, '_mindevents_event_start', $primary_start );
+        } else {
+            delete_post_meta( $order_id, '_mindevents_event_start' );
+        }
+
+        if ( $primary_end ) {
+            update_post_meta( $order_id, '_mindevents_event_end', $primary_end );
+        } else {
+            delete_post_meta( $order_id, '_mindevents_event_end' );
+        }
+
+        if ( $primary['title'] ) {
+            update_post_meta( $order_id, '_mindevents_event_title', $primary['title'] );
+        } else {
+            delete_post_meta( $order_id, '_mindevents_event_title' );
+        }
+
+        $schedule_payload = array();
+        $schedule_text    = array();
+
+        foreach ( $events as $event ) {
+            $schedule_payload[] = array(
+                'item_id'    => $event['item_id'],
+                'product_id' => $event['product_id'],
+                'title'      => $event['title'],
+                'start'      => $event['start'],
+                'end'        => $event['end'],
+            );
+
+            $this->sync_line_item_meta(
+                $order->get_item( $event['item_id'] ),
+                $event['start'],
+                $event['end']
+            );
+
+            $label_parts = array();
+            if ( $event['title'] ) {
+                $label_parts[] = $event['title'];
+            }
+            if ( $event['start'] ) {
+                $label_parts[] = sprintf( 'Start: %s', $event['start'] );
+            }
+            if ( $event['end'] ) {
+                $label_parts[] = sprintf( 'End: %s', $event['end'] );
+            }
+            if ( ! empty( $label_parts ) ) {
+                $schedule_text[] = implode( ' — ', $label_parts );
+            }
+        }
+
+        $encoded_schedule = wp_json_encode( $schedule_payload );
+        if ( $encoded_schedule ) {
+            update_post_meta( $order_id, '_mindevents_event_schedule', $encoded_schedule );
+        } else {
+            delete_post_meta( $order_id, '_mindevents_event_schedule' );
+        }
+
+        if ( ! empty( $schedule_text ) ) {
+            update_post_meta( $order_id, '_mindevents_event_schedule_text', implode( "\n", $schedule_text ) );
+        } else {
+            delete_post_meta( $order_id, '_mindevents_event_schedule_text' );
+        }
+    }
+
+    /**
+     * Hooked into checkout line item creation so each product in the order retains
+     * its event start/end data even when multiple events are purchased together.
+     *
+     * @param WC_Order_Item_Product $item
+     * @param string                $cart_item_key
+     * @param array                 $values
+     * @param WC_Order              $order
+     */
+    public function attach_line_item_event_meta( $item, $cart_item_key, $values, $order ) {
+        $product_id = $item->get_product_id();
+        if ( ! $product_id ) {
+            return;
+        }
+
+        $start = get_post_meta( $product_id, 'linkedEventStartDate', true );
+        $end   = get_post_meta( $product_id, 'linkedEventEndDate', true );
+
+        if ( ! $start && ! $end ) {
+            return;
+        }
+
+        $this->sync_line_item_meta( $item, $start, $end );
+    }
+
+    /**
+     * Store event timing metadata directly on the order item so AutomateWoo
+     * product/order item variables can reference it per ticket.
+     *
+     * @param WC_Order_Item_Product|null $item
+     * @param string                     $start
+     * @param string                     $end
+     */
+    private function sync_line_item_meta( $item, $start, $end ) {
+        if ( ! $item instanceof WC_Order_Item_Product ) {
+            return;
+        }
+
+        if ( $start ) {
+            $item->update_meta_data( '_mindevents_event_start', $start );
+        } else {
+            $item->delete_meta_data( '_mindevents_event_start' );
+        }
+
+        if ( $end ) {
+            $item->update_meta_data( '_mindevents_event_end', $end );
+        } else {
+            $item->delete_meta_data( '_mindevents_event_end' );
+        }
+
+        $item->save();
+    }
     
     public function add_attendee($order_id) { 
         $order = wc_get_order( $order_id );
@@ -182,6 +393,9 @@ class mindEventsWooCommerce {
                     endfor;
 
                     update_post_meta($get_linked_event, 'attendees', $attendees);
+                    if ( function_exists( 'mindshare_automatewoo_touch_occurrence' ) ) {
+                        mindshare_automatewoo_touch_occurrence( $get_linked_occurance );
+                    }
                 endif;
 
                 
@@ -215,6 +429,9 @@ class mindEventsWooCommerce {
                     endfor;
 
                     update_post_meta($get_linked_event, 'attendees', $attendees);
+                    if ( function_exists( 'mindshare_automatewoo_touch_occurrence' ) ) {
+                        mindshare_automatewoo_touch_occurrence( $get_linked_occurance );
+                    }
                 endif;
             endforeach;
         endif;
@@ -448,6 +665,9 @@ class mindEventsWooCommerce {
         update_post_meta($product_id, 'linked_event', ($post->post_parent ? $post->post_parent : $sub_event_id));
         update_post_meta($product_id, 'linked_occurance', $sub_event_id);
         update_post_meta($product_id, '_has_event', true);
+        if ( function_exists( 'mindshare_automatewoo_touch_occurrence' ) ) {
+            mindshare_automatewoo_touch_occurrence( $sub_event_id );
+        }
     }
 
     public function get_sub_events($post_id) {

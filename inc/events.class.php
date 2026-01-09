@@ -628,6 +628,29 @@ class mindEventCalendar
         'suppress_filters' => true,
         'posts_per_page' => -1
       );
+    elseif(is_tax('event_category')):  
+      $this->is_archive = true;
+      $this->show_past_events = false;
+      $default = array(
+        'meta_query' => array(
+          'relation' => 'AND',
+          array(
+            'key' => 'event_start_time_stamp', // Check the start date field
+            'value' => array(
+              date('Y-m-d H:i:s'), // Current date and time
+            ),
+            'compare' => '>=', // Only get events between now and 30 days from now
+            'type' => 'DATETIME' // Let WordPress know we're working with date
+          ),
+        ),
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_start_time_stamp',
+        'meta_type' => 'DATETIME',
+        'order' => 'ASC',
+        'post_type' => 'sub_event',
+        'suppress_filters' => true,
+        'posts_per_page' => -1
+      );
     else:
       $default = array(
         'orderby' => 'meta_value',

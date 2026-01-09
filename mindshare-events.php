@@ -77,6 +77,7 @@ class mindEvents {
 
     if($this->options[MINDEVENTS_PREPEND . 'enable_woocommerce']) :
       include MINDEVENTS_ABSPATH . 'inc/woocommerce.php';
+      include MINDEVENTS_ABSPATH . 'inc/automatewoo.php';
     endif;
 
   
@@ -244,4 +245,3 @@ class mindEvents {
 }//end of class
 
 new mindEvents();
-
