@@ -85,7 +85,7 @@ class mindEventsWooCommerce {
             }
 
             //display a notice for all prerequisite events not yet completed
-            if($not_completed) :
+            if(count($not_completed) > 0) :
                 $message = '<strong>Some items in your cart require prerequisites. Please complete the following before proceeding:</strong>';
                 $message .= '<ul>';
                 foreach($not_completed as $prerequisite_event) :

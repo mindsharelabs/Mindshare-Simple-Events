@@ -16,7 +16,7 @@ echo '<main role="main" aria-label="Content">';
 
         do_action(MINDEVENTS_PREPEND . 'before_single_container');
 
-        echo '<div id="singleEventContainer" class="event-wrap">';
+        echo '<div id="singleEventContainer" class="container">';
           $calendar = new mindEventCalendar(get_the_ID());
           $display_type = get_post_meta(get_the_ID(), 'cal_display', true);
           $show_all = get_post_meta(get_the_ID(), 'show_past_events', true);
