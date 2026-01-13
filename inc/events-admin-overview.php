@@ -22,11 +22,12 @@ class MindEventsAdminOverview {
 
         // Pagination setup
         $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $just_tickets = isset($_GET['just_tickets']) ? true : false;
         $per_page = 30;
         $offset = ($paged - 1) * $per_page;
 
         // Query to get upcoming events
-        $events_query = new WP_Query(array(
+        $events_args = array(
             'meta_query' => array(
                 array(
                     'key' => 'event_start_time_stamp', // Check the start date field
@@ -43,13 +44,31 @@ class MindEventsAdminOverview {
             'suppress_filters' => true,
             'posts_per_page' => $per_page,
             'paged' => $paged
-        ));
+        );
+        if($just_tickets) {
+            $events_args['meta_query'][] = array(
+                'key' => 'linked_product',
+                'value' => '',
+                'compare' => '!=',
+            );
+        }
+        $events_query = new WP_Query($events_args);
 
         $total_items = $events_query->found_posts;
         $total_pages = $events_query->max_num_pages;
 
         echo '<div class="wrap">';
         echo '<h1>Upcoming Events</h1>';
+
+        // Filter button
+        echo '<form method="get" style="margin-bottom: 20px;">';
+        echo '<input type="hidden" name="post_type" value="events" />';
+        echo '<input type="hidden" name="page" value="upcoming-events" />';
+        $checked = $just_tickets ? 'checked' : '';
+        echo '<label><input type="checkbox" name="just_tickets" value="1" ' . $checked . ' onchange="this.form.submit()"> Show only events with linked tickets</label>';
+        echo '</form>'; 
+
+
         echo '<table class="wp-list-table widefat striped event-attendees">';
         echo '<thead><tr>
             <th>Event</th>
