@@ -170,6 +170,42 @@ class mindeventsAdmin {
     echo '</div>';
 
 
+    $is_prerequisite = get_post_meta(get_the_ID(), 'is_prerequisite', true);
+    echo '<div class="form-section">';
+      echo '<p class="label">';
+        echo '<label for="event_meta_is_prerequisite">';
+        echo '<input type="checkbox" name="event_meta[is_prerequisite]" id="event_meta_is_prerequisite" value="1" ' . checked($is_prerequisite, '1', false) . '> Prerequisite Event';
+        echo '</label>';
+        echo '<span class="small faded description"> (Attendees must complete this event before registering for certain other events)</span>';
+      echo '</p>';
+    echo '</div>';
+
+    $prerequisite = get_post_meta(get_the_ID(), 'prerequisite', true);
+    echo '<div class="form-section">';
+      echo '<p class="label"><label for="event_meta_show_past_events">Prerequisite Events</label></p>';
+      echo '<div class="select-wrap">';
+        echo '<select name="event_meta[prerequisite]" id="event_meta_prerequisite_events">';
+          echo '<option value="false">No prerequisite required</option>';
+          $all_events = get_posts( array(
+              'post_type' => 'events',
+              'numberposts' => -1,
+              'post_status' => 'publish',
+              'exclude' => get_the_ID(), // Exclude current event
+              'meta_key' => 'is_prerequisite',
+              'meta_value' => '1',
+              'post__not_in' => get_the_id()
+          ) );
+          if( $all_events ) :
+            foreach ( $all_events as $event ) :
+                $selected = ( $prerequisite == $event->ID ) ? 'selected' : '';
+                echo '<option value="' . esc_attr( $event->ID ) . '" ' . $selected . '>' . esc_html( get_the_title( $event->ID ) ) . '</option>';
+            endforeach; 
+          endif;
+        echo '</select>';
+      echo '</div>';
+    echo '</div>';
+
+
     // Add expense fields for profit calculation
     $instructor_expense = get_post_meta(get_the_ID(), 'instructor_expense', true);
     $materials_expense = get_post_meta(get_the_ID(), 'materials_expense', true);

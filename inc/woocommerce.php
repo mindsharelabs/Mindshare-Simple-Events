@@ -22,6 +22,9 @@ class mindEventsWooCommerce {
         add_action('save_post_events', array($this, 'create_woocommerce_event_product'), 999, 3);
 
 
+        //prerequisite notice
+        add_action( 'woocommerce_before_cart', array($this, 'display_prerequisite_cart_notice') );
+
         //attendee management
         add_action('woocommerce_order_status_changed', array($this, 'order_status_change'), 10, 3);
         add_action('woocommerce_checkout_order_processed', array($this, 'capture_order_event_meta'), 20, 3);
@@ -34,6 +37,68 @@ class mindEventsWooCommerce {
         $this->event = ($event ? $event : false);
         $this->event_type = get_post_meta($this->event, 'event_type', true);
     }
+
+
+
+
+    public function display_prerequisite_cart_notice() {
+        // Check if on a specific page, e.g., the cart page, before displaying.
+        if ( is_cart() && ! defined( 'DOING_AJAX' ) ) {
+
+            //loop through items in the cart
+            $cart = WC()->cart;
+            foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+                $product_id = $cart_item['product_id'];
+                //find the attached event for each item
+                $linked_event_id = get_post_meta($product_id, 'linked_event', true);
+                //check if it has a prerequisite event
+                $prerequisite = get_post_meta($linked_event_id, 'prerequisite', true);
+                //create an array of reprequisite events not yet completed
+                $not_completed = array();
+                if($prerequisite) :
+                    //check if user has completed the prerequisite event by gathering attendees data
+                    $attendees = get_post_meta($prerequisite, 'attendees', true);
+                    $completed = false;
+                    if($attendees) :
+                        foreach($attendees as $occurrence_id => $attendee_list) :
+                            foreach($attendee_list as $attendee) :
+                                if($attendee['user_id'] == get_current_user_id()) :
+                                    $order = wc_get_order($attendee['order_id']);
+                                    $checked_in = $attendee['checked_in'];
+                                    if($checked_in && $order && in_array($order->get_status(), array('completed', 'processing'))) :
+                                        $completed = true;
+                                    endif;
+                                endif;
+                            endforeach;
+                        endforeach;
+                    endif;
+
+                    if(!$completed) :
+                        $not_completed[$prerequisite] = array(
+                            'title' => get_the_title($prerequisite),
+                            'link' => get_permalink($prerequisite),
+                            'event_id' => $linked_event_id,
+                        );
+                    endif;
+
+                endif;
+            }
+
+            //display a notice for all prerequisite events not yet completed
+            if($not_completed) :
+                $message = '<strong>Some items in your cart require prerequisites. Please complete the following before proceeding:</strong>';
+                $message .= '<ul>';
+                foreach($not_completed as $prerequisite_event) :
+                    $message .= '<li>Required by ' .get_the_title($prerequisite_event['event_id']) . ': <a href="' . esc_url($prerequisite_event['link']) . '" target="_blank">' . esc_html($prerequisite_event['title']) . '</a></li>';
+                endforeach;
+                $message .= '</ul>';
+            endif;
+
+            wc_print_notice( $message, 'notice' ); // 'notice', 'success', or 'error'
+        }
+    }
+// Hook into an action to display the notice
+
 
     /**
      * Initialize order stats for existing sub events if not already done

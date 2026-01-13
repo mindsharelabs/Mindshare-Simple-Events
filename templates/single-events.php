@@ -10,7 +10,6 @@ do_action(MINDEVENTS_PREPEND . 'before_main_content', get_the_ID());
 
 echo '<main role="main" aria-label="Content">';
   do_action(MINDEVENTS_PREPEND . 'single_page_start');
-
     if(have_posts()) :
       while(have_posts()) :
         the_post();
@@ -22,6 +21,8 @@ echo '<main role="main" aria-label="Content">';
           $display_type = get_post_meta(get_the_ID(), 'cal_display', true);
           $show_all = get_post_meta(get_the_ID(), 'show_past_events', true);
           $calendar->set_past_events_display($show_all);
+
+
 
           echo '<div class="event-title-container">';
             //@hooked mind_events_single_title - 10
