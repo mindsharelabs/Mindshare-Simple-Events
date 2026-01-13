@@ -45,17 +45,56 @@ class mindEventsWooCommerce {
         // Check if on a specific page, e.g., the cart page, before displaying.
         if ( is_cart() && ! defined( 'DOING_AJAX' ) ) {
 
+
             //loop through items in the cart
             $cart = WC()->cart;
+            $not_completed = array();
+            // Gather all product IDs in the cart for quick lookup
+            $cart_product_ids = array();
+            foreach ( $cart->get_cart() as $cart_item ) {
+                $cart_product_ids[] = $cart_item['product_id'];
+            }
+
             foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
                 $product_id = $cart_item['product_id'];
                 //find the attached event for each item
                 $linked_event_id = get_post_meta($product_id, 'linked_event', true);
                 //check if it has a prerequisite event
                 $prerequisite = get_post_meta($linked_event_id, 'prerequisite', true);
-                //create an array of reprequisite events not yet completed
-                $not_completed = array();
                 if($prerequisite) :
+                    // Check if the prerequisite event is already in the cart
+                    // Find the product(s) linked to the prerequisite event
+                    $prereq_product_ids = array();
+                    // For single-event, the parent event's linked_product
+                    $prereq_product_id = get_post_meta($prerequisite, 'linked_product', true);
+                    if ($prereq_product_id) {
+                        $prereq_product_ids[] = $prereq_product_id;
+                    }
+                    // For multiple-events, check sub-events
+                    $sub_events = get_posts(array(
+                        'post_type' => 'sub_event',
+                        'post_parent' => $prerequisite,
+                        'fields' => 'ids',
+                        'posts_per_page' => -1,
+                    ));
+                    foreach ($sub_events as $sub_event_id) {
+                        $sub_product_id = get_post_meta($sub_event_id, 'linked_product', true);
+                        if ($sub_product_id) {
+                            $prereq_product_ids[] = $sub_product_id;
+                        }
+                    }
+                    // If any prerequisite product is in the cart, skip the notice for this prerequisite
+                    $prereq_in_cart = false;
+                    foreach ($prereq_product_ids as $pid) {
+                        if (in_array($pid, $cart_product_ids)) {
+                            $prereq_in_cart = true;
+                            break;
+                        }
+                    }
+                    if ($prereq_in_cart) {
+                        continue;
+                    }
+
                     //check if user has completed the prerequisite event by gathering attendees data
                     $attendees = get_post_meta($prerequisite, 'attendees', true);
                     $completed = false;
@@ -80,7 +119,6 @@ class mindEventsWooCommerce {
                             'event_id' => $linked_event_id,
                         );
                     endif;
-
                 endif;
             }
 
@@ -92,9 +130,10 @@ class mindEventsWooCommerce {
                     $message .= '<li>Required by ' .get_the_title($prerequisite_event['event_id']) . ': <a href="' . esc_url($prerequisite_event['link']) . '" target="_blank">' . esc_html($prerequisite_event['title']) . '</a></li>';
                 endforeach;
                 $message .= '</ul>';
+                wc_print_notice( $message, 'notice' ); // 'notice', 'success', or 'error'
             endif;
 
-            wc_print_notice( $message, 'notice' ); // 'notice', 'success', or 'error'
+            
         }
     }
 // Hook into an action to display the notice
