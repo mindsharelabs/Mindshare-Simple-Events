@@ -23,6 +23,7 @@ class MindEventsAdminOverview {
         // Pagination setup
         $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
         $just_tickets = isset($_GET['just_tickets']) ? true : false;
+        $selected_category = isset($_GET['event_category']) ? sanitize_text_field($_GET['event_category']) : '';
         $per_page = 30;
         $offset = ($paged - 1) * $per_page;
 
@@ -52,6 +53,17 @@ class MindEventsAdminOverview {
                 'compare' => '!=',
             );
         }
+        // Filter by event category if selected
+        if ($selected_category) {
+            $events_args['tax_query'] = array(
+                array(
+                    'taxonomy' => 'event_category',
+                    'field' => 'term_id',
+                    'terms' => intval($selected_category),
+                    'include_children' => false,
+                ),
+            );
+        }
         $events_query = new WP_Query($events_args);
 
         $total_items = $events_query->found_posts;
@@ -60,13 +72,28 @@ class MindEventsAdminOverview {
         echo '<div class="wrap">';
         echo '<h1>Upcoming Events</h1>';
 
-        // Filter button
-        echo '<form method="get" style="margin-bottom: 20px;">';
-        echo '<input type="hidden" name="post_type" value="events" />';
-        echo '<input type="hidden" name="page" value="upcoming-events" />';
-        $checked = $just_tickets ? 'checked' : '';
-        echo '<label><input type="checkbox" name="just_tickets" value="1" ' . $checked . ' onchange="this.form.submit()"> Show only events with linked tickets</label>';
-        echo '</form>'; 
+        // Filter form
+        echo '<form method="get" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;">';
+            echo '<input type="hidden" name="post_type" value="events" />';
+            echo '<input type="hidden" name="page" value="upcoming-events" />';
+            $checked = $just_tickets ? 'checked' : '';
+            echo '<label style="margin:0 10px 0 0;"><input type="checkbox" name="just_tickets" value="1" ' . $checked . ' onchange="this.form.submit()"> Show only events with linked tickets</label>';
+
+            // Event category dropdown (top-level only)
+            $categories = get_terms(array(
+                'taxonomy' => 'event_category',
+                'parent' => 0,
+                'hide_empty' => false,
+            ));
+            echo '<label for="event_category" style="margin:0 10px 0 0;">Category: ';
+            echo '<select name="event_category" id="event_category" onchange="this.form.submit()">';
+            echo '<option value="">All Categories</option>';
+            foreach ($categories as $cat) {
+                $selected = ($selected_category == $cat->term_id) ? 'selected' : '';
+                echo '<option value="' . esc_attr($cat->term_id) . '" ' . $selected . '>' . esc_html($cat->name) . '</option>';
+            }
+            echo '</select></label>';
+        echo '</form>';
 
 
         echo '<table class="wp-list-table widefat striped event-attendees">';

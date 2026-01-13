@@ -1,3 +1,4 @@
+
 <?php
 
 if (function_exists('add_theme_support')) {
@@ -169,3 +170,4 @@ function output_sub_event_post_info($post) {
 
     echo '</tbody></table>';
 }
+

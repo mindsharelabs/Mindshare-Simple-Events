@@ -169,13 +169,6 @@ class mindeventsAdmin {
       echo '</label></p>';
     echo '</div>';
 
-    // Add Featured checkbox before closing div
-    $is_featured = get_post_meta(get_the_ID(), 'is_featured', true);
-    echo '<div class="form-section">';
-      echo '<p class="label"><label for="event_meta_is_featured">';
-      echo '<input type="checkbox" name="event_meta[is_featured]" id="event_meta_is_featured" value="1" ' . checked($is_featured, '1', false) . '> Featured Event';
-      echo '</label></p>';
-    echo '</div>';
 
     // Add expense fields for profit calculation
     $instructor_expense = get_post_meta(get_the_ID(), 'instructor_expense', true);
