@@ -136,8 +136,6 @@ class mindEventsWooCommerce {
             
         }
     }
-// Hook into an action to display the notice
-
 
     /**
      * Initialize order stats for existing sub events if not already done
