@@ -159,10 +159,18 @@ class mindEventCalendar
    */
   public function setToday($today = null)
   {
+    
     if ($today === false) {
       $this->today = null;
     } elseif ($today === null) {
-      $this->today = new \DateTimeImmutable();
+      // Use WordPress timezone for 'today' (no double shifting)
+      if (function_exists('wp_timezone')) {
+        $timezone = wp_timezone();
+      } else {
+        $timezone = new \DateTimeZone(get_option('timezone_string') ?: 'UTC');
+      }
+      $mysql_now = function_exists('current_time') ? current_time('mysql') : date('Y-m-d H:i:s');
+      $this->today = new \DateTimeImmutable($mysql_now, $timezone);
     } else {
       $this->today = $this->parseDate($today);
     }
@@ -309,7 +317,10 @@ class mindEventCalendar
     for ($i = 1; $i <= $daysInMonth; $i++) {
       $date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
       $isToday = $i == $today['mday'] && $today['mon'] == $date->format('n') && $today['year'] == $date->format('Y');
-      $isPast = $this->today && $this->today->format('Y-m-d') > $date->format('Y-m-d');
+      // Compare to the minute for past status
+      $nowMinute = $this->today ? $this->today->format('Y-m-d H:i') : null;
+      $dateMinute = $date->format('Y-m-d H:i');
+      $isPast = $this->today && $nowMinute > $dateMinute;
 
       // Responsive column classes: col-12 col-sm border p-2
       $classes = 'col-12 col-md border p-0 ps-1 day-container ';
@@ -540,7 +551,7 @@ class mindEventCalendar
   {
 
     $this->setStartOfWeek($this->calendar_start_day);
-
+    
     // Allow filtering of the query args
     $args = apply_filters('mindevents_front_calendar_query_args', $args, $this);
 
@@ -548,23 +559,49 @@ class mindEventCalendar
 
     if ($eventDates):
       foreach ($eventDates as $key => $event):
-        $is_past = $this->today->format('Y-m-d G:i:s') > get_post_meta($event->ID, 'event_start_time_stamp', true) ? true : false;
+
+        $event_start = get_post_meta($event->ID, 'event_start_time_stamp', true);
+        $event_dt = new \DateTimeImmutable($event_start, $this->today->getTimezone());
+        $is_past = $event_dt < $this->today ? true : false;
+
+
+
         $is_members_only = get_post_meta($event->ID, '_members_only', true) == '1' ? true : false;
         $date = get_post_meta($event->ID, 'event_start_time_stamp', true);
         $color = $this->get_event_color($event->ID);
         $text_color = $this->getContrastColor($color);
 
         $insideHTML = '<div class="event ' . ($is_past ? 'past-event' : '') . ' ' . ($is_members_only ? 'members-only-event' : '') . '">';
-          
-        if(!$is_members_only) {
-            $insideHTML .= '<div class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color . '" >';
-        }
             
-        $insideHTML .= $this->get_event_label($event);
+          if(!$is_members_only) {
+              $insideHTML .= '<div class="sub-event-toggle" data-eventid="' . $event->ID . '" style="color:' . $text_color . '; background:' . $color . '" >';
+          }
+              
+          $starttime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_start_time_stamp', true)));
+          $endtime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_end_time_stamp', true)));
+          $is_featured = get_post_meta($event->post_parent, 'is_featured', true);
+          //if in past add class
+          $event_start = get_post_meta($event->ID, 'event_start_time_stamp', true);
+          $event_dt = new \DateTimeImmutable($event_start, $this->today->getTimezone());
+          $is_past = $event_dt < $this->today ? true : false;
+          
+          
+          
+            $insideHTML .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . ' ' . ($is_featured ? 'featured-event' : '') . '">';
+              $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'medium');
+              if ($thumb && $is_featured) {
+                $insideHTML .= '<div class="event-thumb mb-2">' . $thumb . '</div>';
+              }
 
-        if(!$is_members_only) {
-          $insideHTML .= '</div>';
-        }
+              $insideHTML .= '<div class="event-meta">';
+                $insideHTML .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
+                $insideHTML .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
+              $insideHTML .= '</div>';
+            $insideHTML .= '</div>';
+
+          if(!$is_members_only) {
+            $insideHTML .= '</div>';
+          }
 
         $insideHTML .= '</div>';
 
@@ -574,32 +611,7 @@ class mindEventCalendar
 
     return $this->render();
   }
-  private function get_event_label($event)
-  {
 
-
-
-    $html = '';
-    $starttime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_start_time_stamp', true)));
-    $endtime = date($this->time_format, strtotime(get_post_meta($event->ID, 'event_end_time_stamp', true)));
-    $is_featured = get_post_meta($event->post_parent, 'is_featured', true);
-    //if in past add class
-    $is_past = $this->today->format('Y-m-d G:i:s') > get_post_meta($event->ID, 'event_start_time_stamp', true) ? true : false;
-    $html .= '<div class="event-label-container mb-2 p-2 small ' . ($is_past ? 'past-event opacity-50' : '') . ' ' . ($is_featured ? 'featured-event' : '') . '">';
-
-
-    $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'medium');
-    if ($thumb && $is_featured) {
-      $html .= '<div class="event-thumb mb-2">' . $thumb . '</div>';
-    }
-
-    $html .= '<div class="event-meta">';
-    $html .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
-    $html .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
-    $html .= '</div>';
-    $html .= '</div>';
-    return $html;
-  }
 
 
   public function get_front_list($calDate = '', $args = array())
