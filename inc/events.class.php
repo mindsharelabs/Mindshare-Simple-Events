@@ -748,6 +748,8 @@ class mindEventCalendar
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
+    $instructorID = get_post_meta($event, 'instructorID', true);
+
     $parent_event_type = get_post_meta($parentID, 'event_type', true);
     if ($parent_event_type == 'single-event'):
       $series_start_date = get_post_meta($parentID, 'first_event_date', true);
@@ -775,120 +777,148 @@ class mindEventCalendar
 
       $html = '<div class="item_meta_container row">';
 
-      // $html .= '<div class="event-meta-header col-12 d-flex justify-content-between align-items-center mb-2" ' . ($style_str ? 'style="' . implode(' ', $style_str) . '"' : '') . '>';
-      //   //$html .= '<h2 class="event-date fw-bold text-dark h4">' . date($this->date_format, strtotime($meta['event_date'][0])) . '</h2>';
-      // $html .= '</div>';
-
-
-      if ($is_past):
-        $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
-      endif;
-
-      if ($parent_event_type == 'single-event'):
-        if ($series_started && !$series_ended):
-          $html .= '<div class="series-started alert alert-info"><strong>This multiday event has started.</strong></div>';
-        endif;
-        if ($series_ended):
-          $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
-        endif;
-      endif;
-
-      if ($this->is_archive):
-        $html .= '<div class="col-12">';
-        $html .= '<div class="row">';
-        if ($sub_event_obj->post_parent):
-          $html .= '<div class="meta-item col-12 col-md-9">';
-          $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-          $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-          $html .= '</a>';
-          $html .= '</div>';
-        endif;
-        $html .= '</div>';
-        $html .= '</div>';
-      endif;
-
-      if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
-        $start_date = strtotime($meta['event_start_time_stamp'][0]);
-        $end_date = strtotime($meta['event_end_time_stamp'][0]);
-        $start_date_str = date('Y-m-d', $start_date);
-        $end_date_str = date('Y-m-d', $end_date);
-        $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
-        $endtime = date($this->time_format, $end_date); // Only show time for end
-
-        $html .= '<div class="meta-item">';
-        if ($start_date_str == $end_date_str) {
-          // Same day: show date and start time, then just end time
-          $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . date($dateformat, $start_date) . ' @ ' . date($timeformat, $start_date) . ' - ' . $endtime . '</strong></h3>';
-        } else {
-          // Different days: show full start and end
-          $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . $starttime . ' - ' . date($dateformat . ' ' . $timeformat, $end_date) . '</strong></h3>';
-        }
-        $html .= '</div>';
-      endif;
-
-
-
-      if ($description):
-        $html .= '<div class="meta-item">';
-        $html .= '<span class="value eventdescription d-block mb-2">' . $description . '</span>';
-        // $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
-        $html .= '</div>';
-      endif;
-
-      $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
-
-
-
-      $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
-      if ($has_tickets):
-
-        $html .= '<div class="right-content">';
-        if ($has_tickets && $meta['linked_product'][0]):
-          $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-          $product = wc_get_product($meta['linked_product'][0]);
-          $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
-          if ($product):
-
-            $html .= $this->build_offer_link(array(
-              'label' => $meta['wooLabel'][0],
-              'price' => $product->get_price(),
-              'link' => $product->get_permalink(),
-              'background' => $color,
-              'color' => $this->getContrastColor($color),
-              'product_id' => $meta['linked_product'][0],
-              'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-              'quantity' => 1
-            ));
-
-          elseif ($sub_events):
-            $sub_event = $sub_events[0];
-            $meta = get_post_meta($sub_event->ID);
-            $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-            $product = wc_get_product($meta['linked_product'][0]);
-            if ($product):
-
-              $html .= $this->build_offer_link(array(
-                'label' => $meta['wooLabel'][0],
-                'price' => $product->get_price(),
-                'link' => $product->get_permalink(),
-                'background' => $color,
-                'color' => $this->getContrastColor($color),
-                'product_id' => $meta['linked_product'][0],
-                'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-                'quantity' => 1
-              ));
-
-            endif;
-
-
+        $html .= '<div class="left-content col-12 col-md-8">';
+          if ($is_past):
+            $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
           endif;
 
-        endif;
+          if ($parent_event_type == 'single-event'):
+            if ($series_started && !$series_ended):
+              $html .= '<div class="series-started alert alert-info"><strong>This multiday event has started.</strong></div>';
+            endif;
+            if ($series_ended):
+              $html .= '<div class="series-ended alert alert-info"><strong>This series has ended.</strong></div>';
+            endif;
+          endif;
+
+          if ($this->is_archive):
+            $html .= '<div class="col-12">';
+              $html .= '<div class="row">';
+              if ($sub_event_obj->post_parent):
+                $html .= '<div class="meta-item col-12 col-md-9">';
+                $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+                $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+                $html .= '</a>';
+                $html .= '</div>';
+              endif;
+              $html .= '</div>';
+            $html .= '</div>';
+          endif;
+
+          if ($meta['event_start_time_stamp'][0] && $meta['event_end_time_stamp'][0]):
+            $start_date = strtotime($meta['event_start_time_stamp'][0]);
+            $end_date = strtotime($meta['event_end_time_stamp'][0]);
+            $start_date_str = date('Y-m-d', $start_date);
+            $end_date_str = date('Y-m-d', $end_date);
+            $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
+            $endtime = date($this->time_format, $end_date); // Only show time for end
+
+            $html .= '<div class="meta-item col-12">';
+            if ($start_date_str == $end_date_str) {
+              // Same day: show date and start time, then just end time
+              $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . date($dateformat, $start_date) . ' @ ' . date($timeformat, $start_date) . ' - ' . $endtime . '</strong></h3>';
+            } else {
+              // Different days: show full start and end
+              $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . $starttime . ' - ' . date($dateformat . ' ' . $timeformat, $end_date) . '</strong></h3>';
+            }
+            $html .= '</div>';
+          endif;
+
+
+
+          if ($description):
+            $html .= '<div class="meta-item col-12">';
+              $html .= '<span class="value eventdescription d-block mb-2">' . $description . '</span>';
+              // $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
+            $html .= '</div>';
+          endif;
+        
+          if($instructorID) :
+            $maker = get_user_by('id', $instructorID);
+            $name = (get_field('display_name', 'user_' . $maker->ID ) ? get_field('display_name', 'user_' . $maker->ID ) : $maker->display_name);
+            $title = get_field('title', 'user_' . $maker->ID);
+            $photo = get_field('photo', 'user_' . $maker->ID);
+            $author_url = get_author_posts_url($maker->ID);
+            $html .= '<div class="instructor-info mt-3 w-100">';
+              $html .= '<h5 class="mb-2">Your Instructor</h5>';
+              if($photo):
+                $html .= '<div class="instructor-photo d-inline-block me-2 lh-1 align-top">';
+                  $html .= '<a href="' . esc_url($author_url) . '" class="text-decoration-none" target="_blank">';
+                    $html .= '<img src="' . esc_url($photo['sizes']['very-small-square']) . '" alt="' . esc_attr($name) . '" class="rounded-circle" width="50" height="50"/>';
+                  $html .= '</a>';
+                $html .= '</div>';
+              endif;
+              $html .= '<div class="instructor-details d-inline-block align-top lh-1 my-auto mt-2">';
+                $html .= '<span class="instructor-name fw-bold"><a href="' . esc_url($author_url) . '" class="text-decoration-none" target="_blank">' . esc_html($name) . '</a></span>';
+                if($title):
+                  $html .= '<br/>';
+                  $html .= '<span class="instructor-title small text-muted">' . esc_html($title) . '</span>';
+                endif;
+              $html .= '</div>';
+            $html .= '</div>';
+            
+          endif;
+        
+        
+          $html .= '</div>'; //end left content
+
+
+        $style_str['border-color'] = 'border-color:' . $this->getContrastColor($color) . ';';
+
+
+        $html .= '<div class="right-content col-12 col-md d-flex h-100 flex-column align-items-end justify-content-end mt-3">';
+          $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
+          if ($has_tickets && $meta['linked_product'][0]):
+
+            
+   
+              $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+              $product = wc_get_product($meta['linked_product'][0]);
+              $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
+              if ($product):
+
+                $html .= $this->build_offer_link(array(
+                  'label' => $meta['wooLabel'][0],
+                  'price' => $product->get_price(),
+                  'link' => $product->get_permalink(),
+                  'background' => $color,
+                  'color' => $this->getContrastColor($color),
+                  'product_id' => $meta['linked_product'][0],
+                  'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                  'quantity' => 1
+                ));
+
+              elseif ($sub_events):
+                $sub_event = $sub_events[0];
+                $meta = get_post_meta($sub_event->ID);
+                $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
+                $product = wc_get_product($meta['linked_product'][0]);
+                if ($product):
+
+                  $html .= $this->build_offer_link(array(
+                    'label' => $meta['wooLabel'][0],
+                    'price' => $product->get_price(),
+                    'link' => $product->get_permalink(),
+                    'background' => $color,
+                    'color' => $this->getContrastColor($color),
+                    'product_id' => $meta['linked_product'][0],
+                    'event_date' => $event_start_date->format('D, M d Y @ H:i'),
+                    'quantity' => 1
+                  ));
+
+                endif;
+
+
+              endif;
+
+            
+
+
+
+          endif; //end if offers
+
+
         $html .= '</div>';
-
-
-
-      endif; //end if offers
 
 
 
@@ -1163,7 +1193,7 @@ class mindEventCalendar
             ));
 
           endif;
-        elseif (count($offers) > 0):
+        elseif ($offers):
 
           foreach ($offers as $key => $offer):
             $offer['background'] = $color;
