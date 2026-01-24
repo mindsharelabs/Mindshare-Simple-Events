@@ -935,7 +935,7 @@ class mindEventCalendar
     endif;
 
     $options = get_option(MINDEVENTS_PREPEND . 'support_settings');
-    $html = '<div class="meta-item link">';
+    $html = '<div class="meta-item link w-100">';
     $html .= '<div class="offer-link">';
     // $html .= '<span class="label">' . apply_filters(MINDEVENTS_PREPEND . 'cost_label', $offer['label']) . '</span>';
 
@@ -965,7 +965,7 @@ class mindEventCalendar
               data-product_id="' . $offer['product_id'] . '"
               data-quantity="' . $offer['quantity'] . '"
               data-event_date="' . $offer['event_date'] . '"
-              class="btn btn-primary mb-3 mindevents-add-to-cart"
+              class="btn btn-primary w-100 d-block mb-3 mindevents-add-to-cart"
               ' . ($stock ? '' : 'disabled') . '
               >';
 
