@@ -83,11 +83,7 @@
 
             @include transition(300ms);
 
-            &:hover {
-              //change scale on hover
-              transform: scale(1.05);
-              @include transition(100ms);
-            }
+            
             .event-label-container {
               display: flex;
               .event-meta {
@@ -170,9 +166,6 @@
     .featured-image {
       min-width: 25%;
 
-      img {
-        border: 5px solid #fff;
-      }
 
     }
 
