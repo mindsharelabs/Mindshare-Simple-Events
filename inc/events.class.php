@@ -1016,37 +1016,23 @@ class mindEventCalendar
     // Event color from meta
     if (isset($meta['eventColor'][0]) && $meta['eventColor'][0]) {
         $colors[] = $meta['eventColor'][0];
-    }
-
-    // Category colors
-    $event_categories = get_the_terms($eventID, 'event_category');
-    if (!$event_categories) {
-        $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
-    }
-    if ($event_categories && is_array($event_categories)) {
+    } else { // Category colors
+      if (!$event_categories) {
+          $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
+      }
+      if( $event_categories && !is_wp_error( $event_categories ) ) {
         foreach ($event_categories as $term) {
-            $cat_color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
-            if ($cat_color) {
-                $colors[] = $cat_color;
-            }
+          $cat_color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
+          if ($cat_color) {
+              $colors[] = $cat_color;
+          }
         }
+      }
+    
     }
 
-    // Yoast primary category color (if available)
-    if (class_exists('WPSEO_Primary_Term')) {
-        $primary_term = new WPSEO_Primary_Term('event_category', $eventID);
-        $primary_term_id = $primary_term->get_primary_term();
-        if ($primary_term_id && !is_wp_error($primary_term_id)) {
-            $yoast_color = get_field('event_color', 'event_category_' . $primary_term_id);
-            if ($yoast_color) {
-                $colors[] = $yoast_color;
-            }
-        }
-    }
-
-    // Always return at least one color
     if (empty($colors)) {
-        $colors[] = '#858585';
+      $colors[] = '#858585'; // Default gray color
     }
     return $colors;
 
