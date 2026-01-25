@@ -550,7 +550,7 @@ class mindEventCalendar
       $colors[] = '#000000'; // Default color if none is set
     }
 
-    $html .= '<div class="event-color-bar mb-2 px-0" style="width:100%; height:5px;">';
+    $html .= '<div class="event-color-bar mb-1 px-0" style="width:100%; height:5px;">';
       foreach ($colors as $color) {
         $html .= '<div class="event-color-segment" style="background-color:' . esc_attr($color) . '; width:' . (100 / count($colors)) . '%; height:100%; float:left;"></div>';
       }
@@ -599,13 +599,16 @@ class mindEventCalendar
           
           
             $insideHTML .= '<div class="event-label-container mb-2 small ' . ($is_past ? 'past-event opacity-50' : '') . ' ' . ($is_featured ? 'featured-event' : '') . '">';
-              $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'medium');
-              if ($thumb && $is_featured) {
-                $insideHTML .= '<div class="event-thumb mb-2">' . $thumb . '</div>';
-              }
+              
+              if ($is_featured) :
+                $thumb = get_the_post_thumbnail(get_post_parent($event->ID), 'medium');
+                if($thumb) :
+                  $insideHTML .= '<div class="event-thumb mb-2">' . $thumb . '</div>';
+                endif;
+              endif;
 
               $insideHTML .= '<div class="event-meta">';
-                $insideHTML .= '<div class="event-title fw-bold pb-1">' . get_the_title($event->post_parent) . '</div>';
+                $insideHTML .= '<div class="event-title fw-bold">' . get_the_title($event->post_parent) . '</div>';
                 $insideHTML .= '<div class="event-time fw-light">' . $starttime . ' - ' . $endtime . '</div>';
               $insideHTML .= '</div>';
             $insideHTML .= '</div>';
@@ -1013,29 +1016,31 @@ class mindEventCalendar
   private function get_event_colors($eventID){
     $meta = get_post_meta($eventID);
     $colors = [];
-    // Event color from meta
-    if (isset($meta['eventColor'][0]) && $meta['eventColor'][0]) {
-        $colors[] = $meta['eventColor'][0];
-    } else { // Category colors
-      if (!$event_categories) {
-          $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
-      }
-      if( $event_categories && !is_wp_error( $event_categories ) ) {
-        foreach ($event_categories as $term) {
-          $cat_color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
-          if ($cat_color) {
-              $colors[] = $cat_color;
-          }
-        }
-      }
-    
+    $event_categories = get_the_terms($eventID, 'event_category');
+    if (!$event_categories || is_wp_error($event_categories)) {
+        $event_categories = get_the_terms(get_post($eventID)->post_parent, 'event_category');
     }
 
+    // 1. Try category colors first
+    if ($event_categories && !is_wp_error($event_categories)) {
+        foreach ($event_categories as $term) {
+            $cat_color = get_field('event_color', $term->taxonomy . '_' . $term->term_id);
+            if ($cat_color) {
+                $colors[] = $cat_color;
+            }
+        }
+    }
+
+    // 2. If no category colors, try eventColor meta
+    if (empty($colors) && isset($meta['eventColor'][0]) && $meta['eventColor'][0]) {
+        $colors[] = $meta['eventColor'][0];
+    }
+
+    // 3. If still empty, use default
     if (empty($colors)) {
-      $colors[] = '#858585'; // Default gray color
+        $colors[] = '#858585'; // Default gray color
     }
     return $colors;
-
   }
 
 
