@@ -147,12 +147,14 @@ class mindEventsAjax {
         $added_events[] = $added_event_id;
 
         $insideHTML .= '<div class="event" id="event-' . $added_event_id . '">';
-          $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
-            $insideHTML .= $startDT->format($timeformat) . '-' . $endDT->format($timeformat);
-          $insideHTML .= '</span>';
-          if(is_admin()) :
-            $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
-          endif;
+          $insideHTML .= '<div class="event-label">';
+            $insideHTML .= '<span style="background:' . $meta['eventColor'] . '; color:' . $this->getContrastColor($meta['eventColor']) . ';" data-subid = ' . $added_event_id . ' class="new edit">';
+              $insideHTML .= $startDT->format($timeformat) . '-' . $endDT->format($timeformat);
+            $insideHTML .= '</span>';
+            if(is_admin()) :
+              $insideHTML .= '<span data-subid="' . $added_event_id . '" class="delete">&#10005;</span>';
+            endif;
+          $insideHTML .= '</div>';
         $insideHTML .= '</div>';
       endif;
 

@@ -1256,21 +1256,27 @@ class mindEventCalendar
 
 
         $insideHTML = '<div class="event ' . ($child_event ? '' : 'disable') . '" data-startdate="' . $starttime . '" data-enddate="' . $endtime . '">';
-        $insideHTML .= '<span class="edit" data-subid="' . $event->ID . '">';
-        if ($child_event):
-          $insideHTML .= $starttime . ' - ' . $endtime;
-        else:
-          $insideHTML .= '<a href="' . get_edit_post_link($parentID) . '" target="_blank" style="color:' . $text_color . ';">';
-          $insideHTML .= get_the_title($parentID);
-          $insideHTML .= '</a>';
-        endif;
+        //add color border
+        $insideHTML .= $this->get_event_color_bar($event->ID);
+        
 
-        $insideHTML .= '</span>';
+        $insideHTML .= '<div class="event-label">';
+          $insideHTML .= '<span class="edit" data-subid="' . $event->ID . '">';
+          if ($child_event):
+            $insideHTML .= $starttime . ' - ' . $endtime;
+          else:
+            $insideHTML .= '<a href="' . get_edit_post_link($parentID) . '" target="_blank">';
+            $insideHTML .= get_the_title($parentID);
+            $insideHTML .= '</a>';
+          endif;
 
-        if (is_admin() && $child_event):
-          $insideHTML .= '<span data-subid="' . $event->ID . '" class="delete">&#10005;</span>';
-        endif;
+          $insideHTML .= '</span>';
 
+          if (is_admin() && $child_event):
+            $insideHTML .= '<span data-subid="' . $event->ID . '" class="delete">&#10005;</span>';
+          endif;
+
+          $insideHTML .= '</div>';
         $insideHTML .= '</div>';
         $eventDates = $this->addDailyHtml($insideHTML, $date);
       endforeach;

@@ -431,7 +431,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 		$(document).on('click', '.event span.delete', function (event) {
 			event.preventDefault();
-			var thisEvent = $(this).parent('.event');
+			var thisEvent = $(this).closest('.event');
 			var eventid = $(this).data('subid');
 			var errorBox = $('#errorBox');
 

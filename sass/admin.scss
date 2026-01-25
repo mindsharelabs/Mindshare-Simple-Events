@@ -435,23 +435,35 @@ div.shadow-event,
 div.event {
     position: relative;
     display: flex;
+    flex-direction: column;
     flex-wrap: nowrap;
     overflow-x: hidden;
+    background-color: #fff;
+    border: 1px solid rgba(200, 200, 200, .3);
+    margin: 5px 5px 0;
+
+    .event-label {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        width: 100%;
+    }
 
     a {
         color: $dark;
     }
 
+
     &.disable {
         opacity: .4;
+        background-color: transparent;
     }
 
     span {
         font-size: .8em;
-        padding: 5px;
-        margin: 2px 0px;
-        background: #858585;
-        line-height: 1.2em;
+        padding: 2.5px;
+        margin: 0 0 2px 0px;
+        line-height: 1.1em;
         width: 100%;
 
         a {
