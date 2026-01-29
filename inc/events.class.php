@@ -929,6 +929,38 @@ class mindEventCalendar
 
   }
 
+
+    private function get_instructor_block($instructorID) {
+       if($instructorID) :
+          $maker = get_user_by('id', $instructorID);
+          $name = (get_field('display_name', 'user_' . $maker->ID ) ? get_field('display_name', 'user_' . $maker->ID ) : $maker->display_name);
+          $title = get_field('title', 'user_' . $maker->ID);
+          $photo = get_field('photo', 'user_' . $maker->ID);
+          $author_url = get_author_posts_url($maker->ID);
+          $html = '';
+          $html .= '<div class="instructor-info mt-3 w-100">';
+            $html .= '<h5 class="mb-2">Your Instructor</h5>';
+            if($photo):
+              $html .= '<div class="instructor-photo d-inline-block me-2 lh-1 align-top">';
+                $html .= '<a href="' . esc_url($author_url) . '" class="text-decoration-none" target="_blank">';
+                  $html .= '<img src="' . esc_url($photo['sizes']['very-small-square']) . '" alt="' . esc_attr($name) . '" class="rounded-circle" width="50" height="50"/>';
+                $html .= '</a>';
+              $html .= '</div>';
+            endif;
+            $html .= '<div class="instructor-details d-inline-block align-top lh-1 my-auto mt-2">';
+              $html .= '<span class="instructor-name fw-bold"><a href="' . esc_url($author_url) . '" class="text-decoration-none" target="_blank">' . esc_html($name) . '</a></span>';
+              if($title):
+                $html .= '<br/>';
+                $html .= '<span class="instructor-title small text-muted">' . esc_html($title) . '</span>';
+              endif;
+            $html .= '</div>';
+          $html .= '</div>';
+          
+        endif;
+        return $html;
+    }
+
+
   public function build_offer_link($offer){
     if (!$offer['label']):
       $offer['label'] = __('Add to Cart', 'makesantafe');
@@ -1120,9 +1152,9 @@ class mindEventCalendar
 
       if ($sub_event_obj->post_parent):
         $html .= '<div class="meta-item">';
-        $html .= '<a style="' . implode(' ', $style_str) . '" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-        $html .= '<h3 class="event-title mt-0">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-        $html .= '</a>';
+          $html .= '<a style="' . implode(' ', $style_str) . '" href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
+            $html .= '<h3 class="event-title mt-0">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
+          $html .= '</a>';
         $html .= '</div>';
       endif;
       if ($meta['event_start_time_stamp'][0]):
@@ -1153,6 +1185,7 @@ class mindEventCalendar
       endif;
 
 
+      $html .= $this->get_instructor_block($meta['instructorID'][0]);
 
 
       $html .= '</div>';
