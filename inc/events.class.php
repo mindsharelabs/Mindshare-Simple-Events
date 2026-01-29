@@ -755,7 +755,14 @@ class mindEventCalendar
     $dateformat = get_option('date_format');
     $timeformat = get_option('time_format');
 
-    $is_past = $this->today->format('Y-m-d') > $meta['event_start_time_stamp'][0] ? true : false;
+    // Compare full datetime for accurate past event detection
+    $event_start = isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : null;
+    if ($event_start) {
+      $event_dt = new \DateTimeImmutable($event_start, $this->today ? $this->today->getTimezone() : null);
+      $is_past = $this->today && $event_dt < $this->today ? true : false;
+    } else {
+      $is_past = false;
+    }
     $parentID = wp_get_post_parent_id($event);
     $sub_event_obj = get_post($event);
 
@@ -773,11 +780,6 @@ class mindEventCalendar
 
 
     if ($meta):
-      $style_str = array();
-
-      $color = $this->get_event_colors($event);
-
-
       $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt(get_post_parent($event)));
 
       $html = '<div class="item_meta_container row">';
@@ -1055,7 +1057,13 @@ class mindEventCalendar
 
     //add a filter for event image
     $image = apply_filters(MINDEVENTS_PREPEND . 'event_image', get_the_post_thumbnail(get_post_parent($event), 'medium', array('class' => 'event-image')), $event);
-    $is_past = $this->today->format('Y-m-d G:i:s') > $meta['event_start_time_stamp'][0] ? true : false;
+    $event_start = isset($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : null;
+    if ($event_start) {
+      $event_dt = new \DateTimeImmutable($event_start, $this->today ? $this->today->getTimezone() : null);
+      $is_past = $this->today && $event_dt < $this->today ? true : false;
+    } else {
+      $is_past = false;
+    }
 
     $is_featured = get_post_meta($parentID, 'is_featured', true);
 
