@@ -943,7 +943,7 @@ class mindEventCalendar
             if($photo):
               $html .= '<div class="instructor-photo d-inline-block me-2 lh-1 align-top">';
                 $html .= '<a href="' . esc_url($author_url) . '" class="text-decoration-none" target="_blank">';
-                  $html .= '<img src="' . esc_url($photo['sizes']['very-small-square']) . '" alt="' . esc_attr($name) . '" class="rounded-circle" width="50" height="50"/>';
+                  $html .= '<img src="' . esc_url($photo['sizes']['cal-thumb']) . '" alt="' . esc_attr($name) . '" class="rounded-circle" width="50" height="50"/>';
                 $html .= '</a>';
               $html .= '</div>';
             endif;
