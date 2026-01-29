@@ -1105,15 +1105,15 @@ class mindEventCalendar
 
       $html .= '<div class="left-content">';
       if ($is_past):
-        $html .= '<div class="past-event event-notice">This event has passed.</div>';
+        $html .= '<div class="past-event event-notice alert alert-warning">This event has passed.</div>';
       endif;
 
       if ($parent_event_type == 'single-event'):
         if ($series_started && !$series_ended):
-          $html .= '<div class="series-started event-notice"><strong>This multiday event has started.</strong></div>';
+          $html .= '<div class="series-started event-notice alert alert-warning"><strong>This multiday event has started.</strong></div>';
         endif;
         if ($series_ended):
-          $html .= '<div class="series-ended event-notice"><strong>This event has passed.</strong></div>';
+          $html .= '<div class="series-ended event-notice alert alert-warning"><strong>This event has passed.</strong></div>';
         endif;
       endif;
 
@@ -1164,7 +1164,7 @@ class mindEventCalendar
       $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
       if ($offers || $has_tickets):
 
-        $html .= '<div class="right-content mt-4">';
+        $html .= '<div class="right-content mt-4 mt-md-0">';
         if ($has_tickets && $meta['linked_product'][0]):
           $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
           $product = wc_get_product($meta['linked_product'][0]);
