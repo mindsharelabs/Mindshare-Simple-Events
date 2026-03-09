@@ -16,7 +16,8 @@ add_action('init', function(){
 // Content for the Member Calendar section
 add_action('woocommerce_account_member-calendar_endpoint', function (){
     if ( ! function_exists('wc_memberships_is_user_active_member') || ! wc_memberships_is_user_active_member(get_current_user_id()) ) {
-        return;
+        //display message that notifies non members that only members can see the calendar
+        echo '<h2 class="text-center">The member calendar is only available to active members.</h2>';
     }
     $calendar = new mindEventCalendar('');
     $args = array(
