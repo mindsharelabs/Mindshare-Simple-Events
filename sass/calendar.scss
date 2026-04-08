@@ -150,7 +150,7 @@
     align-items: center;
     background: #fff;
     border: 1px solid #d1d1d1;
-    border-radius: 999px;
+    border-radius: 10px;
     color: $dark;
     display: inline-flex;
     font-size: .88rem;
@@ -181,7 +181,7 @@
     align-items: center;
     background: #fff;
     border: 1px solid #d6d6d6;
-    border-radius: 999px;
+    border-radius: 10px;
     color: $dark;
     cursor: pointer;
     display: inline-flex;
@@ -224,7 +224,6 @@
 
   .mindevents-multiselect {
     position: relative;
-    flex: 0 0 220px;
   }
 
   .mindevents-multiselect-toggle,
@@ -232,7 +231,7 @@
   .mindevents-filter-reset {
     align-items: center;
     border: 1px solid #d1d1d1;
-    border-radius: 999px;
+    border-radius: 10px;
     display: inline-flex;
     font-size: .9rem;
     font-weight: 600;
@@ -309,7 +308,7 @@
     align-items: center;
     background: #fff;
     border: 1px solid #d1d1d1;
-    border-radius: 999px;
+    border-radius: 10px;
     display: inline-flex;
     gap: 10px;
     margin: 0;
@@ -450,7 +449,7 @@
   .page-numbers {
     background: #fff;
     border: 1px solid #d0d0d0;
-    border-radius: 999px;
+    border-radius: 10px;
     color: #222;
     display: inline-block;
     margin: 0 4px 8px;
@@ -471,7 +470,7 @@
 .no-events {
   background: #f7f7f7;
   border: 1px solid #ddd;
-  border-radius: 14px;
+  border-radius: 10px;
   margin-bottom: 20px;
   padding: 16px 18px;
 }
