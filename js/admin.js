@@ -1,634 +1,382 @@
 const MINDEVENTS_PREPEND = 'mindevents_';
 
-(function( root, $, undefined ) {
-	"use strict";
-
-	$(function () {
-
-
-
-		function initTimePicker() {
-			$('.timepicker').timepicker({
-		    timeFormat: 'h:mm p',
-		    // interval: 15,
-		    minTime: '12:00 AM',
-		    maxTime: '11:59 PM',
-		    // defaultTime: '7:00 pm',
-		    // startTime: '10:00',
-		    dynamic: true,
-		    dropdown: false,
-		    scrollbar: true
-			});
-		}
-		initTimePicker();
-
-
-
-		function initDatePicker() {
-			if($('.datepicker').length > 0) {
-				$( ".datepicker" ).datepicker({
-				  'dateFormat': 'yy-m-d'
-				});
-			}
-		}
-		initDatePicker();
-
-		function initDragDrop() {
-		  try {
-		    if (!$.fn.draggable || !$.fn.droppable) { 
-		      console.warn('jQuery UI draggable/droppable not available.');
-		      return; 
-		    }
-		    // Guarded cleanup to avoid "cannot call methods on ... prior to initialization"
-		    var $events = $('.event');
-		    var $days = $('.day-container');
-		    if ($events.filter('.ui-draggable').length) {
-		      $events.draggable('destroy');
-		    }
-		    if ($days.filter('.ui-droppable').length) {
-		      $days.droppable('destroy');
-		    }
-
-		    $('.event').not('.disable').draggable({
-		      helper: 'clone',
-		      revert: 'invalid',
-		      appendTo: 'body',
-		      zIndex: 10000,
-		      start: function(){ window.mindeventsIsDragging = true; },
-		      stop: function(){ setTimeout(function(){ window.mindeventsIsDragging = false; }, 0); }
-		    });
-
-		    $('.day-container').droppable({
-		      accept: '.event',
-		      tolerance: 'pointer',
-		      hoverClass: 'drop-hover',
-		      drop: function(event, ui) {
-		        var $target = $(this);
-		        var toDate = $target.data('date') || $target.find('.calendar-day').attr('datetime') || null;
-		        var $drag = $(ui.draggable);
-				var startdatestamp = $drag.data('startdate');
-				var enddatestamp = $drag.data('enddate');
-
-		        var fromDate = $drag.closest('.day-container').data('date') || $drag.prevAll('.calendar-day:first').attr('datetime') || null;
-		        var eventid = $drag.find('[data-subid]').data('subid') || $drag.data('subid') || null;
-
-		        // Move in DOM for visual confirmation
-		        $drag.css({top: '', left: '', position: 'static'}).appendTo($target);
-				
-				
-				if (toDate && startdatestamp && enddatestamp && eventid) {
-					console.log('Moving event ID ' + eventid + ' from ' + fromDate + ' to ' + toDate);
-					$.ajax({
-						url : mindeventsSettings.ajax_url,
-						type : 'post',
-						data : {
-							action : MINDEVENTS_PREPEND + 'moveevent',
-							new_date : toDate,
-							start_date : startdatestamp,
-							end_date : enddatestamp,
-							eventid : eventid,
-							parentid : mindeventsSettings.post_id,
-						},
-		            success: function(response) {
-		              console.log('Event moved successfully:', response);
-		            },
-		            error: function(xhr, status, error) {
-		              console.error('Error moving event:', error);
-		            }
-		          });
-		        }
-
-
-
-
-		        
-		      }
-		    });
-		  } catch (e) { console.error(e); }
-		}
-		initDragDrop();
-
-
-
-		$(document).on('change', 'input', function() {
-			$(this).removeClass('validate');
-		})
-
-
-		$(document).on('click', '.occurance-container.past-event .toggle-expand', function (event) {
-			var parent = $(this).parent('.occurance-container');
-			parent.toggleClass('show');
-		});
-
-		$(document).on('change', '#event_meta_event_type', function (e) {
-			if(e.target.value == 'single-event') {
-				$('.multiple-option').hide();
-				$('.single-option').show();
-			} else if(e.target.value == 'multiple-events') {
-				$('.multiple-option').show();
-				$('.single-option').hide();
-			}
-		});
-
-
-		$(document).on('change', '#event_meta_has_tickets', function (e) {
-			if(e.target.value === '1') {
-				console.log('show');
-				$('.ticket-option').show();
-			} else if(e.target.value === '0') {
-				console.log('hide');
-				$('.ticket-option').hide();
-			}
-		});
-
-
-
-
-		$(document).on('click', '.add-offer', function (event) {
-			var element = $(this).parent('.single-offer'),
-					clone = element.clone( true ).appendTo('#allOffers'),
-					add = clone.find('.add-offer')
-						.removeClass('add-offer')
-						.addClass('remove-offer')
-						.html('<span>-</span>');
-		});
-
-		$(document).on('click', '.add-offer-edit', function (event) {
-			var element = $(this).parent('.single-offer'),
-					key = $(this).data('key'),
-					clone = element.clone( true ).appendTo('#editOffers_' + key),
-					add = clone.find('.add-offer-edit')
-						.removeClass('add-offer-edit')
-						.addClass('remove-offer')
-						.html('<span>-</span>');
-		});
-
-		$(document).on('click', '.remove-offer', function(event) {
-			$(this).parent('.single-offer').fadeOut(500, function() {
-				$(this).remove();
-			})
-		})
-
-
-
-		$(document).on('change', '.field-color', function (e) {
-			$(this).css('border-left-color', $(this).val());
-			$(this).css('border-left-width', 30);
-		})
-
-
-
-
-		$(document).on('click', '.calendar-day', function (event) {
-			
-			if (window.mindeventsIsDragging) { return; }
-			var emptyInputs = $("#defaultEventMeta").find('input[type="text"].required').filter(function() {
-					return $(this).val() == "";
-			});
-
-			if (emptyInputs.length) {
-				emptyInputs.each(function() {
-					$(this).addClass('validate');
-				});
-			} else {
-				event.preventDefault();
-				var thisDay = $(this);
-				var occurrence = thisDay.siblings('.event');
-				var errorBox = $('#errorBox');
-
-				var meta = $('#defaultEventMeta').serializeObject();
-
-
-				thisDay.addClass('loading').append('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-				var date = $(this).attr('datetime');
-
-
-				$.ajax({
-					url : mindeventsSettings.ajax_url,
-					type : 'post',
-					data : {
-						action : MINDEVENTS_PREPEND + 'selectday',
-						eventid : mindeventsSettings.post_id,
-						date : date,
-						meta : meta,
-						occurrence : occurrence.length
-					},
-					success: function(response) {
-						console.log(response);
-						thisDay.removeClass('loading');
-						thisDay.find('.la-ball-fall').remove();
-						if(response.html) {
-							thisDay.addClass('selected');
-							setTimeout(function() {
-								thisDay.removeClass('selected');
-							}, 400);
-							thisDay.attr('event', 'true');
-							thisDay.after(response.html);
-						}
-						
-						if(response.errors.length > 0) {
-							thisDay.addClass('whoops');
-							setTimeout(function() {
-								thisDay.removeClass('whoops');
-							}, 400);
-
-							var items = $("#errorBox > span").length;
-							
-							$.each(response.errors, function( index, value ) {
-								var i = items + 1;
-								errorBox.prepend('<span class="error-item-'+ i +'">' + value + '</span>').addClass('show');
-								setTimeout(function() {
-									$('.error-item-'+ i +'').fadeOut(400, function() {
-										$(this).remove();
-									});
-								}, 3000);
-							});
-						}
-					},
-					error: function (response) {
-						console.log('An error occurred.');
-						console.log(response);
-					},
-				});
-			}
-		})
-
-
-
-		$(document).on('click', '.calendar-nav .calnav', function (event) {
-
-			event.preventDefault();
-			var button = event.currentTarget;
-			var eventsCalendar = $('#eventsCalendar');
-			var calendarTable = $('#mindEventCalendar');
-			var month = calendarTable.data('month');
-			var year = calendarTable.data('year');
-			var direction = $(this).data('dir');
-
-
-			if(month && year) {
-
-				var height = eventsCalendar.height();
-				var width = eventsCalendar.width();
-				eventsCalendar.height(height).width(width);
-				
-
-				$.ajax({
-					url : mindeventsSettings.ajax_url,
-					type : 'post',
-					data : {
-						action : MINDEVENTS_PREPEND + 'movecalendar',
-						direction : direction,
-						month : month,
-						year : year,
-						eventid : mindeventsSettings.post_id
-					},
-					beforeSend: function() {
-						eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-					},
-					success: function(response) {
-
-						eventsCalendar.attr('style', false);
-						eventsCalendar.html(response.html);
-						initDragDrop();
-						$(button).disabled = false;
-					},
-					error: function (response) {
-						console.log('An error occurred.');
-						console.log(response);
-					},
-				});
-			}
-
-		})
-
-
-		$(document).on('click', '.edit-button.update-event', function (event) {
-			event.preventDefault();
-			var subid = $(this).data('subid');
-			var eventsCalendar = $('#eventsCalendar');
-			var meta = {};
-
-
-			var meta = $('#subEventEdit').serializeObject();
-
-			
-
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : MINDEVENTS_PREPEND + 'updatesubevent',
-					eventid : subid,
-					parentid : mindeventsSettings.post_id,
-					meta : meta
-				},
-				success: function(response) {
-					eventsCalendar.html(response.data.html);
-					initDragDrop();
-					$('#editBox').fadeOut(200, function() {
-						$(this).remove();
-					});
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
-			});
-
-		});
-
-
-		$(document).on('click', '.edit-button.cancel', function (event) {
-			event.preventDefault();
-			$('#editBox').fadeOut(200, function() {
-				$(this).remove();
-			});
-		});
-
-
-
-
-
-		$(document).on('click', 'button.atendee-check-in', function (event) {
-			event.preventDefault();
-			var button = $(this);
-			var occurance = $(this).data('occurance');
-			var user_id = $(this).data('user_id');
-			var akey = $(this).data('akey');
-
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : MINDEVENTS_PREPEND + 'checkin_toggle',
-					occurance : occurance,
-					user_id : user_id,
-					akey : akey,
-					parentid : mindeventsSettings.post_id,
-				},
-				beforeSend: function() {
-					button.html('Updating...').disabled = true;
-				},
-				success: function(response) {
-					if(response.data.success) {
-						if(response.data.new_status == true) {
-							button.html('Checked In').addClass('checked-in');
-						} else {
-							button.html('Check In').removeClass('checked-in');
-						}
-						button.html(response.data.html);
-					}
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
-			});
-
-
-		});
-
-
-
-
-
-		$(document).on('click', '.event span.edit', function (event) {
-			event.preventDefault();
-			var thisEvent = $(this).parent('.event');
-			var eventid = $(this).data('subid');
-			var calendarContainer = $('#eventsCalendar')
-	
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : MINDEVENTS_PREPEND + 'editevent',
-					eventid : eventid,
-						parentid : mindeventsSettings.post_id,
-				},
-				beforeSend: function() {
-					calendarContainer.prepend('<div id="editBox"></div>');
-					$('#editBox').html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-				},
-				success: function(response) {
-					console.log(response);
-					// calendarContainer.prepend('<div id="editBox"></div>');
-					$('#editBox').html(response.data.html);
-					initTimePicker();
-					initDatePicker();
-					initDragDrop();
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
-			});
-
-
-		});
-
-
-		$(document).on('click', '.event span.delete', function (event) {
-			event.preventDefault();
-			var thisEvent = $(this).closest('.event');
-			var eventid = $(this).data('subid');
-			var errorBox = $('#errorBox');
-
-			$.ajax({
-				url : mindeventsSettings.ajax_url,
-				type : 'post',
-				data : {
-					action : MINDEVENTS_PREPEND + 'deleteevent',
-					eventid : eventid,
-				},
-				success: function(response) {
-					console.log(response);
-					if(response.success == true) {
-						thisEvent.fadeOut();
-						errorBox.prepend('<span class="error-item-'+ eventid +'">Event deleted</span>').addClass('show');
-						setTimeout(function() {
-							$('.error-item-'+ eventid +'').fadeOut(400, function() {
-								$(this).remove();
-							});
-						}, 3000);
-					} else {
-						errorBox.prepend('<span class="error-item-'+ eventid +'">' + response.data + '</span>').addClass('show');
-						setTimeout(function() {
-							$('.error-item-'+ eventid +'').fadeOut(400, function() {
-								$(this).remove();
-							});
-						}, 5000);
-					}
-
-				},
-				error: function (response) {
-					console.log('An error occurred.');
-					console.log(response);
-				},
-			});
-
-
-		});
-
-
-		$(document).on('click', '.clear-occurances', function (event) {
-			event.preventDefault();
-
-			if(confirm("Wait a tic! This will remove ALL occurances of this event in every month. You cannot undo this. Are you REALY sure?")) {
-
-				var eventsCalendar = $('#eventsCalendar');
-				var height = eventsCalendar.height();
-				var width = eventsCalendar.width();
-				eventsCalendar.height(height).width(width);
-				eventsCalendar.html('<div class="la-ball-fall"><div></div><div></div><div></div></div>');
-
-				$.ajax({
-					url : mindeventsSettings.ajax_url,
-					type : 'post',
-					data : {
-							action : MINDEVENTS_PREPEND +'clearevents',
-						eventid : mindeventsSettings.post_id,
-					},
-					success: function(response) {
-							$('#errorBox').removeClass('show').html('');
-							eventsCalendar.html(response.html);
-							initDragDrop();
-							eventsCalendar.attr('style', false);
-
-					},
-					error: function (response) {
-						console.log('An error occurred.');
-						console.log(response);
-					},
-				});
-
-			}
-		})
-
-
-		if($('#event_meta_event_type').val() == 'single-event') {
-			$('.multiple-option').hide();
-			$('.single-option').show();
-		} else if($('#event_meta_event_type').val() == 'multiple-events') {
-			$('.multiple-option').show();
-			$('.single-option').hide();
-		}
-		if($('#event_meta_has_tickets').val() === '1') {
-			$('.ticket-option').show();
-		} else {
-			$('.ticket-option').hide();
-		}
-
-
-		$.fn.serializeObject = function(){
-			var data = {};
-
-			// Manage fields allowing multiple values first (they contain "[]" in their name)
-			var final_array = gatherMultipleValues( this );
-
-			// Then, create the object
-			$.each(final_array, function() {
-				var val = this.value;
-				var c = this.name.split('[');
-				var a = buildInputObject(c, val);
-				$.extend(true, data, a);
-			});
-
-			return data;
-
-		};
-
-
-
-		function buildInputObject(arr, val) {
-			if (arr.length < 1) {
-				return val;
-			}
-			var objkey = arr[0];
-			if (objkey.slice(-1) == "]") {
-				objkey = objkey.slice(0,-1);
-			}
-			var result = {};
-			if (arr.length == 1){
-				result[objkey] = val;
-			} else {
-				arr.shift();
-				var nestedVal = buildInputObject(arr,val);
-				result[objkey] = nestedVal;
-			}
-			return result;
-		}
-
-		function gatherMultipleValues( that ) {
-			var final_array = [];
-			$.each(that.serializeArray(), function( key, field ) {
-				// Copy normal fields to final array without changes
-				if( field.name.indexOf('[]') < 0 ){
-					final_array.push( field );
-					return true; // That's it, jump to next iteration
-				}
-
-				// Remove "[]" from the field name
-				var field_name = field.name.split('[]')[0];
-
-				// Add the field value in its array of values
-				var has_value = false;
-				$.each( final_array, function( final_key, final_field ){
-					if( final_field.name === field_name ) {
-						has_value = true;
-						final_array[ final_key ][ 'value' ].push( field.value );
-					}
-				});
-				// If it doesn't exist yet, create the field's array of values
-				if( ! has_value ) {
-					final_array.push( { 'name': field_name, 'value': [ field.value ] } );
-				}
-			});
-			return final_array;
-		}
-
-
-		function colorAttendeeNumbers() {
-			const rows = document.querySelectorAll('.event-attendees tbody tr');
-			let attendeeCounts = [];
-		
-			// Collect all attendee counts
-			rows.forEach(row => {
-				const attendeeCell = row.querySelector('td:nth-child(4)');
-				if (attendeeCell) {
-					const attendeeCount = parseInt(attendeeCell.getAttribute('data-count'), 10);
-					attendeeCounts.push(attendeeCount);
-				}
-			});
-		
-			// Determine the min and max attendee counts
-			const minCount = Math.min(...attendeeCounts);
-			const maxCount = Math.max(...attendeeCounts);
-		
-			// Color the attendee counts based on the min and max values
-			rows.forEach(row => {
-				const attendeeCell = row.querySelector('td:nth-child(4)');
-				if (attendeeCell) {
-					const attendeeCount = parseInt(attendeeCell.getAttribute('data-count'), 10);	
-					if (attendeeCount === minCount) {
-						attendeeCell.style.backgroundColor = `rgba(255, 0, 0, .3)`;
-					} else if (attendeeCount === maxCount) {
-						attendeeCell.style.backgroundColor = `rgba(0, 255, 0, .3)`;
-						attendeeCell.style.fontWeight = 'bold';
-					} else {
-						// Calculate a gradient color between red and green based on the count
-						const ratio = (attendeeCount - minCount) / (maxCount - minCount);
-						const red = Math.round(255 * (1 - ratio));
-						const green = Math.round(255 * ratio);
-						attendeeCell.style.backgroundColor = `rgba(${red}, ${green}, 0, .3)`;
-					}
-
-				}
-			});
-		};
-		colorAttendeeNumbers();
-
-  });
-
-} ( this, jQuery ));
+(function ($) {
+    'use strict';
+
+    const settings = window.mindeventsSettings || {};
+
+    function getCurrentCalendarState() {
+        const $calendar = $('#mindEventCalendar');
+
+        return {
+            month: parseInt($calendar.data('month'), 10) || 0,
+            year: parseInt($calendar.data('year'), 10) || 0
+        };
+    }
+
+    function assignNestedValue(target, name, value) {
+        const keys = name.replace(/\]/g, '').split('[');
+        let pointer = target;
+
+        keys.forEach(function (key, index) {
+            if (!key) {
+                return;
+            }
+
+            if (index === keys.length - 1) {
+                pointer[key] = value;
+                return;
+            }
+
+            if (!pointer[key] || typeof pointer[key] !== 'object') {
+                pointer[key] = {};
+            }
+
+            pointer = pointer[key];
+        });
+    }
+
+    function serializeForm($form) {
+        const data = {};
+
+        $.each($form.serializeArray(), function (_, field) {
+            assignNestedValue(data, field.name, field.value);
+        });
+
+        return data;
+    }
+
+    function getModal() {
+        let $modal = $('.mindevents-admin-modal');
+
+        if ($modal.length) {
+            return $modal;
+        }
+
+        $modal = $(`
+            <div class="mindevents-admin-modal" aria-hidden="true">
+                <div class="mindevents-admin-modal__backdrop"></div>
+                <div class="mindevents-admin-modal__dialog" role="dialog" aria-modal="true">
+                    <div class="mindevents-admin-modal__content"></div>
+                </div>
+            </div>
+        `);
+
+        $('body').append($modal);
+
+        return $modal;
+    }
+
+    function openModal(html) {
+        const $modal = getModal();
+        $modal.find('.mindevents-admin-modal__content').html(html);
+        $modal.addClass('is-open').attr('aria-hidden', 'false');
+        $('body').addClass('mindevents-admin-modal-open');
+    }
+
+    function closeModal() {
+        const $modal = $('.mindevents-admin-modal');
+        $modal.removeClass('is-open').attr('aria-hidden', 'true');
+        $('body').removeClass('mindevents-admin-modal-open');
+    }
+
+    function setModalLoading() {
+        openModal('<div class="mindevents-admin-loading" role="status" aria-live="polite"><span>Loading occurrence editor...</span></div>');
+    }
+
+    function showErrors(messages) {
+        const $errorBox = $('#errorBox');
+
+        if (!$errorBox.length) {
+            return;
+        }
+
+        const items = (messages || []).filter(Boolean);
+        if (!items.length) {
+            $errorBox.removeClass('is-visible').empty();
+            return;
+        }
+
+        $errorBox.empty().addClass('is-visible');
+
+        items.forEach(function (message) {
+            $errorBox.append(`<p>${message}</p>`);
+        });
+    }
+
+    function setCalendarHtml(html) {
+        $('#eventsCalendar').html(html);
+        initDragDrop();
+    }
+
+    function requestCalendar(direction) {
+        const state = getCurrentCalendarState();
+
+        if (!settings.ajax_url || !state.month || !state.year) {
+            return;
+        }
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'movecalendar',
+                nonce: settings.nonce,
+                direction: direction || 'current',
+                month: state.month,
+                year: state.year,
+                eventid: settings.post_id
+            }
+        }).done(function (response) {
+            if (response && response.html) {
+                setCalendarHtml(response.html);
+            }
+        });
+    }
+
+    function initDragDrop() {
+        if (!$.fn.draggable || !$.fn.droppable) {
+            return;
+        }
+
+        const $occurrences = $('.mindevents-admin-occurrence');
+        const $days = $('.mindevents-calendar-day').not('.mindevents-calendar-day--empty');
+
+        if ($occurrences.filter('.ui-draggable').length) {
+            $occurrences.draggable('destroy');
+        }
+
+        if ($days.filter('.ui-droppable').length) {
+            $days.droppable('destroy');
+        }
+
+        $occurrences.draggable({
+            helper: 'clone',
+            appendTo: 'body',
+            revert: 'invalid',
+            zIndex: 99999
+        });
+
+        $days.droppable({
+            accept: '.mindevents-admin-occurrence',
+            tolerance: 'pointer',
+            hoverClass: 'is-drop-target',
+            drop: function (_, ui) {
+                const $target = $(this);
+                const $dragged = $(ui.draggable);
+                const targetDate = $target.data('date');
+                const eventId = $dragged.find('.mindevents-admin-occurrence__edit').data('subid');
+                const startDate = $dragged.data('startdate');
+                const endDate = $dragged.data('enddate');
+
+                if (!targetDate || !eventId || !startDate || !endDate) {
+                    return;
+                }
+
+                $.ajax({
+                    url: settings.ajax_url,
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        action: MINDEVENTS_PREPEND + 'moveevent',
+                        nonce: settings.nonce,
+                        eventid: eventId,
+                        parentid: settings.post_id,
+                        new_date: targetDate,
+                        start_date: startDate,
+                        end_date: endDate
+                    }
+                }).done(function (response) {
+                    if (response && response.success) {
+                        requestCalendar('current');
+                        return;
+                    }
+
+                    showErrors([response && response.data ? response.data : 'Unable to move that occurrence.']);
+                }).fail(function () {
+                    showErrors(['Unable to move that occurrence.']);
+                });
+            }
+        });
+    }
+
+    $(function () {
+        initDragDrop();
+    });
+
+    $(document).on('click', '.mindevents-admin-nav', function (event) {
+        event.preventDefault();
+        requestCalendar($(this).data('dir'));
+    });
+
+    $(document).on('click', '#eventsCalendar .mindevents-calendar-day-number', function (event) {
+        event.preventDefault();
+
+        const $day = $(this).closest('.mindevents-calendar-day');
+        const date = $day.data('date');
+
+        if (!date) {
+            return;
+        }
+
+        const meta = serializeForm($('#defaultEventMeta'));
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'selectday',
+                nonce: settings.nonce,
+                eventid: settings.post_id,
+                date: date,
+                meta: meta
+            }
+        }).done(function (response) {
+            if (response && response.html) {
+                setCalendarHtml(response.html);
+            }
+
+            showErrors(response && response.errors ? response.errors : []);
+        }).fail(function () {
+            showErrors(['Unable to add an occurrence for that day.']);
+        });
+    });
+
+    $(document).on('click', '.mindevents-admin-occurrence__edit', function (event) {
+        event.preventDefault();
+
+        const eventId = $(this).data('subid');
+
+        if (!eventId) {
+            return;
+        }
+
+        setModalLoading();
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'editevent',
+                nonce: settings.nonce,
+                eventid: eventId,
+                parentid: settings.post_id
+            }
+        }).done(function (response) {
+            if (response && response.success && response.data && response.data.html) {
+                openModal(response.data.html);
+                return;
+            }
+
+            closeModal();
+            showErrors(['Unable to load that occurrence.']);
+        }).fail(function () {
+            closeModal();
+            showErrors(['Unable to load that occurrence.']);
+        });
+    });
+
+    $(document).on('click', '.update-event', function (event) {
+        event.preventDefault();
+
+        const eventId = $(this).data('subid');
+        const meta = serializeForm($('#subEventEdit'));
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'updatesubevent',
+                nonce: settings.nonce,
+                eventid: eventId,
+                parentid: settings.post_id,
+                meta: meta
+            }
+        }).done(function (response) {
+            if (response && response.success && response.data && response.data.html) {
+                setCalendarHtml(response.data.html);
+                closeModal();
+                showErrors([]);
+                return;
+            }
+
+            showErrors([response && response.data ? response.data : 'Unable to update that occurrence.']);
+        }).fail(function () {
+            showErrors(['Unable to update that occurrence.']);
+        });
+    });
+
+    $(document).on('click', '.mindevents-admin-occurrence__delete', function (event) {
+        event.preventDefault();
+
+        const eventId = $(this).data('subid');
+        if (!eventId || !window.confirm('Delete this occurrence?')) {
+            return;
+        }
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'deleteevent',
+                nonce: settings.nonce,
+                eventid: eventId
+            }
+        }).done(function (response) {
+            if (response && response.success) {
+                requestCalendar('current');
+                showErrors([]);
+                return;
+            }
+
+            showErrors([response && response.data ? response.data : 'Unable to delete that occurrence.']);
+        }).fail(function () {
+            showErrors(['Unable to delete that occurrence.']);
+        });
+    });
+
+    $(document).on('click', '.clear-occurances', function (event) {
+        event.preventDefault();
+
+        if (!window.confirm('Clear every occurrence for this event?')) {
+            return;
+        }
+
+        $.ajax({
+            url: settings.ajax_url,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                action: MINDEVENTS_PREPEND + 'clearevents',
+                nonce: settings.nonce,
+                eventid: settings.post_id
+            }
+        }).done(function (response) {
+            if (response && response.html) {
+                setCalendarHtml(response.html);
+                showErrors([]);
+                return;
+            }
+
+            showErrors(['Unable to clear those occurrences.']);
+        }).fail(function () {
+            showErrors(['Unable to clear those occurrences.']);
+        });
+    });
+
+    $(document).on('click', '.mindevents-admin-modal__backdrop, .cancel', function (event) {
+        event.preventDefault();
+        closeModal();
+    });
+
+    $(document).on('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+})(jQuery);

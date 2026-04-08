@@ -1,7 +1,7 @@
 import gulp from "gulp";
 
-import dartSass from 'sass'
-import gulpSass from 'gulp-sass'
+import * as dartSass from 'sass';
+import gulpSass from 'gulp-sass';
 const sass = gulpSass(dartSass);
 
 import sourcemaps from 'gulp-sourcemaps';
@@ -45,7 +45,6 @@ gulp.task('watch', () => {
 });
 
 gulp.task('default', gulp.series(['clean','plugin-styles', 'admin-styles', 'watch']));
-
 
 
 

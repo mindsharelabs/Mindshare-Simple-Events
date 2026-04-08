@@ -8,29 +8,49 @@ defined( 'ABSPATH' ) || exit;
 get_header('events');
 do_action(MINDEVENTS_PREPEND . 'before_main_content');
 
-echo '<main role="main" aria-label="Content">';
-  do_action(MINDEVENTS_PREPEND . 'archive_loop_start');
-  $filters = function_exists('mindevents_get_frontend_filters') ? mindevents_get_frontend_filters() : array();
-  $event_view = !empty($filters['event_view']) ? $filters['event_view'] : 'month';
-  $initial_calendar_date = function_exists('mindevents_get_archive_initial_calendar_date') ? mindevents_get_archive_initial_calendar_date($filters) : null;
-  $calendar = new mindEventCalendar('', $initial_calendar_date);
-  $show_all = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
-  $calendar->set_past_events_display($show_all);
+do_action(MINDEVENTS_PREPEND . 'archive_loop_start');
 
-  echo '<div id="archiveContainer" class="calendar-wrap">';
-    echo '<div id="cartErrorContainer"></div>';
-    if (function_exists('mindevents_get_frontend_filter_form')) {
-      echo mindevents_get_frontend_filter_form($filters);
+$filters               = function_exists('mindevents_get_frontend_filters') ? mindevents_get_frontend_filters() : array();
+$event_view            = !empty($filters['event_view']) ? $filters['event_view'] : 'month';
+$initial_calendar_date = function_exists('mindevents_get_archive_initial_calendar_date') ? mindevents_get_archive_initial_calendar_date($filters) : null;
+$calendar              = new mindEventCalendar('', $initial_calendar_date);
+$show_all              = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
+
+$calendar->set_past_events_display($show_all);
+
+echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="Content">';
+echo '<header class="mindevents-archive-header">';
+echo '<p class="mindevents-kicker">' . esc_html__('Simple Events', 'simple-events') . '</p>';
+echo '<h1 class="mindevents-page-title">' . esc_html(post_type_archive_title('', false)) . '</h1>';
+echo '<p class="mindevents-page-intro">' . esc_html__('Browse upcoming events in calendar, week, or list view. Use the filters to narrow the schedule by title or category.', 'simple-events') . '</p>';
+echo '</header>';
+
+echo '<section id="archiveContainer" class="mindevents-surface mindevents-schedule-panel">';
+if (function_exists('mindevents_get_frontend_filter_form')) {
+    echo mindevents_get_frontend_filter_form($filters);
+}
+
+echo '<div class="mindevents-section-heading-wrap">';
+echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h2 class="mindevents-section-heading">' . esc_html__('Event Schedule', 'simple-events') . '</h2>');
+echo '</div>';
+
+do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
+
+echo '<div id="publicCalendar" class="mindevents-calendar-region">';
+if ($event_view === 'list') {
+    echo $calendar->get_front_list();
+    if (function_exists('mindevents_get_frontend_list_pagination')) {
+        echo mindevents_get_frontend_list_pagination($calendar, $filters);
     }
-    echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
-    do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
-    echo '<div id="publicCalendar">';
-      echo ($event_view === 'list') ? $calendar->get_front_list() : $calendar->get_front_calendar();
-    echo '</div>';
-    do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
-  echo '</div>';
+} else {
+    echo $calendar->get_front_calendar();
+}
+echo '</div>';
 
-  do_action(MINDEVENTS_PREPEND . 'archive_loop_end');
+do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
+echo '</section>';
 echo '</main>';
+
+do_action(MINDEVENTS_PREPEND . 'archive_loop_end');
 do_action(MINDEVENTS_PREPEND . 'after_main_content');
 get_footer('events');

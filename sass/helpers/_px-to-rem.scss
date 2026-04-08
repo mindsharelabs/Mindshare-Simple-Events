@@ -1,4 +1,0 @@
-@function pxtorem($pxval) {
-  $base: 16;
-  @return (calc($pxval / $base)) * 1rem;
-}

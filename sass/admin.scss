@@ -1,577 +1,380 @@
-@use "sass:color";
-@use "sass:math";
-@use 'loading' as *;
-@use 'forms-main' as *;
-@use 'calendar' as *;
-@use 'utilities' as *;
-
-#eventsCalendar {
-    // Basic Bootstrap 5 Grid System for Plugin Use
-
-
-
-    // Container
-    .container,
-    .container-fluid {
-        width: 100%;
-        margin-right: auto;
-        margin-left: auto;
-        padding-right: 12px;
-        padding-left: 12px;
-    }
-
-    // Row
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        margin-right: -12px;
-        margin-left: -12px;
-    }
-
-    // Columns
-    .col {
-        flex: 1 0 0%;
-        max-width: 100%;
-        padding-right: 12px;
-        padding-left: 12px;
-    }
-
-    @for $i from 1 through 12 {
-        .col-#{$i} {
-            flex: 0 0 math.percentage(calc($i / 12));
-            max-width: math.percentage(calc($i / 12));
-            padding-right: 12px;
-            padding-left: 12px;
-        }
-    }
-
-
-    // Basic Bootstrap 5 Display Utilities
-
-    $displays: none, inline, inline-block, block, grid, table, table-row, table-cell, flex, inline-flex;
-
-    @each $display in $displays {
-        .d-#{$display} {
-            display: #{$display} !important;
-        }
-    }
-
-    @each $breakpoint, $size in (sm: 576px, md: 768px, lg: 992px, xl: 1200px, xxl: 1400px) {
-        @media (min-width: #{$size}) {
-            @each $display in $displays {
-                .d-#{$breakpoint}-#{$display} {
-                    display: #{$display} !important;
-                }
-            }
-        }
-    }
-
-    // Responsive columns
-    @each $breakpoint, $size in (sm: 576px, md: 768px, lg: 992px, xl: 1200px, xxl: 1400px) {
-        @media (min-width: #{$size}) {
-            .col-#{$breakpoint} {
-                flex: 1 0 0%;
-                max-width: 100%;
-            }
-
-            @for $i from 1 through 12 {
-                .col-#{$breakpoint}-#{$i} {
-                    flex: 0 0 math.percentage(calc($i / 12));
-                    max-width: math.percentage(calc($i / 12));
-                }
-            }
-        }
-    }
+body.mindevents-admin-modal-open {
+    overflow: hidden;
 }
 
+.mindevents-admin-panel,
+.mindevents-admin-modal,
+#eventsCalendar {
+    --mindevents-admin-ink: #1f2937;
+    --mindevents-admin-muted: #596579;
+    --mindevents-admin-accent: #cc5b2f;
+    --mindevents-admin-accent-dark: #902d16;
+    --mindevents-admin-danger: #b93636;
+    --mindevents-admin-border: #d7dbe3;
+    --mindevents-admin-surface: #ffffff;
+    --mindevents-admin-soft: #f6f8fb;
+    --mindevents-admin-highlight: #1d6d69;
+    --mindevents-admin-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+}
 
-table.event-attendees {
+.mindevents-button {
+    align-items: center;
+    appearance: none;
+    background: var(--mindevents-admin-accent);
+    border: 1px solid var(--mindevents-admin-accent);
+    border-radius: 999px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 8px;
+    justify-content: center;
+    line-height: 1;
+    min-height: 38px;
+    padding: 0 16px;
+    text-decoration: none;
+    transition: background-color 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.mindevents-button:hover,
+.mindevents-button:focus {
+    background: var(--mindevents-admin-accent-dark);
+    border-color: var(--mindevents-admin-accent-dark);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.mindevents-button--secondary {
+    background: #fff;
+    border-color: var(--mindevents-admin-border);
+    color: var(--mindevents-admin-ink);
+}
+
+.mindevents-button--secondary:hover,
+.mindevents-button--secondary:focus {
+    background: #fff;
+    border-color: var(--mindevents-admin-accent);
+    color: var(--mindevents-admin-accent-dark);
+}
+
+.mindevents-button--danger {
+    background: var(--mindevents-admin-danger);
+    border-color: var(--mindevents-admin-danger);
+}
+
+.mindevents-button--danger:hover,
+.mindevents-button--danger:focus {
+    background: #8d2323;
+    border-color: #8d2323;
+}
+
+.mindevents-admin-panel {
+    background: linear-gradient(180deg, #fff 0%, #faf8f3 100%);
+    border: 1px solid var(--mindevents-admin-border);
+    border-radius: 22px;
+    box-shadow: var(--mindevents-admin-shadow);
+    padding: 20px;
+}
+
+.mindevents-admin-heading {
+    color: var(--mindevents-admin-ink);
+    font-size: 17px;
+    margin: 0 0 16px;
+}
+
+.mindevents-admin-form-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mindevents-admin-field {
+    display: grid;
+    gap: 6px;
+}
+
+.mindevents-admin-field--full {
+    grid-column: 1 / -1;
+}
+
+.mindevents-admin-field label {
+    color: var(--mindevents-admin-ink);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.mindevents-admin-field input,
+.mindevents-admin-field select,
+.mindevents-admin-field textarea,
+.term-mindevents-category-color-wrap input[type="color"] {
+    border: 1px solid var(--mindevents-admin-border);
+    border-radius: 14px;
+    box-shadow: none;
+    color: var(--mindevents-admin-ink);
+    font-size: 14px;
+    min-height: 44px;
+    padding: 0 14px;
     width: 100%;
-
-    thead {
-        background: rgba(220, 220, 220, 1);
-
-        th {
-            padding: 5px;
-            border: 1px solid rgba(200, 200, 200, .3);
-        }
-    }
-
-    tbody {
-        tr {
-            border: 1px solid rgba(200, 200, 200, .3);
-
-            td {
-                padding: 5px;
-                border: 1px solid rgba(200, 200, 200, .3);
-
-                &.event-actions {}
-
-                &.attendee-count {
-                    text-align: center;
-                    max-width: 40px;
-                }
-            }
-        }
-    }
 }
 
-.mindevents_meta_box {
-    .occurance-container {
-        padding: 10px;
-        border: 2px solid $info;
-        background: color.adjust($info, $lightness: 10%);
-        border-radius: 20px;
-        margin-bottom: 20px;
-
-        &.today {
-            background: color.adjust($success, $lightness: 30%);
-            border: 2px solid color.adjust($success, $lightness: 10%);
-            border-radius: 20px;
-            // color: #fff;
-        }
-
-        &.past-event {
-
-            //make this container toggleable
-            table {
-                display: none;
-            }
-
-            span.toggle-expand {
-                cursor: pointer;
-                font-weight: bold;
-                text-transform: uppercase;
-                font-size: .7em;
-            }
-
-
-        }
-
-        &.show {
-            background: color.adjust($success, $lightness: 30%);
-
-            table {
-                display: table;
-            }
-        }
-    }
-
-    a.button,
-    button {
-        cursor: pointer;
-        border: 1px solid color.adjust($primary, $lightness: -10%);
-        padding: 5px 7px;
-        border-radius: 0;
-        color: #fff !important;
-        background: $primary;
-
-        &:hover {
-            background: color.adjust($primary, $lightness: -10%);
-        }
-
-        &.clear-occurances {
-            margin-top: 5px;
-        }
-
-        &.button-success {
-            color: #fff;
-            background: $success;
-            border: color.adjust($danger, $lightness: -10%)
-        }
-
-        &.button-danger {
-            color: #fff;
-            background: $danger;
-            border: color.adjust($danger, $lightness: -10%)
-        }
-
-        &.add-event-occurrence {
-            color: #fff;
-            background: $secondary;
-            border: color.adjust($secondary, $lightness: -10%)
-        }
-
-        &.button-white {
-            background: #fff;
-            color: $dark;
-        }
-
-        &.checked-in {
-            background: $success;
-            color: #353535;
-            border-color: #a6a6a6;
-        }
-
-        &.disabled {
-            background: $info;
-            color: #414141;
-            border-color: #a6a6a6;
-        }
-    }
-
-    h3 {
-        margin-top: 0;
-        margin-bottom: 3px;
-    }
-
-    .status {
-        font-weight: bold;
-        display: inline-block;
-        padding: 5px 10px;
-        border-radius: 5px;
-        background: $danger;
-        color: #fff;
-
-        &.completed {
-            background: $success;
-            color: #fff;
-        }
-
-        &.processing {
-            background: $info;
-            color: $dark;
-        }
-
-    }
-
-    #errorBox {
-        opacity: 0;
-
-        span {
-            border: $danger;
-            background-color: color.adjust($danger, $lightness: 35%);
-            margin: 5px 0;
-            display: block;
-            padding: 5px 7px;
-            font-weight: bold;
-            font-size: 1em;
-            color: $danger;
-        }
-
-        &.show {
-            opacity: 1;
-            @include transition(200ms);
-        }
-    }
-
-    h3.offers-title {
-        margin-left: 1%;
-    }
-
-    .offer-options {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-
-        .single-offer {
-            display: flex;
-            flex-direction: row;
-            flex-grow: 1;
-        }
-
-        .add-offer,
-        .remove-offer,
-        .add-offer-edit,
-        .remove-offer-edit {
-            width: 10%;
-            text-align: center;
-            font-size: 2em;
-            color: $primary;
-
-            span {
-                padding: 23px 0 0;
-                display: block;
-            }
-        }
-
-        .remove-offer,
-        .remove-offer-edit {
-            color: $danger;
-        }
-    }
-
-    .event-times {
-        margin-bottom: 20px;
-
-        .time-block {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            margin-left: -10px;
-            margin-right: -10px;
-            margin-bottom: 25px;
-            position: relative;
-
-            .form-section {
-                flex-basis: 48%;
-                padding: 0 1%;
-
-                &.full {
-                    flex-basis: 100%;
-                }
-
-                &.third {
-                    flex-basis: 31.333333%;
-                    padding: 0 1%;
-                }
-
-                p {
-                    margin: 3px;
-                    line-height: 1.1em;
-                }
-            }
-
-            .remove {
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                padding: 16px;
-                font-size: 1.5em;
-                position: absolute;
-                color: #c94949;
-                left: 0;
-                top: 39%;
-            }
-
-            &:not(:first-child) {
-                padding-left: 40px;
-            }
-        }
-
-    }
+.mindevents-admin-field textarea {
+    min-height: 124px;
+    padding: 12px 14px;
+    resize: vertical;
 }
 
+.mindevents-admin-field input[type="color"] {
+    padding: 4px;
+}
 
+.mindevents-admin-field input:focus,
+.mindevents-admin-field select:focus,
+.mindevents-admin-field textarea:focus {
+    border-color: var(--mindevents-admin-accent);
+    box-shadow: 0 0 0 1px rgba(204, 91, 47, 0.16);
+    outline: none;
+}
 
+.mindevents-admin-field .description {
+    color: var(--mindevents-admin-muted);
+    margin: 0;
+}
 
-
-
-
-
+.mindevents-admin-calendar-nav {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0 16px;
+}
 
 #eventsCalendar {
+    position: relative;
+}
+
+#eventsCalendar .mindevents-calendar-wrap {
+    display: grid;
+    gap: 12px;
+}
+
+#eventsCalendar .mindevents-calendar-title {
+    color: var(--mindevents-admin-ink);
+    font-size: 20px;
+    margin: 0;
+}
+
+#eventsCalendar .mindevents-calendar {
+    display: grid;
+    gap: 12px;
+}
+
+#eventsCalendar .mindevents-calendar-weekday-row,
+#eventsCalendar .mindevents-calendar-week {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+#eventsCalendar .mindevents-calendar-weekday {
+    color: var(--mindevents-admin-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+#eventsCalendar .mindevents-calendar-day {
+    background: var(--mindevents-admin-surface);
+    border: 1px solid var(--mindevents-admin-border);
+    border-radius: 18px;
+    min-height: 130px;
+    padding: 10px;
+    transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+#eventsCalendar .mindevents-calendar-day--empty {
+    background: var(--mindevents-admin-soft);
+    border-style: dashed;
+}
+
+#eventsCalendar .mindevents-calendar-day.is-today {
+    border-color: var(--mindevents-admin-highlight);
+    box-shadow: inset 0 0 0 1px rgba(29, 109, 105, 0.16);
+}
+
+#eventsCalendar .mindevents-calendar-day.is-drop-target {
+    background: #fff4ed;
+    border-color: var(--mindevents-admin-accent);
+}
+
+#eventsCalendar .mindevents-calendar-day-number {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--mindevents-admin-ink);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0 0 10px;
+    padding: 0;
+}
+
+#eventsCalendar .mindevents-calendar-day-events {
+    display: grid;
+    gap: 8px;
+}
+
+.mindevents-admin-occurrence {
+    background: #fff;
+    border: 1px solid rgba(204, 91, 47, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    cursor: move;
+    overflow: hidden;
+}
+
+.mindevents-admin-occurrence__actions {
+    display: grid;
+    gap: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.mindevents-admin-occurrence__edit,
+.mindevents-admin-occurrence__delete {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: var(--mindevents-admin-ink);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px;
+    text-align: left;
+}
+
+.mindevents-admin-occurrence__edit:hover,
+.mindevents-admin-occurrence__edit:focus {
+    background: #fff4ed;
+    outline: none;
+}
+
+.mindevents-admin-occurrence__delete {
+    color: var(--mindevents-admin-danger);
+    font-size: 18px;
+    line-height: 1;
+    min-width: 44px;
+    text-align: center;
+}
+
+.mindevents-admin-occurrence__delete:hover,
+.mindevents-admin-occurrence__delete:focus {
+    background: rgba(185, 54, 54, 0.08);
+    outline: none;
+}
+
+#errorBox {
+    display: none;
+    margin: 16px 0 12px;
+}
+
+#errorBox.is-visible {
+    display: grid;
+    gap: 8px;
+}
+
+#errorBox p {
+    background: rgba(185, 54, 54, 0.08);
+    border: 1px solid rgba(185, 54, 54, 0.22);
+    border-radius: 14px;
+    color: var(--mindevents-admin-danger);
+    font-weight: 700;
+    margin: 0;
+    padding: 10px 12px;
+}
+
+.mindevents-admin-modal {
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 140ms ease;
+    z-index: 100000;
+}
+
+.mindevents-admin-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mindevents-admin-modal__backdrop {
+    background: rgba(15, 23, 42, 0.58);
+    inset: 0;
+    position: absolute;
+}
+
+.mindevents-admin-modal__dialog {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 24px;
+    position: absolute;
+}
+
+.mindevents-admin-modal__content {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 26px 52px rgba(15, 23, 42, 0.24);
+    max-height: calc(100vh - 48px);
+    max-width: 760px;
+    overflow: auto;
+    padding: 22px;
+    width: 100%;
+}
+
+.mindevents-admin-modal-actions {
+    display: flex;
+    gap: 10px;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+}
+
+.mindevents-admin-loading {
+    align-items: center;
     display: flex;
     justify-content: center;
-    align-items: center;
-    position: relative;
-    flex-direction: column;
-
-    .la-ball-fall {
-        position: inherit;
-    }
-
-
-
-
-
-
-    width: 100%;
-
-    .calendar-header {
-        .day-name {
-            padding: 5px 10px;
-            text-align: center;
-        }
-    }
-
-
-
-    .day-container {
-        width: (calc(100% / 7)) !important;
-        vertical-align: top;
-        border: 1px solid rgba(200, 200, 200, .3);
-        background: rgb(250, 250, 250);
-        position: relative;
-        padding: 0;
-
-        time {
-            font-size: 1.2em;
-            display: block;
-            background: #fff;
-            font-weight: bold;
-            text-align: center;
-            padding: 20px 5px;
-            @include transition(200ms);
-
-            .la-ball-fall {
-                position: absolute;
-                position: absolute;
-                width: 100%;
-            }
-
-            &.selected {
-                background: color.adjust($success, $lightness: 40%);
-            }
-
-            &.whoops {
-                background: color.adjust($danger, $lightness: 40%);
-            }
-
-            &:hover {
-                background: color.adjust($success, $lightness: 50%);
-            }
-        }
-
-        &.today {
-            border: 1px solid $primary;
-        }
-
-        &.SCsuffix,
-        &.SCprefix {
-            background: rgba(1, 1, 1, .1);
-        }
-
-        &.drop-hover {
-            background: color.adjust($success, $lightness: 30%); 
-        }
-
-    }
-
-
+    min-height: 220px;
+    text-align: center;
 }
 
-div.shadow-event,
-div.event {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    overflow-x: hidden;
-    background-color: #fff;
-    border: 1px solid rgba(200, 200, 200, .3);
-    margin: 5px 5px 0;
-
-    .event-label {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        width: 100%;
+@media (max-width: 900px) {
+    #eventsCalendar .mindevents-calendar-weekday-row {
+        display: none;
     }
 
-    a {
-        color: $dark;
+    #eventsCalendar .mindevents-calendar-week {
+        grid-template-columns: 1fr;
     }
 
-
-    &.disable {
-        opacity: .4;
-        background-color: transparent;
+    #eventsCalendar .mindevents-calendar-day {
+        min-height: 0;
     }
-
-    span {
-        font-size: .8em;
-        padding: 2.5px;
-        margin: 0 0 2px 0px;
-        line-height: 1.1em;
-        width: 100%;
-
-        a {
-            text-decoration: none;
-        }
-
-        &.new {
-            background: $success;
-        }
-
-        &.delete {
-            flex-basis: 17%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            font-size: .9em;
-            background: #fff;
-            color: $danger;
-            padding: 0 2px;
-
-            &:hover {
-                background: $danger;
-                color: #fff;
-            }
-        }
-    }
-
-    &.event {
-        font-weight: bold;
-
-        span {
-            width: 83%;
-
-            &:hover {
-                opacity: .9;
-                cursor: pointer;
-            }
-        }
-    }
-
 }
 
-#editBox {
-    position: absolute;
-    z-index: 100;
-    background: rgba(255, 255, 255, .9);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
+@media (max-width: 782px) {
+    .mindevents-admin-form-grid {
+        grid-template-columns: 1fr;
+    }
 
-    .container {
-        width: 70%;
-        margin: 0 auto;
-        padding: 10px;
+    .mindevents-admin-calendar-nav,
+    .mindevents-admin-modal-actions {
+        flex-direction: column;
+    }
 
-        h3 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .buttonContainer {
-            width: 100%;
-            margin-bottom: 10px;
-            margin-top: 10px;
-
-            button.edit-button {
-                margin-top: 10px;
-
-                &.update-event {
-                    display: block;
-                    width: 60%;
-                    margin: 0 auto;
-                    font-size: 1.2em;
-                    padding: 10px;
-                }
-
-                &.cancel {
-                    margin: 0 auto;
-                    display: block;
-                    background-color: $danger;
-                    border-color: color.adjust($danger, $lightness: -20%);
-
-                    &:hover {
-                        background-color: color.adjust($danger, $lightness: -20%);
-                        ;
-                    }
-                }
-            }
-        }
-
-        button.edit-button {
-
-            &.update-event {
-                display: block;
-                width: 40%;
-                margin: 0 auto;
-                font-size: 1.2em;
-                padding: 10px;
-            }
-
-            &.cancel {
-                margin: 0 auto;
-                display: block;
-                background-color: $danger;
-                border-color: color.adjust($danger, $lightness: -20%);
-            }
-        }
+    .mindevents-admin-calendar-nav .mindevents-button,
+    .mindevents-admin-modal-actions .mindevents-button {
+        width: 100%;
     }
 }
