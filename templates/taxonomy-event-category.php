@@ -10,10 +10,12 @@ do_action(MINDEVENTS_PREPEND . 'before_main_content');
 
 echo '<main role="main" aria-label="Content">';
   do_action(MINDEVENTS_PREPEND . 'archive_loop_start');
-  $calendar = new mindEventCalendar();
+  $filters = function_exists('mindevents_get_frontend_filters') ? mindevents_get_frontend_filters() : array();
+  $event_view = !empty($filters['event_view']) ? $filters['event_view'] : 'month';
+  $initial_calendar_date = function_exists('mindevents_get_archive_initial_calendar_date') ? mindevents_get_archive_initial_calendar_date($filters) : null;
+  $calendar = new mindEventCalendar('', $initial_calendar_date);
   $show_all = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
   $calendar->set_past_events_display($show_all);
-  $filters = function_exists('mindevents_get_frontend_filters') ? mindevents_get_frontend_filters() : array();
   $queried = get_queried_object();
 
   if ($queried instanceof WP_Term) :
@@ -35,38 +37,15 @@ echo '<main role="main" aria-label="Content">';
   endif;
 
   echo '<div id="archiveContainer" class="calendar-wrap">';
+    echo '<div id="cartErrorContainer"></div>';
     if (function_exists('mindevents_get_frontend_filter_form')) {
       echo mindevents_get_frontend_filter_form($filters);
     }
     do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
     do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
     echo '<div id="publicCalendar" class="container">';
-      echo $calendar->get_front_list();
+      echo ($event_view === 'list') ? $calendar->get_front_list() : $calendar->get_front_calendar();
     echo '</div>';
-
-    $list_query = $calendar->get_last_front_list_query();
-    if ($list_query instanceof WP_Query && $list_query->max_num_pages > 1) {
-      $pagination_args = array();
-      $pagination_base = get_pagenum_link(999999999);
-      if (function_exists('mindevents_get_frontend_filter_query_args')) {
-        $pagination_args = mindevents_get_frontend_filter_query_args($filters, array(), array('paged', 'calendar_date'));
-        if (!empty($pagination_args)) {
-          $pagination_base = remove_query_arg(array_keys($pagination_args), $pagination_base);
-        }
-      }
-
-      echo '<nav class="mindevents-pagination" aria-label="Event pagination">';
-        echo paginate_links(array(
-          'base'      => str_replace(999999999, '%#%', esc_url($pagination_base)),
-          'format'    => '',
-          'current'   => max(1, get_query_var('paged') ?: ($filters['paged'] ?? 1)),
-          'total'     => $list_query->max_num_pages,
-          'prev_text' => __('&laquo; Previous', 'mindshare'),
-          'next_text' => __('Next &raquo;', 'mindshare'),
-          'add_args'  => $pagination_args,
-        ));
-      echo '</nav>';
-    }
   echo '</div>';
 
   do_action(MINDEVENTS_PREPEND . 'archive_loop_end');

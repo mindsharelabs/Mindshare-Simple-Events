@@ -29,38 +29,43 @@
   #mindCalanderList{
     .list_day_container {
       .item_meta_container {
-        .meta-item {
-          &.description {
-            margin-left: 0 !important; 
-            font-size: .9em;
-            line-height: 1.2em;
+        gap: 12px;
+        padding: 14px 14px 16px;
+
+        .description {
+          margin-left: 0 !important;
+
+          .eventdescription {
+            font-size: .92rem;
+            line-height: 1.45;
+            -webkit-line-clamp: 4;
           }
-          &.link {
+        }
+
+        .list-item-date {
+          .eventdate {
+            border-radius: 14px;
             width: 100%;
-            .offer-link {
-              width: 100%;
-              a, button {
-                display: block;
-                width: 100%;
-              }
-            }
-            
           }
-          &.time-span {
-            display: flex;
-            flex-direction: row !important;
-            justify-content: space-between;
-            .endtime {
-              margin-top: 0px !important;
-            }
         }
-          
-        }
-        .featured-image {
+
+        .right-content {
+          margin-top: 0 !important;
           width: 100%;
-          img {
+
+          .offer-link {
             width: 100%;
+
+            a,
+            button {
+              display: block;
+              width: 100%;
+            }
           }
+        }
+
+        .instructor-info {
+          align-items: flex-start;
         }
       }
     }
@@ -178,7 +183,6 @@
 .text-xs-justify {
   text-align: justify;
 }
-
 
 
 

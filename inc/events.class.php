@@ -272,6 +272,139 @@ class mindEventCalendar
       $this->dailyHtml[$year][$month][$day][$htmlCount] = $html;
   }
 
+  private function get_calendar_reference_date()
+  {
+    if (!($this->now instanceof \DateTimeInterface)) {
+      $fallback = function_exists('current_time') ? current_time('mysql') : 'now';
+      $this->setDate($fallback);
+    }
+
+    if ($this->now instanceof \DateTimeImmutable) {
+      return $this->now;
+    }
+
+    return new \DateTimeImmutable($this->now->format('Y-m-d H:i:s'), $this->now->getTimezone());
+  }
+
+  private function get_frontend_filters_state()
+  {
+    if (function_exists('mindevents_get_frontend_filters')) {
+      $filters = mindevents_get_frontend_filters();
+      if (is_array($filters)) {
+        return $filters;
+      }
+    }
+
+    return array();
+  }
+
+  private function should_use_frontend_visible_period()
+  {
+    $filters = $this->get_frontend_filters_state();
+    return !empty($filters['apply']);
+  }
+
+  private function get_frontend_view()
+  {
+    if (!$this->should_use_frontend_visible_period()) {
+      return 'month';
+    }
+
+    $filters = $this->get_frontend_filters_state();
+    $view = isset($filters['event_view']) ? sanitize_key((string) $filters['event_view']) : 'month';
+
+    return in_array($view, array('month', 'week', 'list'), true) ? $view : 'month';
+  }
+
+  private function get_visible_period($view = null)
+  {
+    $this->setStartOfWeek($this->calendar_start_day);
+
+    $view = $view ?: $this->get_frontend_view();
+    $current = $this->get_calendar_reference_date();
+    $current = new \DateTimeImmutable($current->format('Y-m-d H:i:s'), $current->getTimezone());
+
+    if ($view === 'week') {
+      $period_start = $current->setTime(0, 0, 0);
+      $days_to_subtract = (((int) $period_start->format('w')) - $this->offset + 7) % 7;
+      if ($days_to_subtract > 0) {
+        $period_start = $period_start->modify('-' . $days_to_subtract . ' days');
+      }
+      $period_end = $period_start->modify('+6 days')->setTime(23, 59, 59);
+    } else {
+      $period_start = $current->modify('first day of this month')->setTime(0, 0, 0);
+      $period_end = $period_start->modify('last day of this month')->setTime(23, 59, 59);
+    }
+
+    return array(
+      'view'  => $view,
+      'start' => $period_start,
+      'end'   => $period_end,
+    );
+  }
+
+  private function apply_visible_period_to_query_args($args, $view = null)
+  {
+    if (!$this->should_use_frontend_visible_period()) {
+      return $args;
+    }
+
+    $period = $this->get_visible_period($view);
+    $period_start = $period['start']->format('Y-m-d H:i:s');
+    $period_end = $period['end']->format('Y-m-d H:i:s');
+
+    if (!isset($args['meta_query']) || !is_array($args['meta_query'])) {
+      $args['meta_query'] = array();
+    }
+
+    if (!isset($args['meta_query']['relation'])) {
+      $args['meta_query']['relation'] = 'AND';
+    }
+
+    if ($period['view'] === 'list') {
+      $args['meta_query'][] = array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => $period_start,
+        'compare' => '>=',
+        'type'    => 'DATETIME',
+      );
+      $args['meta_query'][] = array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => $period_end,
+        'compare' => '<=',
+        'type'    => 'DATETIME',
+      );
+    } else {
+      $args['meta_query'][] = array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => $period_end,
+        'compare' => '<=',
+        'type'    => 'DATETIME',
+      );
+      $args['meta_query'][] = array(
+        'key'     => 'event_end_time_stamp',
+        'value'   => $period_start,
+        'compare' => '>=',
+        'type'    => 'DATETIME',
+      );
+    }
+
+    return $args;
+  }
+
+  private function get_week_display_label(\DateTimeInterface $period_start, \DateTimeInterface $period_end)
+  {
+    if ($period_start->format('F Y') === $period_end->format('F Y')) {
+      return $period_start->format('F j') . ' - ' . $period_end->format('j, Y');
+    }
+
+    if ($period_start->format('Y') === $period_end->format('Y')) {
+      return $period_start->format('F j') . ' - ' . $period_end->format('F j, Y');
+    }
+
+    return $period_start->format('F j, Y') . ' - ' . $period_end->format('F j, Y');
+  }
+
   /**
    * Returns the generated Calendar
    *
@@ -288,7 +421,8 @@ class mindEventCalendar
     if (!is_admin()):
       $out .= $this->get_calendar_nav_links();
     endif;
-    $now = getdate($this->now->getTimestamp());
+    $referenceDate = $this->get_calendar_reference_date();
+    $now = getdate($referenceDate->getTimestamp());
     $today = ['mday' => -1, 'mon' => -1, 'year' => -1];
     if ($this->today !== null) {
       $today = getdate($this->today->getTimestamp());
@@ -316,7 +450,7 @@ class mindEventCalendar
       $out .= '<div class="col border ' . $this->classes['leading_day'] . '">&nbsp;</div>';
     }
     for ($i = 1; $i <= $daysInMonth; $i++) {
-      $date = (new \DateTimeImmutable())->setDate($now['year'], $now['mon'], $i);
+      $date = (new \DateTimeImmutable($referenceDate->format('Y-m-d H:i:s'), $referenceDate->getTimezone()))->setDate($now['year'], $now['mon'], $i)->setTime(0, 0, 0);
       $isToday = $i == $today['mday'] && $today['mon'] == $date->format('n') && $today['year'] == $date->format('Y');
       // Compare to the minute for past status
       $nowMinute = $this->today ? $this->today->format('Y-m-d H:i') : null;
@@ -364,28 +498,109 @@ class mindEventCalendar
     return $out;
   }
 
+  public function renderWeek()
+  {
+    $this->dailyHtml = apply_filters(
+        'mindevents_calendar_daily_html',
+        $this->dailyHtml,
+        $this
+    );
+
+    $period = $this->get_visible_period('week');
+    $weekStart = $period['start'];
+    $weekEnd = $period['end'];
+    $today = array('mday' => -1, 'mon' => -1, 'year' => -1);
+    if ($this->today !== null) {
+      $today = getdate($this->today->getTimestamp());
+    }
+
+    $daysOfWeek = $this->weekdays();
+    $this->rotate($daysOfWeek, $this->offset);
+
+    $out = '';
+    if (!is_admin()) {
+      $out .= $this->get_calendar_nav_links('week');
+    }
+
+    $out .= '<h4 class="month-display">' . esc_html($this->get_week_display_label($weekStart, $weekEnd)) . '</h4>';
+    $out .= '<div id="mindEventCalendar" class="container-fluid ' . $this->classes['calendar'] . ' is-week-view" data-month="' . esc_attr($weekStart->format('n')) . '" data-year="' . esc_attr($weekStart->format('Y')) . '" data-view="week">';
+    $out .= '<div class="row text-center calendar-header fw-bold border-bottom pb-2 d-none d-md-flex">';
+    foreach ($daysOfWeek as $dayName) {
+      $out .= '<div class="col day-name">' . esc_html($dayName) . '</div>';
+    }
+    $out .= '</div>';
+
+    $out .= '<div class="row justify-content-center week-row">';
+    for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
+      $date = $weekStart->modify('+' . $dayOffset . ' days');
+      $year = (int) $date->format('Y');
+      $month = (int) $date->format('n');
+      $day = (int) $date->format('j');
+      $isToday = $day === (int) $today['mday'] && $month === (int) $today['mon'] && $year === (int) $today['year'];
+      $nowMinute = $this->today ? $this->today->format('Y-m-d H:i') : null;
+      $dateMinute = $date->format('Y-m-d H:i');
+      $isPast = $this->today && $nowMinute > $dateMinute;
+
+      $classes = 'col-12 col-md border p-1 day-container ';
+      if ($isToday) {
+        $classes .= $this->classes['today'] . ' ';
+      }
+      if ($isPast) {
+        $classes .= $this->classes['past'] . ' ';
+      }
+
+      $out .= '<div class="' . trim($classes) . '" data-date="' . esc_attr($date->format('Y-m-d')) . '">';
+      if (isset($this->dailyHtml[$year][$month][$day])) {
+        $out .= '<div class="mobile-day-name d-block d-md-none small fw-bold mb-1">' . esc_html($date->format('l, F j')) . '</div>';
+      }
+      $out .= '<time class="d-none d-md-block calendar-day week-calendar-day" datetime="' . esc_attr($date->format('Y-m-d')) . '">' . esc_html($date->format('M j')) . '</time>';
+
+      if (isset($this->dailyHtml[$year][$month][$day])) {
+        $out .= '<div class="events">';
+        foreach ($this->dailyHtml[$year][$month][$day] as $dHtml) {
+          $out .= $dHtml;
+        }
+        $out .= '</div>';
+      }
+
+      $out .= '</div>';
+    }
+    $out .= '</div></div>';
+
+    return $out;
+  }
+
   /**
    * Generate Previous/Next month navigation links that update the query string.
    */
-  public function get_calendar_nav_links()
+  public function get_calendar_nav_links($view = null)
   {
-    $prevMonth = clone $this->now;
-    $prevMonth = $prevMonth->modify('first day of previous month')->format('Y-m-d');
+    $view = $view ?: $this->get_frontend_view();
+    $currentDate = $this->get_calendar_reference_date();
 
-    $nextMonth = clone $this->now;
-    $nextMonth = $nextMonth->modify('first day of next month')->format('Y-m-d');
+    if ($view === 'week') {
+      $prevDate = $currentDate->modify('-7 days');
+      $nextDate = $currentDate->modify('+7 days');
+      $prevLabel = 'Prev Week';
+      $nextLabel = 'Next Week';
+    } else {
+      $prevDate = $currentDate->modify('first day of previous month');
+      $nextDate = $currentDate->modify('first day of next month');
+      $prevLabel = date('F', strtotime($prevDate->format('Y-m-d')));
+      $nextLabel = date('F', strtotime($nextDate->format('Y-m-d')));
+    }
 
     $currentUrl = home_url(strtok($_SERVER["REQUEST_URI"], '?'));
-    $prevArgs   = array('calendar_date' => $prevMonth);
-    $nextArgs   = array('calendar_date' => $nextMonth);
+    $prevArgs   = array('calendar_date' => $prevDate->format('Y-m-d'));
+    $nextArgs   = array('calendar_date' => $nextDate->format('Y-m-d'));
     if (function_exists('mindevents_get_frontend_filter_query_args')) {
-      $prevArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $prevMonth), array('paged'));
-      $nextArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $nextMonth), array('paged'));
+      $prevArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $prevDate->format('Y-m-d')), array('paged'));
+      $nextArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $nextDate->format('Y-m-d')), array('paged'));
     }
 
     $out = '<div class="calendar-nav d-flex justify-content-between mb-3 w-100">';
-    $out .= '<a href="' . esc_url(add_query_arg($prevArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary"><i class="fas fa-chevron-left"></i> ' . date('F', strtotime($prevMonth)) . '</a>';
-    $out .= '<a href="' . esc_url(add_query_arg($nextArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary">' . date('F', strtotime($nextMonth)) . ' <i class="fas fa-chevron-right"></i></a>';
+    $out .= '<a href="' . esc_url(add_query_arg($prevArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary"><i class="fas fa-chevron-left"></i> ' . esc_html($prevLabel) . '</a>';
+    $out .= '<a href="' . esc_url(add_query_arg($nextArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary">' . esc_html($nextLabel) . ' <i class="fas fa-chevron-right"></i></a>';
     $out .= '</div>';
 
     return $out;
@@ -488,7 +703,11 @@ class mindEventCalendar
   }
 
   public function get_sub_events($args = array()){
-
+    $passed_meta_query = array();
+    if (!empty($args['meta_query']) && is_array($args['meta_query'])) {
+      $passed_meta_query = $args['meta_query'];
+      unset($args['meta_query']);
+    }
 
     $defaults = array(
       'meta_query' => array(
@@ -522,7 +741,7 @@ class mindEventCalendar
 
 
     if ($this->show_past_events === false) {
-      $args['meta_query'][] = array(
+      $passed_meta_query[] = array(
         'key' => 'event_start_time_stamp', // Check the start date field
         'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
         'compare' => '>=', // Return the ones greater than today's date
@@ -544,6 +763,21 @@ class mindEventCalendar
     endif;
 
     $args = wp_parse_args($args, $defaults);
+    if (!empty($passed_meta_query)) {
+      $meta_query = $defaults['meta_query'];
+      if (isset($passed_meta_query['relation'])) {
+        $meta_query['relation'] = $passed_meta_query['relation'];
+      }
+
+      foreach ($passed_meta_query as $meta_key => $meta_value) {
+        if ($meta_key === 'relation') {
+          continue;
+        }
+        $meta_query[] = $meta_value;
+      }
+
+      $args['meta_query'] = $meta_query;
+    }
 
     return get_posts($args);
 
@@ -573,9 +807,11 @@ class mindEventCalendar
     
     // Allow filtering of the query args
     $args = apply_filters('mindevents_front_calendar_query_args', $args, $this);
+    $args = $this->apply_visible_period_to_query_args($args, $this->get_frontend_view());
 
     $eventDates = $this->get_sub_events($args);
     $matched_events = $eventDates;
+    $view = $this->get_frontend_view();
 
     if ($eventDates):
       foreach ($eventDates as $key => $event):
@@ -628,11 +864,12 @@ class mindEventCalendar
 
         $insideHTML .= '</div>';
 
-        $eventDates = $this->addDailyHtml($insideHTML, $date);
+        $event_end = get_post_meta($event->ID, 'event_end_time_stamp', true);
+        $eventDates = $this->addDailyHtml($insideHTML, $date, $event_end ?: null);
       endforeach;
     endif;
 
-    $html = $this->render();
+    $html = ($view === 'week') ? $this->renderWeek() : $this->render();
     if (empty($matched_events)) {
       $html = '<p class="no-events">No events matched the current filters.</p>' . $html;
     }
@@ -645,11 +882,25 @@ class mindEventCalendar
   public function get_front_list($calDate = '', $args = array()){
     $this->clearDailyHtml();
     $this->last_front_list_query = null;
+    $this->setStartOfWeek($this->calendar_start_day);
     $current_time = current_time('mysql');
     $timezone = function_exists('wp_timezone') ? wp_timezone() : new \DateTimeZone(get_option('timezone_string') ?: 'UTC');
     $current_time_dt = new \DateTimeImmutable($current_time, $timezone);
     $current_plus_thirty = $current_time_dt->modify('+30 days')->format('Y-m-d H:i:s');
-    if ($calDate == 'archive'):
+    $use_frontend_period = $this->should_use_frontend_visible_period();
+
+    if ($use_frontend_period):
+      $this->is_archive = true;
+      $default = array(
+        'orderby' => 'meta_value',
+        'meta_key' => 'event_start_time_stamp',
+        'meta_type' => 'DATETIME',
+        'order' => 'ASC',
+        'post_type' => 'sub_event',
+        'suppress_filters' => true,
+        'posts_per_page' => -1
+      );
+    elseif ($calDate == 'archive'):
       $this->is_archive = true;
       $this->show_past_events = false;
       $default = array(
@@ -717,6 +968,21 @@ class mindEventCalendar
 
     $args = wp_parse_args($args, $default);
     $args = apply_filters('mindevents_front_list_query_args', $args, $this, $calDate);
+    $args = $this->apply_visible_period_to_query_args($args, 'list');
+    if ($use_frontend_period && $this->get_frontend_view() === 'list') {
+      if (!isset($args['meta_query']) || !is_array($args['meta_query'])) {
+        $args['meta_query'] = array();
+      }
+      if (!isset($args['meta_query']['relation'])) {
+        $args['meta_query']['relation'] = 'AND';
+      }
+      $args['meta_query'][] = array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => $current_time,
+        'compare' => '>=',
+        'type'    => 'DATETIME',
+      );
+    }
 
     $list_query = new WP_Query($args);
     $this->last_front_list_query = $list_query;
@@ -735,7 +1001,11 @@ class mindEventCalendar
       endforeach;
       $html = $this->renderList();
     else:
-      $html = '<p class="no-events">There are no ' . ($this->show_past_events ? 'events.' : 'upcoming events.') . '</p>';
+      if ($use_frontend_period) {
+        $html = '<p class="no-events">No events matched the current view.</p>' . $this->renderList();
+      } else {
+        $html = '<p class="no-events">There are no ' . ($this->show_past_events ? 'events.' : 'upcoming events.') . '</p>';
+      }
     endif;
 
     return $html;
@@ -756,10 +1026,17 @@ class mindEventCalendar
    */
   public function renderList(){
 
-    $out = '<div id="mindCalanderList" class="event-list mt-4 ' . $this->classes['calendar'] . '">';
+    $out = '';
+    if ($this->should_use_frontend_visible_period() && $this->get_frontend_view() === 'list' && !is_admin()) {
+      $out .= $this->get_calendar_nav_links('list');
+    }
+
+    $out .= '<div id="mindCalanderList" class="event-list mt-4 ' . $this->classes['calendar'] . '">';
     if (is_array($this->dailyHtml)):
-
-
+      if (empty($this->dailyHtml) && $this->should_use_frontend_visible_period() && $this->get_frontend_view() === 'list') {
+        $period = $this->get_visible_period('list');
+        $out .= '<h2 class="month-display text-center">' . esc_html($period['start']->format('F Y')) . '</h2>';
+      }
 
       foreach ($this->dailyHtml as $year => $year_items):
         foreach ($year_items as $month => $month_items):
@@ -801,6 +1078,7 @@ class mindEventCalendar
     $sub_event_obj = get_post($event);
 
     $instructorID = get_post_meta($event, 'instructorID', true);
+    $has_tickets = $parentID ? get_post_meta($parentID, 'has_tickets', true) : false;
 
     $parent_event_type = get_post_meta($parentID, 'event_type', true);
     if ($parent_event_type == 'single-event'):
@@ -815,10 +1093,74 @@ class mindEventCalendar
 
     if ($meta):
       $description = ($meta['eventDescription'][0] ? $meta['eventDescription'][0] : get_the_excerpt(get_post_parent($event)));
+      $ticket_html = '';
+      if (!$is_past && $has_tickets && function_exists('wc_get_product')) {
+        $ticket_product_id = !empty($meta['linked_product'][0]) ? absint($meta['linked_product'][0]) : 0;
+        $ticket_meta = $meta;
+        $ticket_start = !empty($meta['event_start_time_stamp'][0]) ? $meta['event_start_time_stamp'][0] : '';
 
-      $html = '<div class="item_meta_container row">';
+        if (!$ticket_product_id && $parentID) {
+          $fallback_sub_events = get_posts(array(
+            'post_type'        => 'sub_event',
+            'post_parent'      => $parentID,
+            'posts_per_page'   => 1,
+            'orderby'          => 'meta_value',
+            'meta_key'         => 'event_start_time_stamp',
+            'meta_type'        => 'DATETIME',
+            'order'            => 'ASC',
+            'suppress_filters' => true,
+            'meta_query'       => array(
+              'relation' => 'AND',
+              array(
+                'key'     => 'event_start_time_stamp',
+                'value'   => current_time('mysql'),
+                'compare' => '>=',
+                'type'    => 'DATETIME',
+              ),
+              array(
+                'key'     => 'linked_product',
+                'compare' => 'EXISTS',
+              ),
+            ),
+          ));
 
-        $html .= '<div class="left-content col-12 col-md-8">';
+          if (!empty($fallback_sub_events[0])) {
+            $ticket_meta = get_post_meta($fallback_sub_events[0]->ID);
+            $ticket_product_id = !empty($ticket_meta['linked_product'][0]) ? absint($ticket_meta['linked_product'][0]) : 0;
+            $ticket_start = !empty($ticket_meta['event_start_time_stamp'][0]) ? $ticket_meta['event_start_time_stamp'][0] : '';
+          }
+        }
+
+        if ($ticket_product_id && $ticket_start !== '') {
+          $product = wc_get_product($ticket_product_id);
+          if ($product) {
+            $ticket_event_start = new DateTimeImmutable($ticket_start);
+            $ticket_html = $this->build_offer_link(array(
+              'label' => !empty($ticket_meta['wooLabel'][0]) ? $ticket_meta['wooLabel'][0] : '',
+              'price' => $product->get_price(),
+              'link' => $product->get_permalink(),
+              'product_id' => $ticket_product_id,
+              'event_date' => $ticket_event_start->format('D, M d Y @ H:i'),
+              'quantity' => 1
+            ));
+          }
+        }
+      }
+
+      $container_classes = array('item_meta_container', 'row');
+      $container_classes[] = ($ticket_html !== '') ? 'has-right-content' : 'has-no-right-content';
+      if ($is_past) {
+        $container_classes[] = 'is-past';
+      }
+
+      $left_classes = array('left-content', 'col-12');
+      if ($ticket_html !== '') {
+        $left_classes[] = 'col-lg-8';
+      }
+
+      $html = '<div class="' . esc_attr(implode(' ', $container_classes)) . '">';
+
+        $html .= '<div class="' . esc_attr(implode(' ', $left_classes)) . '">';
           if ($is_past):
             $html .= '<div class="past-event alert alert-info">This event has passed.</div>';
           endif;
@@ -832,17 +1174,15 @@ class mindEventCalendar
             endif;
           endif;
 
-          if ($this->is_archive):
-            $html .= '<div class="col-12">';
-              $html .= '<div class="row">';
-              if ($sub_event_obj->post_parent):
-                $html .= '<div class="meta-item col-12 col-md-9">';
-                $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" title="' . get_the_title($sub_event_obj->post_parent) . '">';
-                $html .= '<h3 class="event-title">' . get_the_title($sub_event_obj->post_parent) . '</h3>';
-                $html .= '</a>';
-                $html .= '</div>';
-              endif;
-              $html .= '</div>';
+          if ($this->is_archive && $sub_event_obj->post_parent):
+            $html .= '<div class="meta-item col-12 list-item-title">';
+            if ($display_link) {
+              $html .= '<a class="event-title-link" href="' . esc_url(get_permalink($sub_event_obj->post_parent)) . '" title="' . esc_attr(get_the_title($sub_event_obj->post_parent)) . '">';
+            }
+            $html .= '<h3 class="event-title">' . esc_html(get_the_title($sub_event_obj->post_parent)) . '</h3>';
+            if ($display_link) {
+              $html .= '</a>';
+            }
             $html .= '</div>';
           endif;
 
@@ -851,24 +1191,22 @@ class mindEventCalendar
             $end_date = strtotime($meta['event_end_time_stamp'][0]);
             $start_date_str = date('Y-m-d', $start_date);
             $end_date_str = date('Y-m-d', $end_date);
-            $starttime = date($this->date_format . ' ' . $this->time_format, $start_date);
-            $endtime = date($this->time_format, $end_date); // Only show time for end
-
-            $html .= '<div class="meta-item col-12">';
+            $endtime = date($this->time_format, $end_date);
+            $date_display = '';
             if ($start_date_str == $end_date_str) {
-              // Same day: show date and start time, then just end time
-              $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . date($dateformat, $start_date) . ' @ ' . date($timeformat, $start_date) . ' - ' . $endtime . '</strong></h3>';
+              $date_display = date($dateformat, $start_date) . ' · ' . date($timeformat, $start_date) . ' - ' . $endtime;
             } else {
-              // Different days: show full start and end
-              $html .= '<h3 class="value eventdate mt-0 mb-2 h4"><strong>' . $starttime . ' - ' . date($dateformat . ' ' . $timeformat, $end_date) . '</strong></h3>';
+              $date_display = date($dateformat . ' ' . $timeformat, $start_date) . ' - ' . date($dateformat . ' ' . $timeformat, $end_date);
             }
+            $html .= '<div class="meta-item col-12 list-item-date">';
+              $html .= '<div class="value eventdate"><i class="fas fa-clock" aria-hidden="true"></i><span>' . esc_html($date_display) . '</span></div>';
             $html .= '</div>';
           endif;
 
 
 
           if ($description):
-            $html .= '<div class="meta-item col-12">';
+            $html .= '<div class="meta-item col-12 description">';
               $html .= '<span class="value eventdescription d-block mb-2">' . $description . '</span>';
               // $html .= '<a href="' . get_permalink($sub_event_obj->post_parent) . '" style="' . $style_str['color'] . '" class="event-info-link"> Read More</span></a>';
             $html .= '</div>';
@@ -903,57 +1241,11 @@ class mindEventCalendar
         
           $html .= '</div>'; //end left content
 
-
-
-        $html .= '<div class="right-content col-12 col-md d-flex h-100 flex-column align-items-end justify-content-end mt-3">';
-          $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
-          if ($has_tickets && $meta['linked_product'][0]):
-
-            
-   
-              $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-              $product = wc_get_product($meta['linked_product'][0]);
-              $sub_events = $this->get_sub_events(array('posts_per_page' => 1));
-              if ($product):
-
-                $html .= $this->build_offer_link(array(
-                  'label' => $meta['wooLabel'][0],
-                  'price' => $product->get_price(),
-                  'link' => $product->get_permalink(),
-                  'product_id' => $meta['linked_product'][0],
-                  'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-                  'quantity' => 1
-                ));
-
-              elseif ($sub_events):
-                $sub_event = $sub_events[0];
-                $meta = get_post_meta($sub_event->ID);
-                $event_start_date = new DateTimeImmutable($meta['event_start_time_stamp'][0]);
-                $product = wc_get_product($meta['linked_product'][0]);
-                if ($product):
-
-                  $html .= $this->build_offer_link(array(
-                    'label' => $meta['wooLabel'][0],
-                    'price' => $product->get_price(),
-                    'link' => $product->get_permalink(),
-                    'product_id' => $meta['linked_product'][0],
-                    'event_date' => $event_start_date->format('D, M d Y @ H:i'),
-                    'quantity' => 1
-                  ));
-
-                endif;
-
-
-              endif;
-
-            
-
-
-
-          endif; //end if offers
-
-
-        $html .= '</div>';
+        if ($ticket_html !== '') {
+          $html .= '<div class="right-content col-12 col-lg-4 d-flex h-100 flex-column align-items-stretch justify-content-center mt-2 mt-lg-0">';
+            $html .= $ticket_html;
+          $html .= '</div>';
+        }
 
 
 
@@ -1229,7 +1521,7 @@ class mindEventCalendar
         $offers = false;
       endif;
       $has_tickets = get_post_meta($sub_event_obj->post_parent, 'has_tickets', true);
-      if ($offers || $has_tickets):
+      if (!$is_past && ($offers || $has_tickets)):
 
         $html .= '<div class="right-content mt-4 mt-md-0">';
         if ($has_tickets && $meta['linked_product'][0]):

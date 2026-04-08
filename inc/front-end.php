@@ -57,6 +57,11 @@ function mindevents_get_frontend_filter_timezone() {
   return new DateTimeZone(get_option('timezone_string') ?: 'UTC');
 }
 
+function mindevents_normalize_frontend_event_view($view) {
+  $view = sanitize_key((string) $view);
+  return in_array($view, array('month', 'week', 'list'), true) ? $view : 'month';
+}
+
 function mindevents_parse_frontend_filter_date($value) {
   $value = sanitize_text_field(wp_unslash((string) $value));
   if ($value === '') {
@@ -139,16 +144,13 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
   $filters = array(
     'context'             => $context,
     'apply'               => in_array($context, array('events_archive', 'event_category_archive'), true),
+    'event_view'          => 'month',
     'calendar_date'       => '',
-    'event_start'         => '',
-    'event_end'           => '',
     'event_search'        => '',
     'paged'               => 1,
     'selected_category_ids' => array(),
     'query_category_ids'  => array(),
     'title_parent_ids'    => array(),
-    'query_start'         => '',
-    'query_end'           => '',
     'force_empty'         => false,
     'has_user_filters'    => false,
     'scoped_term_id'      => 0,
@@ -167,25 +169,8 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
     $filters['calendar_date'] = $calendar_date->format('Y-m-d');
   }
 
-  $start_date = mindevents_parse_frontend_filter_date($source['event_start'] ?? '');
-  $end_date   = mindevents_parse_frontend_filter_date($source['event_end'] ?? '');
-  if ($start_date && $end_date && $end_date < $start_date) {
-    $tmp        = $start_date;
-    $start_date = $end_date;
-    $end_date   = $tmp;
-  }
-
-  if ($start_date instanceof DateTimeImmutable) {
-    $filters['event_start'] = $start_date->format('Y-m-d');
-    $filters['query_start'] = $start_date->setTime(0, 0, 0)->format('Y-m-d H:i:s');
-  }
-
-  if ($end_date instanceof DateTimeImmutable) {
-    $filters['event_end'] = $end_date->format('Y-m-d');
-    $filters['query_end'] = $end_date->setTime(23, 59, 59)->format('Y-m-d H:i:s');
-  }
-
   $filters['event_search'] = sanitize_text_field(wp_unslash((string) ($source['event_search'] ?? '')));
+  $filters['event_view']   = mindevents_normalize_frontend_event_view($source['event_view'] ?? 'month');
   $filters['paged']        = max(1, absint($source['paged'] ?? 1));
 
   if ($context === 'events_archive') {
@@ -217,8 +202,6 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
 
   $filters['has_user_filters'] = (
     !empty($filters['selected_category_ids']) ||
-    $filters['event_start'] !== '' ||
-    $filters['event_end'] !== '' ||
     $filters['event_search'] !== ''
   );
 
@@ -258,30 +241,6 @@ function mindevents_apply_frontend_filters_to_sub_event_query_args($args, $filte
     }
   }
 
-  if (!empty($filters['query_start']) || !empty($filters['query_end'])) {
-    if (!isset($args['meta_query']) || !is_array($args['meta_query'])) {
-      $args['meta_query'] = array();
-    }
-
-    if (!empty($filters['query_end'])) {
-      $args['meta_query'][] = array(
-        'key'     => 'event_start_time_stamp',
-        'value'   => $filters['query_end'],
-        'compare' => '<=',
-        'type'    => 'DATETIME',
-      );
-    }
-
-    if (!empty($filters['query_start'])) {
-      $args['meta_query'][] = array(
-        'key'     => 'event_end_time_stamp',
-        'value'   => $filters['query_start'],
-        'compare' => '>=',
-        'type'    => 'DATETIME',
-      );
-    }
-  }
-
   if (!empty($filters['title_parent_ids'])) {
     $parent_ids = array_map('absint', $filters['title_parent_ids']);
 
@@ -311,16 +270,12 @@ function mindevents_get_frontend_filter_query_args($filters = null, $extra_args 
   $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
   $args    = array();
 
+  if (!empty($filters['event_view'])) {
+    $args['event_view'] = $filters['event_view'];
+  }
+
   if ($filters['context'] === 'events_archive' && !empty($filters['selected_category_ids'])) {
     $args['event_category_filter'] = array_map('absint', $filters['selected_category_ids']);
-  }
-
-  if (!empty($filters['event_start'])) {
-    $args['event_start'] = $filters['event_start'];
-  }
-
-  if (!empty($filters['event_end'])) {
-    $args['event_end'] = $filters['event_end'];
   }
 
   if (!empty($filters['event_search'])) {
@@ -353,21 +308,17 @@ function mindevents_get_frontend_filter_query_args($filters = null, $extra_args 
 
 function mindevents_get_archive_initial_calendar_date($filters = null) {
   $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
+  $selected_view = !empty($filters['event_view']) ? mindevents_normalize_frontend_event_view($filters['event_view']) : 'month';
 
   if (!empty($filters['calendar_date'])) {
     return $filters['calendar_date'];
   }
 
-  if (!empty($filters['event_start'])) {
-    $start_date = mindevents_parse_frontend_filter_date($filters['event_start']);
-    if ($start_date instanceof DateTimeImmutable) {
-      return $start_date->modify('first day of this month')->format('Y-m-d');
-    }
-  }
-
   $fallback = new DateTimeImmutable(current_time('mysql'), mindevents_get_frontend_filter_timezone());
   if (!empty($filters['force_empty'])) {
-    return $fallback->modify('first day of this month')->format('Y-m-d');
+    return ($selected_view === 'week')
+      ? $fallback->format('Y-m-d')
+      : $fallback->modify('first day of this month')->format('Y-m-d');
   }
 
   $query_args = array(
@@ -394,11 +345,15 @@ function mindevents_get_archive_initial_calendar_date($filters = null) {
     $event_start = get_post_meta($events[0]->ID, 'event_start_time_stamp', true);
     $event_date  = mindevents_parse_frontend_filter_date(substr((string) $event_start, 0, 10));
     if ($event_date instanceof DateTimeImmutable) {
-      return $event_date->modify('first day of this month')->format('Y-m-d');
+      return ($selected_view === 'week')
+        ? $event_date->format('Y-m-d')
+        : $event_date->modify('first day of this month')->format('Y-m-d');
     }
   }
 
-  return $fallback->modify('first day of this month')->format('Y-m-d');
+  return ($selected_view === 'week')
+    ? $fallback->format('Y-m-d')
+    : $fallback->modify('first day of this month')->format('Y-m-d');
 }
 
 function mindevents_get_category_filter_summary($categories, $selected_ids) {
@@ -451,9 +406,34 @@ function mindevents_get_frontend_filter_form($filters = null) {
     $form_classes[] = 'has-active-filters';
   }
 
+  $reset_args = function_exists('mindevents_get_frontend_filter_query_args')
+    ? mindevents_get_frontend_filter_query_args($filters, array(), array('event_search', 'event_category_filter', 'paged'))
+    : array();
+
   ob_start();
   echo '<form method="get" action="' . esc_url($action_url) . '" class="' . esc_attr(implode(' ', $form_classes)) . '">';
     echo '<div class="mindevents-filter-toolbar">';
+      echo '<div class="mindevents-view-toggle-group" role="tablist" aria-label="Event views">';
+      foreach (array(
+        'month' => array('label' => 'Month', 'icon' => 'fa-calendar-days'),
+        'week'  => array('label' => 'Week', 'icon' => 'fa-calendar-week'),
+        'list'  => array('label' => 'List', 'icon' => 'fa-list-ul'),
+      ) as $view_key => $view_meta) {
+        $view_classes = array('mindevents-view-toggle');
+        if ($filters['event_view'] === $view_key) {
+          $view_classes[] = 'is-active';
+        }
+        $view_args = function_exists('mindevents_get_frontend_filter_query_args')
+          ? mindevents_get_frontend_filter_query_args($filters, array('event_view' => $view_key), array('paged'))
+          : array('event_view' => $view_key);
+
+        echo '<a href="' . esc_url(add_query_arg($view_args, $action_url)) . '" class="' . esc_attr(implode(' ', $view_classes)) . '" role="tab" aria-selected="' . ($filters['event_view'] === $view_key ? 'true' : 'false') . '">';
+          echo '<i class="fas ' . esc_attr($view_meta['icon']) . '" aria-hidden="true"></i>';
+          echo '<span>' . esc_html($view_meta['label']) . '</span>';
+        echo '</a>';
+      }
+      echo '</div>';
+
       echo '<button type="button" class="mindevents-filter-toggle" aria-expanded="' . (!empty($filters['has_user_filters']) ? 'true' : 'false') . '" aria-controls="' . esc_attr($panel_id) . '">';
         echo '<i class="fas fa-filter" aria-hidden="true"></i>';
         echo '<span class="mindevents-filter-toggle-text">Filters</span>';
@@ -482,16 +462,6 @@ function mindevents_get_frontend_filter_form($filters = null) {
           echo '</div>';
         }
 
-        echo '<label class="mindevents-filter-pill mindevents-filter-pill-date">';
-          echo '<span class="mindevents-filter-pill-label">From</span>';
-          echo '<input type="date" id="mindevents-event-start" name="event_start" value="' . esc_attr($filters['event_start']) . '" aria-label="Filter start date">';
-        echo '</label>';
-
-        echo '<label class="mindevents-filter-pill mindevents-filter-pill-date">';
-          echo '<span class="mindevents-filter-pill-label">To</span>';
-          echo '<input type="date" id="mindevents-event-end" name="event_end" value="' . esc_attr($filters['event_end']) . '" aria-label="Filter end date">';
-        echo '</label>';
-
         echo '<label class="mindevents-filter-pill mindevents-filter-pill-search">';
           echo '<i class="fas fa-search" aria-hidden="true"></i>';
           echo '<input type="search" id="mindevents-event-search" name="event_search" value="' . esc_attr($filters['event_search']) . '" placeholder="Search class title" aria-label="Search class title">';
@@ -502,7 +472,7 @@ function mindevents_get_frontend_filter_form($filters = null) {
             echo '<i class="fas fa-check" aria-hidden="true"></i>';
             echo '<span>Apply</span>';
           echo '</button>';
-          echo '<a class="mindevents-filter-reset" href="' . esc_url($action_url) . '">';
+          echo '<a class="mindevents-filter-reset" href="' . esc_url(add_query_arg($reset_args, $action_url)) . '">';
             echo '<i class="fas fa-undo" aria-hidden="true"></i>';
             echo '<span>Reset</span>';
           echo '</a>';
@@ -510,7 +480,9 @@ function mindevents_get_frontend_filter_form($filters = null) {
       echo '</div>';
     echo '</div>';
 
-    if ($is_events_archive && !empty($filters['calendar_date'])) {
+    echo '<input type="hidden" name="event_view" value="' . esc_attr($filters['event_view']) . '">';
+
+    if (!empty($filters['calendar_date'])) {
       echo '<input type="hidden" name="calendar_date" value="' . esc_attr($filters['calendar_date']) . '">';
     }
   echo '</form>';

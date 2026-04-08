@@ -28,7 +28,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 		function syncFilterFormState($form) {
 			var hasActiveFilters = false;
-			$form.find('input[name="event_start"], input[name="event_end"], input[name="event_search"]').each(function() {
+			$form.find('input[name="event_search"]').each(function() {
 				if ($.trim($(this).val()) !== '') {
 					hasActiveFilters = true;
 				}
