@@ -255,11 +255,10 @@ class mindEventsWooCommerce {
                                                         echo '<input type="hidden" name="mindevents_reschedule_submit" value="1">';
                                                         echo '<input type="hidden" name="order_id" value="' . esc_attr($entry['order_id']) . '">';
                                                         echo '<input type="hidden" name="item_id" value="' . esc_attr($entry['item_id']) . '">';
-                                                        echo '<div class="small text-muted mb-2">' . esc_html($entry['status_message']) . '</div>';
+                                                        echo '<div class="small text-muted mb-2">Available for reschedule until <strong>' . esc_html($this->format_display_datetime($entry['deadline_datetime'])) . '</strong></div>';
                                                         echo '<div class="row g-2 align-items-end">';
                                                             echo '<div class="col-12 col-xl">';
                                                                 echo '<div class="form-group mb-0">';
-                                                                    echo '<label class="form-label small mb-1" for="' . esc_attr($field_id) . '">Choose a new class date</label>';
                                                                     echo '<select class="form-select" id="' . esc_attr($field_id) . '" name="new_product_id">';
                                                                         foreach ($entry['replacements'] as $replacement) :
                                                                             echo '<option value="' . esc_attr($replacement['product_id']) . '">' . esc_html($replacement['label']) . '</option>';
