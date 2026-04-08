@@ -7,6 +7,7 @@ class mindEventsWooCommerce {
 
     public $event = '';
     public $event_type = '';
+    private $reschedule_cutoff_days = 14;
 
 
 
@@ -33,6 +34,8 @@ class mindEventsWooCommerce {
 
         // Initialize order stats for existing sub events (run once, but more efficiently)
         add_action('wp_loaded', array($this, 'maybe_initialize_order_stats'));
+        add_action('template_redirect', array($this, 'handle_reschedule_submission'));
+        add_action('woocommerce_account_dashboard', array($this, 'render_dashboard_reschedule_notices'), 40);
 
         $this->event = ($event ? $event : false);
         $this->event_type = get_post_meta($this->event, 'event_type', true);
@@ -179,6 +182,486 @@ class mindEventsWooCommerce {
         
     }
 
+    public function render_dashboard_reschedule_notices() {
+        if (!is_user_logged_in()) :
+            return;
+        endif;
+
+        $items = $this->get_customer_reschedule_items(get_current_user_id());
+        if (!$items) :
+            return;
+        endif;
+
+        $this->render_reschedule_interface($items, false);
+    }
+
+    private function render_reschedule_interface($items, $show_empty_message = true) {
+        $grouped_items = $this->group_reschedule_items_by_order($items);
+
+        echo '<section class="mindevents-account-reschedule-page my-4">';
+            echo '<div class="mb-4">';
+                echo '<h3 class="h4 mb-1">Upcoming Classes</h3>';
+                echo '<p class="text-muted mb-0 small">Classes can only be rescheduled more than ' . esc_html($this->reschedule_cutoff_days) . ' days before the class date.</p>';
+            echo '</div>';
+
+            if (!$grouped_items) :
+                if ($show_empty_message) :
+                    echo '<div class="alert alert-light border mb-0">You do not have any upcoming classes available for rescheduling.</div>';
+                endif;
+                echo '</section>';
+                return;
+            endif;
+
+            foreach ($grouped_items as $group) :
+                $order = $group['order'];
+
+                echo '<div class="card border-0 shadow-sm mb-4">';
+                    echo '<div class="card-body p-0">';
+                        echo '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 px-lg-4 py-3 border-bottom">';
+                            echo '<div>';
+                                echo '<h4 class="h6 mb-1">Order #' . esc_html($order->get_order_number()) . '</h4>';
+                                echo '<p class="text-muted small mb-0">Choose a new date for any eligible class below.</p>';
+                            echo '</div>';
+                            echo '<a class="btn btn-outline-secondary btn-sm" href="' . esc_url($order->get_view_order_url()) . '">View Order</a>';
+                        echo '</div>';
+                        echo '<div class="table-responsive">';
+                            echo '<table class="table align-middle mb-0">';
+                                echo '<thead>';
+                                    echo '<tr>';
+                                        echo '<th class="px-3 px-lg-4">Class</th>';
+                                        echo '<th>Date</th>';
+                                        echo '<th>Qty</th>';
+                                        echo '<th class="px-3 px-lg-4">Reschedule</th>';
+                                    echo '</tr>';
+                                echo '</thead>';
+                                echo '<tbody>';
+                                    foreach ($group['items'] as $entry) :
+                                        $field_id = 'mindevents-new-product-' . absint($entry['item_id']);
+
+                                        echo '<tr>';
+                                            echo '<td class="px-3 px-lg-4">';
+                                                if (!empty($entry['event_url'])) :
+                                                    echo '<a class="fw-semibold text-decoration-none" href="' . esc_url($entry['event_url']) . '">' . esc_html($entry['title']) . '</a>';
+                                                else :
+                                                    echo '<span class="fw-semibold">' . esc_html($entry['title']) . '</span>';
+                                                endif;
+                                            echo '</td>';
+                                            echo '<td>' . esc_html($this->format_date_range($entry['start_date'], $entry['end_date'])) . '</td>';
+                                            echo '<td>' . esc_html($entry['quantity']) . '</td>';
+                                            echo '<td class="px-3 px-lg-4">';
+                                                if ($entry['can_reschedule']) :
+                                                    echo '<form method="post" class="mb-0">';
+                                                        wp_nonce_field('mindevents_reschedule_action', 'mindevents_reschedule_nonce');
+                                                        echo '<input type="hidden" name="mindevents_reschedule_submit" value="1">';
+                                                        echo '<input type="hidden" name="order_id" value="' . esc_attr($entry['order_id']) . '">';
+                                                        echo '<input type="hidden" name="item_id" value="' . esc_attr($entry['item_id']) . '">';
+                                                        echo '<div class="small text-muted mb-2">' . esc_html($entry['status_message']) . '</div>';
+                                                        echo '<div class="row g-2 align-items-end">';
+                                                            echo '<div class="col-12 col-xl">';
+                                                                echo '<div class="form-group mb-0">';
+                                                                    echo '<label class="form-label small mb-1" for="' . esc_attr($field_id) . '">Choose a new class date</label>';
+                                                                    echo '<select class="form-select" id="' . esc_attr($field_id) . '" name="new_product_id">';
+                                                                        foreach ($entry['replacements'] as $replacement) :
+                                                                            echo '<option value="' . esc_attr($replacement['product_id']) . '">' . esc_html($replacement['label']) . '</option>';
+                                                                        endforeach;
+                                                                    echo '</select>';
+                                                                echo '</div>';
+                                                            echo '</div>';
+                                                            echo '<div class="col-12 col-xl-auto">';
+                                                                echo '<div class="form-group mb-0">';
+                                                                    echo '<button type="submit" class="btn btn-primary w-100">Reschedule</button>';
+                                                                echo '</div>';
+                                                            echo '</div>';
+                                                        echo '</div>';
+                                                    echo '</form>';
+                                                else :
+                                                    $notice_class = ('closed' === $entry['status_type']) ? 'alert-warning' : 'alert-secondary';
+                                                    echo '<div class="alert ' . esc_attr($notice_class) . ' mb-0 py-2 px-3 small">' . esc_html($entry['status_message']) . '</div>';
+                                                endif;
+                                            echo '</td>';
+                                        echo '</tr>';
+                                    endforeach;
+                                echo '</tbody>';
+                            echo '</table>';
+                        echo '</div>';
+                    echo '</div>';
+                echo '</div>';
+            endforeach;
+        echo '</section>';
+    }
+
+    public function handle_reschedule_submission() {
+        if (!isset($_POST['mindevents_reschedule_submit'])) :
+            return;
+        endif;
+
+        if (!is_user_logged_in()) :
+            return;
+        endif;
+
+        $redirect_url = wc_get_page_permalink('myaccount');
+        $nonce = isset($_POST['mindevents_reschedule_nonce']) ? sanitize_text_field(wp_unslash($_POST['mindevents_reschedule_nonce'])) : '';
+
+        if (!$nonce || !wp_verify_nonce($nonce, 'mindevents_reschedule_action')) :
+            wc_add_notice('We could not verify your reschedule request. Please try again.', 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $order_id = isset($_POST['order_id']) ? absint(wp_unslash($_POST['order_id'])) : 0;
+        $item_id = isset($_POST['item_id']) ? absint(wp_unslash($_POST['item_id'])) : 0;
+        $new_product_id = isset($_POST['new_product_id']) ? absint(wp_unslash($_POST['new_product_id'])) : 0;
+
+        if (!$order_id || !$item_id || !$new_product_id) :
+            wc_add_notice('We could not find the class you wanted to reschedule.', 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $order = wc_get_order($order_id);
+        if (!$order || (int) $order->get_customer_id() !== (int) get_current_user_id()) :
+            wc_add_notice('That order is not available for rescheduling.', 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $item = $order->get_item($item_id);
+        if (!$item || !($item instanceof WC_Order_Item_Product)) :
+            wc_add_notice('That class could not be found in your order.', 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $entry = $this->build_customer_reschedule_item($order, $item);
+        if (!$entry || !$entry['can_reschedule']) :
+            $message = $entry && !empty($entry['status_message']) ? $entry['status_message'] : 'This class can no longer be rescheduled.';
+            wc_add_notice($message, 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $valid_replacement_ids = wp_list_pluck($entry['replacements'], 'product_id');
+        if (!in_array($new_product_id, $valid_replacement_ids, true)) :
+            wc_add_notice('The class date you selected is not available.', 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        $result = $this->reschedule_order_item($order, $item, $new_product_id, $entry);
+        if (is_wp_error($result)) :
+            wc_add_notice($result->get_error_message(), 'error');
+            wp_safe_redirect($redirect_url);
+            exit;
+        endif;
+
+        wc_add_notice('Your class has been rescheduled to ' . $result['new_label'] . '.', 'success');
+        wp_safe_redirect($redirect_url);
+        exit;
+    }
+
+    private function get_customer_reschedule_items($user_id) {
+        if (!$user_id || !function_exists('wc_get_orders')) :
+            return array();
+        endif;
+
+        $items = array();
+        $orders = wc_get_orders(array(
+            'customer_id' => $user_id,
+            'status' => array('processing', 'completed'),
+            'type' => 'shop_order',
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'limit' => -1,
+        ));
+
+        foreach ($orders as $order) :
+            foreach ($order->get_items('line_item') as $item) :
+                $entry = $this->build_customer_reschedule_item($order, $item);
+                if ($entry) :
+                    $items[] = $entry;
+                endif;
+            endforeach;
+        endforeach;
+
+        if ($items) :
+            usort($items, function($a, $b) {
+                return $a['start_datetime']->getTimestamp() <=> $b['start_datetime']->getTimestamp();
+            });
+        endif;
+
+        return $items;
+    }
+
+    private function build_customer_reschedule_item($order, $item) {
+        if (!$order || !($item instanceof WC_Order_Item_Product)) :
+            return false;
+        endif;
+
+        if (!in_array($order->get_status(), array('processing', 'completed'), true)) :
+            return false;
+        endif;
+
+        $product_id = $item->get_product_id();
+        $parent_event_id = absint(get_post_meta($product_id, 'linked_event', true));
+        $occurrence_id = absint(get_post_meta($product_id, 'linked_occurance', true));
+
+        if (!$product_id || !$parent_event_id || !$occurrence_id) :
+            return false;
+        endif;
+
+        if ('sub_event' !== get_post_type($occurrence_id)) :
+            return false;
+        endif;
+
+        if (get_post_meta($parent_event_id, 'event_type', true) !== 'multiple-events') :
+            return false;
+        endif;
+
+        if ((int) get_post_meta($occurrence_id, 'linked_product', true) !== (int) $product_id) :
+            return false;
+        endif;
+
+        $start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
+        if (!$start_date) :
+            $start_date = get_post_meta($occurrence_id, 'event_start_time_stamp', true);
+        endif;
+
+        if (!$start_date) :
+            return false;
+        endif;
+
+        $end_date = get_post_meta($product_id, 'linkedEventEndDate', true);
+        if (!$end_date) :
+            $end_date = get_post_meta($occurrence_id, 'event_end_time_stamp', true);
+        endif;
+
+        $start_datetime = $this->get_event_datetime($start_date);
+        $now = $this->get_current_datetime();
+        if (!$start_datetime || $start_datetime->getTimestamp() <= $now->getTimestamp()) :
+            return false;
+        endif;
+
+        $deadline_datetime = $this->get_reschedule_deadline($start_datetime);
+        $replacements = array();
+        $status_message = '';
+        $status_type = 'closed';
+        $can_reschedule = false;
+        $quantity = max(1, absint($item->get_quantity()));
+
+        if ($deadline_datetime && $now->getTimestamp() >= $deadline_datetime->getTimestamp()) :
+            $status_message = 'Rescheduling closed on ' . $this->format_display_datetime($deadline_datetime);
+        else :
+            $replacements = $this->get_available_reschedule_options($parent_event_id, $occurrence_id, $product_id, $quantity);
+            if ($replacements) :
+                $can_reschedule = true;
+                $status_type = 'eligible';
+                $status_message = 'Available for reschedule until ' . $this->format_display_datetime($deadline_datetime);
+            else :
+                $status_type = 'no-options';
+                $status_message = 'No alternate class dates currently available';
+            endif;
+        endif;
+
+        return array(
+            'order_id' => $order->get_id(),
+            'order' => $order,
+            'order_number' => $order->get_order_number(),
+            'item_id' => $item->get_id(),
+            'item' => $item,
+            'title' => (get_the_title($parent_event_id) ? get_the_title($parent_event_id) : $item->get_name()),
+            'event_url' => get_permalink($parent_event_id),
+            'quantity' => $quantity,
+            'product_id' => $product_id,
+            'parent_event_id' => $parent_event_id,
+            'occurrence_id' => $occurrence_id,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+            'start_datetime' => $start_datetime,
+            'deadline_datetime' => $deadline_datetime,
+            'status_type' => $status_type,
+            'status_message' => $status_message,
+            'can_reschedule' => $can_reschedule,
+            'replacements' => $replacements,
+        );
+    }
+
+    private function get_available_reschedule_options($parent_event_id, $current_occurrence_id, $current_product_id, $quantity) {
+        $options = array();
+        $seen_products = array();
+        $sub_events = $this->get_sub_events($parent_event_id);
+        $now = $this->get_current_datetime();
+
+        foreach ($sub_events as $sub_event) :
+            if ((int) $sub_event->ID === (int) $current_occurrence_id) :
+                continue;
+            endif;
+
+            $replacement_product_id = absint(get_post_meta($sub_event->ID, 'linked_product', true));
+            if (!$replacement_product_id || $replacement_product_id === (int) $current_product_id) :
+                continue;
+            endif;
+
+            if (isset($seen_products[$replacement_product_id])) :
+                continue;
+            endif;
+
+            $start_date = get_post_meta($replacement_product_id, 'linkedEventStartDate', true);
+            if (!$start_date) :
+                $start_date = get_post_meta($sub_event->ID, 'event_start_time_stamp', true);
+            endif;
+
+            if (!$start_date) :
+                continue;
+            endif;
+
+            $start_datetime = $this->get_event_datetime($start_date);
+            if (!$start_datetime || $start_datetime->getTimestamp() <= $now->getTimestamp()) :
+                continue;
+            endif;
+
+            $deadline_datetime = $this->get_reschedule_deadline($start_datetime);
+            if ($deadline_datetime && $now->getTimestamp() >= $deadline_datetime->getTimestamp()) :
+                continue;
+            endif;
+
+            $product = wc_get_product($replacement_product_id);
+            if (!$this->product_has_available_quantity($product, $quantity)) :
+                continue;
+            endif;
+
+            $end_date = get_post_meta($replacement_product_id, 'linkedEventEndDate', true);
+            if (!$end_date) :
+                $end_date = get_post_meta($sub_event->ID, 'event_end_time_stamp', true);
+            endif;
+
+            $seen_products[$replacement_product_id] = true;
+            $options[] = array(
+                'product_id' => $replacement_product_id,
+                'occurrence_id' => $sub_event->ID,
+                'label' => $this->format_date_range($start_date, $end_date),
+                'start_timestamp' => $start_datetime->getTimestamp(),
+            );
+        endforeach;
+
+        if ($options) :
+            usort($options, function($a, $b) {
+                return $a['start_timestamp'] <=> $b['start_timestamp'];
+            });
+        endif;
+
+        return $options;
+    }
+
+    private function group_reschedule_items_by_order($items) {
+        $grouped = array();
+
+        foreach ($items as $entry) :
+            $order_id = $entry['order_id'];
+            if (!isset($grouped[$order_id])) :
+                $grouped[$order_id] = array(
+                    'order' => $entry['order'],
+                    'items' => array(),
+                );
+            endif;
+
+            $grouped[$order_id]['items'][] = $entry;
+        endforeach;
+
+        foreach ($grouped as $order_id => $group) :
+            usort($grouped[$order_id]['items'], function($a, $b) {
+                return $a['start_datetime']->getTimestamp() <=> $b['start_datetime']->getTimestamp();
+            });
+        endforeach;
+
+        return $grouped;
+    }
+
+    private function get_current_datetime() {
+        if (function_exists('current_datetime')) :
+            return current_datetime();
+        endif;
+
+        return new DateTime(current_time('mysql'), wp_timezone());
+    }
+
+    private function get_event_datetime($date_string) {
+        if (!$date_string) :
+            return false;
+        endif;
+
+        try {
+            return new DateTime($date_string, wp_timezone());
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    private function get_reschedule_deadline($start_datetime) {
+        if (!($start_datetime instanceof DateTimeInterface)) :
+            return false;
+        endif;
+
+        $deadline = new DateTime($start_datetime->format('Y-m-d H:i:s'), wp_timezone());
+        $deadline->modify('-' . absint($this->reschedule_cutoff_days) . ' days');
+
+        return $deadline;
+    }
+
+    private function format_display_datetime($value) {
+        $datetime = $value;
+
+        if (!($datetime instanceof DateTimeInterface)) :
+            $datetime = $this->get_event_datetime($value);
+        endif;
+
+        if (!$datetime) :
+            return '';
+        endif;
+
+        return wp_date(get_option('date_format') . ' ' . get_option('time_format'), $datetime->getTimestamp(), wp_timezone());
+    }
+
+    private function format_date_range($start_date, $end_date = '') {
+        $start_datetime = $this->get_event_datetime($start_date);
+        if (!$start_datetime) :
+            return '';
+        endif;
+
+        $end_datetime = $this->get_event_datetime($end_date);
+        $date_format = get_option('date_format');
+        $time_format = get_option('time_format');
+
+        if (!$end_datetime) :
+            return wp_date($date_format . ' ' . $time_format, $start_datetime->getTimestamp(), wp_timezone());
+        endif;
+
+        if ($start_datetime->format('Ymd') === $end_datetime->format('Ymd')) :
+            return wp_date($date_format . ' ' . $time_format, $start_datetime->getTimestamp(), wp_timezone()) . ' - ' . wp_date($time_format, $end_datetime->getTimestamp(), wp_timezone());
+        endif;
+
+        return wp_date($date_format . ' ' . $time_format, $start_datetime->getTimestamp(), wp_timezone()) . ' - ' . wp_date($date_format . ' ' . $time_format, $end_datetime->getTimestamp(), wp_timezone());
+    }
+
+    private function product_has_available_quantity($product, $quantity) {
+        if (!$product) :
+            return false;
+        endif;
+
+        if (!$product->is_in_stock() && !$product->backorders_allowed()) :
+            return false;
+        endif;
+
+        if (!$product->managing_stock()) :
+            return true;
+        endif;
+
+        if ($product->backorders_allowed()) :
+            return true;
+        endif;
+
+        return (int) $product->get_stock_quantity() >= (int) $quantity;
+    }
+
     public function order_status_change($order, $from, $to) {
         if($from == $to) :
             return;
@@ -238,11 +721,7 @@ class mindEventsWooCommerce {
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
-                $event_start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
-                wp_schedule_single_event(strtotime($event_start_date) - (DAY_IN_SECONDS * 3), 'woo_event_three_days_before', array(
-                    'order_id' => $order_id,
-                    'product_id' => $product_id,
-                ), true);
+                $this->schedule_single_order_item_hook($order_id, $product_id);
             endforeach;
         endif;
     }
@@ -253,10 +732,7 @@ class mindEventsWooCommerce {
         if($order->get_items()) :
             foreach($order->get_items() as $line_item) :
                 $product_id = $line_item->get_product_id();
-                wp_clear_scheduled_hook( 'woo_event_three_days_before', array(
-                    'order_id' => $order_id,
-                    'product_id' => $product_id,
-                ) );
+                $this->clear_single_order_item_hook($order_id, $product_id);
             endforeach;
         endif;
     }
@@ -451,6 +927,15 @@ class mindEventsWooCommerce {
             return;
         }
 
+        $this->set_line_item_event_meta( $item, $start, $end );
+        $item->save();
+    }
+
+    private function set_line_item_event_meta( $item, $start, $end ) {
+        if ( ! $item instanceof WC_Order_Item_Product ) {
+            return;
+        }
+
         if ( $start ) {
             $item->update_meta_data( '_mindevents_event_start', $start );
         } else {
@@ -462,8 +947,6 @@ class mindEventsWooCommerce {
         } else {
             $item->delete_meta_data( '_mindevents_event_end' );
         }
-
-        $item->save();
     }
     
     public function add_attendee($order_id) { 
@@ -537,6 +1020,199 @@ class mindEventsWooCommerce {
                 endif;
             endforeach;
         endif;
+    }
+
+    private function reschedule_order_item($order, $item, $new_product_id, $current_entry) {
+        if (!$order || !($item instanceof WC_Order_Item_Product)) :
+            return new WP_Error('mindevents_invalid_order_item', 'We could not update that class.');
+        endif;
+
+        $replacement = false;
+        foreach ($current_entry['replacements'] as $option) :
+            if ((int) $option['product_id'] === (int) $new_product_id) :
+                $replacement = $option;
+                break;
+            endif;
+        endforeach;
+
+        if (!$replacement) :
+            return new WP_Error('mindevents_invalid_replacement', 'The class date you selected is no longer available.');
+        endif;
+
+        $old_product_id = (int) $item->get_product_id();
+        $old_product = wc_get_product($old_product_id);
+        $new_product = wc_get_product($new_product_id);
+
+        if (!$old_product || !$new_product) :
+            return new WP_Error('mindevents_missing_product', 'We could not load the class product for this change.');
+        endif;
+
+        require_once WC_ABSPATH . 'includes/admin/wc-admin-functions.php';
+
+        $quantity = max(1, (int) $item->get_quantity());
+        $old_total = $item->get_total();
+        $old_subtotal = $item->get_subtotal();
+        $old_start_date = $current_entry['start_date'];
+        $old_end_date = $current_entry['end_date'];
+        $new_start_date = get_post_meta($new_product_id, 'linkedEventStartDate', true);
+        $new_end_date = get_post_meta($new_product_id, 'linkedEventEndDate', true);
+
+        if (!$new_start_date) :
+            $new_start_date = get_post_meta($replacement['occurrence_id'], 'event_start_time_stamp', true);
+        endif;
+
+        if (!$new_end_date) :
+            $new_end_date = get_post_meta($replacement['occurrence_id'], 'event_end_time_stamp', true);
+        endif;
+
+        $new_line_total = wc_get_price_excluding_tax($new_product, array(
+            'qty' => $quantity,
+            'order' => $order,
+        ));
+
+        $restocked_old = wc_maybe_adjust_line_item_product_stock($item, 0);
+        if (is_wp_error($restocked_old)) :
+            return $restocked_old;
+        endif;
+
+        $item->set_product($new_product);
+        $item->set_quantity($quantity);
+        $item->set_total($new_line_total);
+        $item->set_subtotal($new_line_total);
+        $item->set_taxes(array(
+            'total' => array(),
+            'subtotal' => array(),
+        ));
+        $this->set_line_item_event_meta($item, $new_start_date, $new_end_date);
+
+        do_action('woocommerce_before_save_order_item', $item);
+        $item->save();
+
+        $reduced_new = wc_maybe_adjust_line_item_product_stock($item);
+        if (is_wp_error($reduced_new)) :
+            $item->set_product($old_product);
+            $item->set_quantity($quantity);
+            $item->set_total($old_total);
+            $item->set_subtotal($old_subtotal);
+            $item->set_taxes(array(
+                'total' => array(),
+                'subtotal' => array(),
+            ));
+            $this->set_line_item_event_meta($item, $old_start_date, $old_end_date);
+
+            do_action('woocommerce_before_save_order_item', $item);
+            $item->save();
+            wc_maybe_adjust_line_item_product_stock($item);
+
+            return $reduced_new;
+        endif;
+
+        if ($order->get_items('coupon')) :
+            $order->recalculate_coupons();
+        else :
+            $order->calculate_totals();
+            $order->save();
+        endif;
+
+        $this->update_order_event_meta($order);
+
+        $this->move_order_item_attendees(
+            $order->get_id(),
+            $current_entry['parent_event_id'],
+            $current_entry['occurrence_id'],
+            $replacement['occurrence_id'],
+            $quantity
+        );
+
+        $this->clear_single_order_item_hook($order->get_id(), $old_product_id);
+        $this->schedule_single_order_item_hook($order->get_id(), $new_product_id);
+        $this->update_sub_event_order_stats($current_entry['occurrence_id']);
+        $this->update_sub_event_order_stats($replacement['occurrence_id']);
+
+        if (function_exists('mindshare_automatewoo_touch_occurrence')) :
+            mindshare_automatewoo_touch_occurrence($current_entry['occurrence_id']);
+            mindshare_automatewoo_touch_occurrence($replacement['occurrence_id']);
+        endif;
+
+        $order->add_order_note(
+            'Class rescheduled from ' . $this->format_date_range($old_start_date, $old_end_date) . ' to ' . $this->format_date_range($new_start_date, $new_end_date) . '.'
+        );
+
+        return array(
+            'new_label' => $this->format_date_range($new_start_date, $new_end_date),
+        );
+    }
+
+    private function move_order_item_attendees($order_id, $parent_event_id, $from_occurrence_id, $to_occurrence_id, $quantity) {
+        $order = wc_get_order($order_id);
+        if (!$order || !$parent_event_id || !$from_occurrence_id || !$to_occurrence_id) :
+            return;
+        endif;
+
+        $attendees = get_post_meta($parent_event_id, 'attendees', true);
+        if (!$attendees) :
+            $attendees = array();
+        endif;
+
+        if (!isset($attendees[$from_occurrence_id]) || !is_array($attendees[$from_occurrence_id])) :
+            $attendees[$from_occurrence_id] = array();
+        endif;
+
+        if (!isset($attendees[$to_occurrence_id]) || !is_array($attendees[$to_occurrence_id])) :
+            $attendees[$to_occurrence_id] = array();
+        endif;
+
+        $moved = 0;
+        $remaining_attendees = array();
+
+        foreach ($attendees[$from_occurrence_id] as $attendee) :
+            if ($moved < $quantity && isset($attendee['order_id']) && (int) $attendee['order_id'] === (int) $order_id) :
+                $attendee['checked_in'] = false;
+                $attendees[$to_occurrence_id][] = $attendee;
+                $moved++;
+            else :
+                $remaining_attendees[] = $attendee;
+            endif;
+        endforeach;
+
+        while ($moved < $quantity) :
+            $attendees[$to_occurrence_id][] = array(
+                'order_id' => $order_id,
+                'user_id' => $order->get_user_id(),
+                'checked_in' => false,
+            );
+            $moved++;
+        endwhile;
+
+        $attendees[$from_occurrence_id] = array_values($remaining_attendees);
+
+        update_post_meta($parent_event_id, 'attendees', $attendees);
+    }
+
+    private function schedule_single_order_item_hook($order_id, $product_id) {
+        $event_start_date = get_post_meta($product_id, 'linkedEventStartDate', true);
+        $event_start = $this->get_event_datetime($event_start_date);
+
+        if (!$event_start) :
+            return;
+        endif;
+
+        $schedule_timestamp = $event_start->getTimestamp() - (DAY_IN_SECONDS * 3);
+        if ($schedule_timestamp <= $this->get_current_datetime()->getTimestamp()) :
+            return;
+        endif;
+
+        wp_schedule_single_event($schedule_timestamp, 'woo_event_three_days_before', array(
+            'order_id' => $order_id,
+            'product_id' => $product_id,
+        ), true);
+    }
+
+    private function clear_single_order_item_hook($order_id, $product_id) {
+        wp_clear_scheduled_hook('woo_event_three_days_before', array(
+            'order_id' => $order_id,
+            'product_id' => $product_id,
+        ));
     }
 
 
@@ -1229,6 +1905,4 @@ add_action('mindevents_process_remaining_stats', function($offset) {
     $woo_events->process_remaining_sub_event_stats($offset);
 });
 
-add_action('init', function() {
-    new mindEventsWooCommerce();
-});
+new mindEventsWooCommerce();

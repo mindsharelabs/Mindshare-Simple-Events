@@ -20,3 +20,7 @@ The Mindshare Simple Events plugin is a WordPress plugin designed to manage and 
 - **Schema Markup:** Generates structured data (Schema.org) for events to improve SEO and search engine visibility.
 - **Responsive Design:** Ensures events are displayed correctly on various devices.
 - **Customizable Templates:** Allows theme developers to override plugin templates for custom styling and layout.
+
+## QA And Launch Notes
+
+- **Reschedule Classes QA Checklist:** See `reschedule-classes-qa-checklist.md` for pre-production verification steps covering account access, WooCommerce order updates, stock changes, attendee tables, reminders, and failure cases.
