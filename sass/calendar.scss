@@ -478,13 +478,18 @@
 #publicCalendar,
 #mindEventList {
   .meta_inner_container {
+    align-items: flex-start;
     display: flex;
-    flex-direction: row;
     flex-wrap: wrap;
-    padding: 25px;
-    justify-content: space-between;
+    gap: 24px;
+    justify-content: flex-start;
     position: relative;
-    padding-bottom: 50px;
+    padding: 25px 25px 50px;
+
+    > * {
+      min-width: 0;
+    }
+
     button {
       &.event-meta-close {
         background: none;
@@ -506,8 +511,13 @@
     }
 
     .featured-image {
-      min-width: 25%;
+      flex: 0 1 340px;
+      max-width: 360px;
 
+      img {
+        display: block;
+        width: 100%;
+      }
 
     }
 
@@ -516,16 +526,30 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      min-width: 0;
     }
 
     .left-content {
+      flex: 1 1 320px;
+      max-width: 100%;
+
       .event-title {
         margin-top: 10px;
         font-size: 1.5em;
       }
     }
 
+    .right-content {
+      align-self: stretch;
+      flex: 0 1 280px;
+      margin-left: auto;
+      max-width: 320px;
+      width: 100%;
+    }
+
     .meta-item {
+      min-width: 0;
+
       .offer-link {
         button {
           display: block;
