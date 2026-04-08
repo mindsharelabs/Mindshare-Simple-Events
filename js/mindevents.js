@@ -6,6 +6,50 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
 	$(function () {
 
+		function syncFilterPanel($form) {
+			var isOpen = $form.hasClass('is-open');
+			$form.find('.mindevents-filter-toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
+			$form.find('.mindevents-filter-panel').prop('hidden', !isOpen);
+		}
+
+		function syncMultiSelect($multiselect) {
+			var checked = $multiselect.find('input[type="checkbox"]:checked');
+			var label = $multiselect.data('default-label') || 'Categories';
+
+			if (checked.length === 1) {
+				label = $.trim(checked.first().closest('.mindevents-filter-checkbox').find('.mindevents-filter-checkbox-text').text());
+			} else if (checked.length > 1) {
+				label = checked.length + ' Categories';
+			}
+
+			$multiselect.find('.mindevents-multiselect-label').text(label);
+			$multiselect.find('.mindevents-multiselect-toggle').attr('aria-expanded', $multiselect.hasClass('is-open') ? 'true' : 'false');
+		}
+
+		function syncFilterFormState($form) {
+			var hasActiveFilters = false;
+			$form.find('input[name="event_start"], input[name="event_end"], input[name="event_search"]').each(function() {
+				if ($.trim($(this).val()) !== '') {
+					hasActiveFilters = true;
+				}
+			});
+
+			if ($form.find('input[name="event_category_filter[]"]:checked').length) {
+				hasActiveFilters = true;
+			}
+
+			$form.toggleClass('has-active-filters', hasActiveFilters);
+		}
+
+		$('.mindevents-event-filters').each(function() {
+			var $form = $(this);
+			syncFilterPanel($form);
+			syncFilterFormState($form);
+			$form.find('.mindevents-multiselect').each(function() {
+				syncMultiSelect($(this));
+			});
+		});
+
 
 		$(document).on('click', '.add-to-calendar-button', function (e) {
 			e.preventDefault();
@@ -20,6 +64,39 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 			if (!$(e.target).closest('.add-to-calendar-button').length && !$(e.target).closest('.add-to-calendar-menu').length) {
 				$('.add-to-calendar-menu').removeClass('show');
 			}
+
+			if (!$(e.target).closest('.mindevents-multiselect').length) {
+				$('.mindevents-multiselect.is-open').removeClass('is-open').each(function() {
+					syncMultiSelect($(this));
+				});
+			}
+		});
+
+		$(document).on('click', '.mindevents-filter-toggle', function (e) {
+			e.preventDefault();
+			var $form = $(this).closest('.mindevents-event-filters');
+			$form.toggleClass('is-open');
+			syncFilterPanel($form);
+		});
+
+		$(document).on('click', '.mindevents-multiselect-toggle', function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var $multiselect = $(this).closest('.mindevents-multiselect');
+			$('.mindevents-multiselect.is-open').not($multiselect).removeClass('is-open').each(function() {
+				syncMultiSelect($(this));
+			});
+			$multiselect.toggleClass('is-open');
+			syncMultiSelect($multiselect);
+		});
+
+		$(document).on('input change', '.mindevents-event-filters input', function () {
+			var $form = $(this).closest('.mindevents-event-filters');
+			var $multiselect = $(this).closest('.mindevents-multiselect');
+			if ($multiselect.length) {
+				syncMultiSelect($multiselect);
+			}
+			syncFilterFormState($form);
 		});
 
 

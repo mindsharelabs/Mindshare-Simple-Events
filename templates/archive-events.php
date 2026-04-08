@@ -10,51 +10,24 @@ do_action(MINDEVENTS_PREPEND . 'before_main_content');
 
 echo '<main role="main" aria-label="Content">';
   do_action(MINDEVENTS_PREPEND . 'archive_loop_start');
+  $filters = function_exists('mindevents_get_frontend_filters') ? mindevents_get_frontend_filters() : array();
+  $initial_calendar_date = function_exists('mindevents_get_archive_initial_calendar_date') ? mindevents_get_archive_initial_calendar_date($filters) : null;
+  $calendar = new mindEventCalendar('', $initial_calendar_date);
+  $show_all = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
+  $calendar->set_past_events_display($show_all);
 
-    if(have_posts()) :
-      $first_event = get_posts(array(
-        'orderby' => 'meta_value',
-        'meta_key' => 'event_start_time_stamp',
-        'meta_type' => 'DATETIME',
-        'order' => 'ASC',
-        'post_type' => 'sub_event',
-        'posts_per_page' => 1,
-        'meta_query' => array(
-            'key' => 'event_start_time_stamp', // Check the start date field
-            'value' => date('Y-m-d H:i:s'), // Set today's date (note the similar format)
-            'compare' => '>=', // Return the ones greater than today's date
-            'type' => 'DATETIME' // Let
-          ),
-        )
-      );
-      if($first_event) :
-        $first_event = $first_event[0];
-        $first_event = get_post_meta($first_event->ID, 'event_start_time_stamp', true);
-      else :
-        $first_event = null;
-      endif;
-
-      $calendar = new mindEventCalendar('', $first_event);
-      $show_all = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show_past_events', true);
-      $calendar->set_past_events_display($show_all);
-
-
-      echo '<div id="archiveContainer" class="calendar-wrap">';
-      echo '<div id="cartErrorContainer"></div>';
-     
-      echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
-        do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
-        echo '<div id="publicCalendar">';
-          echo $calendar->get_front_calendar('archive');
-        echo '</div>';
-        do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
-      echo '</div>';
-
-
-
-    endif;
-
-
+  echo '<div id="archiveContainer" class="calendar-wrap">';
+    echo '<div id="cartErrorContainer"></div>';
+    if (function_exists('mindevents_get_frontend_filter_form')) {
+      echo mindevents_get_frontend_filter_form($filters);
+    }
+    echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h3 class="event-schedule">Event Schedule</h3>');
+    do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
+    echo '<div id="publicCalendar">';
+      echo $calendar->get_front_calendar();
+    echo '</div>';
+    do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
+  echo '</div>';
 
   do_action(MINDEVENTS_PREPEND . 'archive_loop_end');
 echo '</main>';

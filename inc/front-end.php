@@ -32,6 +32,500 @@ add_filter('template_include', function ( $template ) {
   return $template;
 });
 
+function mindevents_get_frontend_filter_context($context = null) {
+  $allowed_contexts = array('events_archive', 'event_category_archive');
+  if (is_string($context) && in_array($context, $allowed_contexts, true)) {
+    return $context;
+  }
+
+  if (function_exists('is_post_type_archive') && is_post_type_archive('events')) {
+    return 'events_archive';
+  }
+
+  if (function_exists('is_tax') && is_tax('event_category')) {
+    return 'event_category_archive';
+  }
+
+  return '';
+}
+
+function mindevents_get_frontend_filter_timezone() {
+  if (function_exists('wp_timezone')) {
+    return wp_timezone();
+  }
+
+  return new DateTimeZone(get_option('timezone_string') ?: 'UTC');
+}
+
+function mindevents_parse_frontend_filter_date($value) {
+  $value = sanitize_text_field(wp_unslash((string) $value));
+  if ($value === '') {
+    return null;
+  }
+
+  $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value, mindevents_get_frontend_filter_timezone());
+  if (!($date instanceof DateTimeImmutable) || $date->format('Y-m-d') !== $value) {
+    return null;
+  }
+
+  return $date;
+}
+
+function mindevents_expand_event_category_ids($term_ids) {
+  $expanded_ids = array();
+  foreach ((array) $term_ids as $term_id) {
+    $term_id = absint($term_id);
+    if (!$term_id) {
+      continue;
+    }
+
+    $expanded_ids[] = $term_id;
+    $children = get_term_children($term_id, 'event_category');
+    if (is_wp_error($children) || empty($children)) {
+      continue;
+    }
+
+    foreach ($children as $child_id) {
+      $child_id = absint($child_id);
+      if ($child_id) {
+        $expanded_ids[] = $child_id;
+      }
+    }
+  }
+
+  $expanded_ids = array_values(array_unique(array_filter($expanded_ids)));
+  sort($expanded_ids);
+
+  return $expanded_ids;
+}
+
+function mindevents_find_parent_event_ids_by_title($search_term) {
+  global $wpdb;
+
+  $search_term = sanitize_text_field((string) $search_term);
+  if ($search_term === '') {
+    return array();
+  }
+
+  $like = '%' . $wpdb->esc_like($search_term) . '%';
+  $sql  = $wpdb->prepare(
+    "
+      SELECT ID
+      FROM {$wpdb->posts}
+      WHERE post_type = %s
+        AND post_status = %s
+        AND post_title LIKE %s
+      ORDER BY post_title ASC
+    ",
+    'events',
+    'publish',
+    $like
+  );
+
+  return array_map('intval', $wpdb->get_col($sql));
+}
+
+function mindevents_get_frontend_filters($source = null, $context = null) {
+  static $cached_filters = null;
+
+  $use_cache = ($source === null && $context === null);
+  if ($use_cache && is_array($cached_filters)) {
+    return $cached_filters;
+  }
+
+  $context = mindevents_get_frontend_filter_context($context);
+  $source  = is_array($source) ? $source : $_GET;
+
+  $filters = array(
+    'context'             => $context,
+    'apply'               => in_array($context, array('events_archive', 'event_category_archive'), true),
+    'calendar_date'       => '',
+    'event_start'         => '',
+    'event_end'           => '',
+    'event_search'        => '',
+    'paged'               => 1,
+    'selected_category_ids' => array(),
+    'query_category_ids'  => array(),
+    'title_parent_ids'    => array(),
+    'query_start'         => '',
+    'query_end'           => '',
+    'force_empty'         => false,
+    'has_user_filters'    => false,
+    'scoped_term_id'      => 0,
+  );
+
+  if (!$filters['apply']) {
+    if ($use_cache) {
+      $cached_filters = $filters;
+    }
+
+    return $filters;
+  }
+
+  $calendar_date = mindevents_parse_frontend_filter_date($source['calendar_date'] ?? '');
+  if ($calendar_date instanceof DateTimeImmutable) {
+    $filters['calendar_date'] = $calendar_date->format('Y-m-d');
+  }
+
+  $start_date = mindevents_parse_frontend_filter_date($source['event_start'] ?? '');
+  $end_date   = mindevents_parse_frontend_filter_date($source['event_end'] ?? '');
+  if ($start_date && $end_date && $end_date < $start_date) {
+    $tmp        = $start_date;
+    $start_date = $end_date;
+    $end_date   = $tmp;
+  }
+
+  if ($start_date instanceof DateTimeImmutable) {
+    $filters['event_start'] = $start_date->format('Y-m-d');
+    $filters['query_start'] = $start_date->setTime(0, 0, 0)->format('Y-m-d H:i:s');
+  }
+
+  if ($end_date instanceof DateTimeImmutable) {
+    $filters['event_end'] = $end_date->format('Y-m-d');
+    $filters['query_end'] = $end_date->setTime(23, 59, 59)->format('Y-m-d H:i:s');
+  }
+
+  $filters['event_search'] = sanitize_text_field(wp_unslash((string) ($source['event_search'] ?? '')));
+  $filters['paged']        = max(1, absint($source['paged'] ?? 1));
+
+  if ($context === 'events_archive') {
+    $selected_category_ids = array();
+    $raw_category_ids      = $source['event_category_filter'] ?? array();
+    foreach ((array) $raw_category_ids as $term_id) {
+      $term_id = absint($term_id);
+      if ($term_id) {
+        $selected_category_ids[] = $term_id;
+      }
+    }
+
+    $filters['selected_category_ids'] = array_values(array_unique($selected_category_ids));
+    $filters['query_category_ids']    = mindevents_expand_event_category_ids($filters['selected_category_ids']);
+  } elseif ($context === 'event_category_archive') {
+    $queried_term = get_queried_object();
+    if ($queried_term instanceof WP_Term && $queried_term->taxonomy === 'event_category') {
+      $filters['scoped_term_id']     = (int) $queried_term->term_id;
+      $filters['query_category_ids'] = mindevents_expand_event_category_ids(array($queried_term->term_id));
+    }
+  }
+
+  if ($filters['event_search'] !== '') {
+    $filters['title_parent_ids'] = mindevents_find_parent_event_ids_by_title($filters['event_search']);
+    if (empty($filters['title_parent_ids'])) {
+      $filters['force_empty'] = true;
+    }
+  }
+
+  $filters['has_user_filters'] = (
+    !empty($filters['selected_category_ids']) ||
+    $filters['event_start'] !== '' ||
+    $filters['event_end'] !== '' ||
+    $filters['event_search'] !== ''
+  );
+
+  if ($use_cache) {
+    $cached_filters = $filters;
+  }
+
+  return $filters;
+}
+
+function mindevents_apply_frontend_filters_to_sub_event_query_args($args, $filters = null) {
+  $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
+  if (empty($filters['apply'])) {
+    return $args;
+  }
+
+  if (!empty($filters['force_empty'])) {
+    $args['post__in'] = array(0);
+    return $args;
+  }
+
+  if (!empty($filters['query_category_ids'])) {
+    $category_query = array(
+      'taxonomy'         => 'event_category',
+      'field'            => 'term_id',
+      'terms'            => array_map('absint', $filters['query_category_ids']),
+      'include_children' => false,
+    );
+
+    if (!empty($args['tax_query']) && is_array($args['tax_query'])) {
+      if (!isset($args['tax_query']['relation'])) {
+        $args['tax_query']['relation'] = 'AND';
+      }
+      $args['tax_query'][] = $category_query;
+    } else {
+      $args['tax_query'] = array($category_query);
+    }
+  }
+
+  if (!empty($filters['query_start']) || !empty($filters['query_end'])) {
+    if (!isset($args['meta_query']) || !is_array($args['meta_query'])) {
+      $args['meta_query'] = array();
+    }
+
+    if (!empty($filters['query_end'])) {
+      $args['meta_query'][] = array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => $filters['query_end'],
+        'compare' => '<=',
+        'type'    => 'DATETIME',
+      );
+    }
+
+    if (!empty($filters['query_start'])) {
+      $args['meta_query'][] = array(
+        'key'     => 'event_end_time_stamp',
+        'value'   => $filters['query_start'],
+        'compare' => '>=',
+        'type'    => 'DATETIME',
+      );
+    }
+  }
+
+  if (!empty($filters['title_parent_ids'])) {
+    $parent_ids = array_map('absint', $filters['title_parent_ids']);
+
+    if (!empty($args['post_parent'])) {
+      if (!in_array((int) $args['post_parent'], $parent_ids, true)) {
+        $args['post__in'] = array(0);
+      }
+
+      return $args;
+    }
+
+    if (!empty($args['post_parent__in']) && is_array($args['post_parent__in'])) {
+      $parent_ids = array_values(array_intersect(array_map('absint', $args['post_parent__in']), $parent_ids));
+      if (empty($parent_ids)) {
+        $args['post__in'] = array(0);
+        return $args;
+      }
+    }
+
+    $args['post_parent__in'] = $parent_ids;
+  }
+
+  return $args;
+}
+
+function mindevents_get_frontend_filter_query_args($filters = null, $extra_args = array(), $remove_args = array()) {
+  $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
+  $args    = array();
+
+  if ($filters['context'] === 'events_archive' && !empty($filters['selected_category_ids'])) {
+    $args['event_category_filter'] = array_map('absint', $filters['selected_category_ids']);
+  }
+
+  if (!empty($filters['event_start'])) {
+    $args['event_start'] = $filters['event_start'];
+  }
+
+  if (!empty($filters['event_end'])) {
+    $args['event_end'] = $filters['event_end'];
+  }
+
+  if (!empty($filters['event_search'])) {
+    $args['event_search'] = $filters['event_search'];
+  }
+
+  if (!empty($filters['calendar_date'])) {
+    $args['calendar_date'] = $filters['calendar_date'];
+  }
+
+  if ($filters['context'] === 'event_category_archive' && !empty($filters['paged']) && $filters['paged'] > 1) {
+    $args['paged'] = $filters['paged'];
+  }
+
+  foreach ((array) $remove_args as $remove_arg) {
+    unset($args[$remove_arg]);
+  }
+
+  foreach ((array) $extra_args as $key => $value) {
+    if ($value === null || $value === '' || $value === false || (is_array($value) && empty($value))) {
+      unset($args[$key]);
+      continue;
+    }
+
+    $args[$key] = $value;
+  }
+
+  return $args;
+}
+
+function mindevents_get_archive_initial_calendar_date($filters = null) {
+  $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
+
+  if (!empty($filters['calendar_date'])) {
+    return $filters['calendar_date'];
+  }
+
+  if (!empty($filters['event_start'])) {
+    $start_date = mindevents_parse_frontend_filter_date($filters['event_start']);
+    if ($start_date instanceof DateTimeImmutable) {
+      return $start_date->modify('first day of this month')->format('Y-m-d');
+    }
+  }
+
+  $fallback = new DateTimeImmutable(current_time('mysql'), mindevents_get_frontend_filter_timezone());
+  if (!empty($filters['force_empty'])) {
+    return $fallback->modify('first day of this month')->format('Y-m-d');
+  }
+
+  $query_args = array(
+    'post_type'        => 'sub_event',
+    'posts_per_page'   => 1,
+    'orderby'          => 'meta_value',
+    'meta_key'         => 'event_start_time_stamp',
+    'meta_type'        => 'DATETIME',
+    'order'            => 'ASC',
+    'suppress_filters' => true,
+    'meta_query'       => array(
+      array(
+        'key'     => 'event_start_time_stamp',
+        'value'   => current_time('mysql'),
+        'compare' => '>=',
+        'type'    => 'DATETIME',
+      ),
+    ),
+  );
+  $query_args = mindevents_apply_frontend_filters_to_sub_event_query_args($query_args, $filters);
+  $events     = get_posts($query_args);
+
+  if (!empty($events[0])) {
+    $event_start = get_post_meta($events[0]->ID, 'event_start_time_stamp', true);
+    $event_date  = mindevents_parse_frontend_filter_date(substr((string) $event_start, 0, 10));
+    if ($event_date instanceof DateTimeImmutable) {
+      return $event_date->modify('first day of this month')->format('Y-m-d');
+    }
+  }
+
+  return $fallback->modify('first day of this month')->format('Y-m-d');
+}
+
+function mindevents_get_category_filter_summary($categories, $selected_ids) {
+  $selected_ids = array_map('absint', (array) $selected_ids);
+  $selected_ids = array_values(array_filter(array_unique($selected_ids)));
+
+  if (empty($selected_ids)) {
+    return 'Categories';
+  }
+
+  $selected_names = array();
+  foreach ((array) $categories as $category) {
+    if ($category instanceof WP_Term && in_array((int) $category->term_id, $selected_ids, true)) {
+      $selected_names[] = $category->name;
+    }
+  }
+
+  if (count($selected_names) === 1) {
+    return $selected_names[0];
+  }
+
+  return count($selected_ids) . ' Categories';
+}
+
+function mindevents_get_frontend_filter_form($filters = null) {
+  $filters = is_array($filters) ? $filters : mindevents_get_frontend_filters();
+  if (empty($filters['apply'])) {
+    return '';
+  }
+
+  $is_events_archive = ($filters['context'] === 'events_archive');
+  $action_url        = $is_events_archive ? get_post_type_archive_link('events') : get_term_link(get_queried_object());
+  if (is_wp_error($action_url)) {
+    return '';
+  }
+
+  $categories = array();
+  if ($is_events_archive) {
+    $categories = get_terms(array(
+      'taxonomy'   => 'event_category',
+      'hide_empty' => false,
+      'parent'     => 0,
+    ));
+  }
+
+  $panel_id = function_exists('wp_unique_id') ? wp_unique_id('mindevents-filter-panel-') : uniqid('mindevents-filter-panel-');
+  $form_classes = array('mindevents-event-filters', 'mb-4');
+  if (!empty($filters['has_user_filters'])) {
+    $form_classes[] = 'is-open';
+    $form_classes[] = 'has-active-filters';
+  }
+
+  ob_start();
+  echo '<form method="get" action="' . esc_url($action_url) . '" class="' . esc_attr(implode(' ', $form_classes)) . '">';
+    echo '<div class="mindevents-filter-toolbar">';
+      echo '<button type="button" class="mindevents-filter-toggle" aria-expanded="' . (!empty($filters['has_user_filters']) ? 'true' : 'false') . '" aria-controls="' . esc_attr($panel_id) . '">';
+        echo '<i class="fas fa-filter" aria-hidden="true"></i>';
+        echo '<span class="mindevents-filter-toggle-text">Filters</span>';
+        echo '<i class="fas fa-chevron-down mindevents-chevron" aria-hidden="true"></i>';
+      echo '</button>';
+    echo '</div>';
+
+    echo '<div id="' . esc_attr($panel_id) . '" class="mindevents-filter-panel"' . (!empty($filters['has_user_filters']) ? '' : ' hidden') . '>';
+      echo '<div class="mindevents-filter-row">';
+        if ($is_events_archive && !empty($categories) && !is_wp_error($categories)) {
+          echo '<div class="mindevents-multiselect" data-default-label="Categories">';
+            echo '<button type="button" class="mindevents-multiselect-toggle" aria-expanded="false">';
+              echo '<i class="fas fa-tags" aria-hidden="true"></i>';
+              echo '<span class="mindevents-multiselect-label">' . esc_html(mindevents_get_category_filter_summary($categories, $filters['selected_category_ids'])) . '</span>';
+              echo '<i class="fas fa-chevron-down mindevents-chevron" aria-hidden="true"></i>';
+            echo '</button>';
+            echo '<div class="mindevents-multiselect-menu">';
+            foreach ($categories as $category) {
+              $checked = in_array((int) $category->term_id, $filters['selected_category_ids'], true) ? ' checked' : '';
+              echo '<label class="mindevents-filter-checkbox">';
+                echo '<input type="checkbox" name="event_category_filter[]" value="' . esc_attr($category->term_id) . '"' . $checked . '>';
+                echo '<span class="mindevents-filter-checkbox-text">' . esc_html($category->name) . '</span>';
+              echo '</label>';
+            }
+            echo '</div>';
+          echo '</div>';
+        }
+
+        echo '<label class="mindevents-filter-pill mindevents-filter-pill-date">';
+          echo '<span class="mindevents-filter-pill-label">From</span>';
+          echo '<input type="date" id="mindevents-event-start" name="event_start" value="' . esc_attr($filters['event_start']) . '" aria-label="Filter start date">';
+        echo '</label>';
+
+        echo '<label class="mindevents-filter-pill mindevents-filter-pill-date">';
+          echo '<span class="mindevents-filter-pill-label">To</span>';
+          echo '<input type="date" id="mindevents-event-end" name="event_end" value="' . esc_attr($filters['event_end']) . '" aria-label="Filter end date">';
+        echo '</label>';
+
+        echo '<label class="mindevents-filter-pill mindevents-filter-pill-search">';
+          echo '<i class="fas fa-search" aria-hidden="true"></i>';
+          echo '<input type="search" id="mindevents-event-search" name="event_search" value="' . esc_attr($filters['event_search']) . '" placeholder="Search class title" aria-label="Search class title">';
+        echo '</label>';
+
+        echo '<div class="mindevents-filter-actions">';
+          echo '<button type="submit" class="mindevents-filter-submit">';
+            echo '<i class="fas fa-check" aria-hidden="true"></i>';
+            echo '<span>Apply</span>';
+          echo '</button>';
+          echo '<a class="mindevents-filter-reset" href="' . esc_url($action_url) . '">';
+            echo '<i class="fas fa-undo" aria-hidden="true"></i>';
+            echo '<span>Reset</span>';
+          echo '</a>';
+        echo '</div>';
+      echo '</div>';
+    echo '</div>';
+
+    if ($is_events_archive && !empty($filters['calendar_date'])) {
+      echo '<input type="hidden" name="calendar_date" value="' . esc_attr($filters['calendar_date']) . '">';
+    }
+  echo '</form>';
+
+  return ob_get_clean();
+}
+
+add_filter('mindevents_front_calendar_query_args', function($args) {
+  return mindevents_apply_frontend_filters_to_sub_event_query_args($args);
+}, 10, 1);
+
+add_filter('mindevents_front_list_query_args', function($args) {
+  return mindevents_apply_frontend_filters_to_sub_event_query_args($args);
+}, 10, 1);
+
 
 add_action(MINDEVENTS_PREPEND . 'single_title', 'mind_events_single_title', 10, 1);
 function mind_events_single_title($id) {

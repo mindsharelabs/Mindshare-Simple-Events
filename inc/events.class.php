@@ -39,6 +39,7 @@ class mindEventCalendar
 
   private $dailyHtml = [];
   private $offset = 0;
+  private $last_front_list_query = null;
 
   function __construct($id = '', $calendarDate = null, $today = null)
   {
@@ -374,11 +375,17 @@ class mindEventCalendar
     $nextMonth = clone $this->now;
     $nextMonth = $nextMonth->modify('first day of next month')->format('Y-m-d');
 
-    $currentUrl = strtok($_SERVER["REQUEST_URI"], '?');
+    $currentUrl = home_url(strtok($_SERVER["REQUEST_URI"], '?'));
+    $prevArgs   = array('calendar_date' => $prevMonth);
+    $nextArgs   = array('calendar_date' => $nextMonth);
+    if (function_exists('mindevents_get_frontend_filter_query_args')) {
+      $prevArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $prevMonth), array('paged'));
+      $nextArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $nextMonth), array('paged'));
+    }
 
     $out = '<div class="calendar-nav d-flex justify-content-between mb-3 w-100">';
-    $out .= '<a href="' . $currentUrl . '?calendar_date=' . $prevMonth . '" class="btn btn-sm btn-outline-primary"><i class="fas fa-chevron-left"></i> ' . date('F', strtotime($prevMonth)) . '</a>';
-    $out .= '<a href="' . $currentUrl . '?calendar_date=' . $nextMonth . '" class="btn btn-sm btn-outline-primary">' . date('F', strtotime($nextMonth)) . ' <i class="fas fa-chevron-right"></i></a>';
+    $out .= '<a href="' . esc_url(add_query_arg($prevArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary"><i class="fas fa-chevron-left"></i> ' . date('F', strtotime($prevMonth)) . '</a>';
+    $out .= '<a href="' . esc_url(add_query_arg($nextArgs, $currentUrl)) . '" class="btn btn-sm btn-outline-primary">' . date('F', strtotime($nextMonth)) . ' <i class="fas fa-chevron-right"></i></a>';
     $out .= '</div>';
 
     return $out;
@@ -560,6 +567,7 @@ class mindEventCalendar
   }
 
   public function get_front_calendar($args = array()){
+    $this->clearDailyHtml();
 
     $this->setStartOfWeek($this->calendar_start_day);
     
@@ -567,6 +575,7 @@ class mindEventCalendar
     $args = apply_filters('mindevents_front_calendar_query_args', $args, $this);
 
     $eventDates = $this->get_sub_events($args);
+    $matched_events = $eventDates;
 
     if ($eventDates):
       foreach ($eventDates as $key => $event):
@@ -623,12 +632,23 @@ class mindEventCalendar
       endforeach;
     endif;
 
-    return $this->render();
+    $html = $this->render();
+    if (empty($matched_events)) {
+      $html = '<p class="no-events">No events matched the current filters.</p>' . $html;
+    }
+
+    return $html;
   }
 
 
 
   public function get_front_list($calDate = '', $args = array()){
+    $this->clearDailyHtml();
+    $this->last_front_list_query = null;
+    $current_time = current_time('mysql');
+    $timezone = function_exists('wp_timezone') ? wp_timezone() : new \DateTimeZone(get_option('timezone_string') ?: 'UTC');
+    $current_time_dt = new \DateTimeImmutable($current_time, $timezone);
+    $current_plus_thirty = $current_time_dt->modify('+30 days')->format('Y-m-d H:i:s');
     if ($calDate == 'archive'):
       $this->is_archive = true;
       $this->show_past_events = false;
@@ -636,12 +656,15 @@ class mindEventCalendar
         'meta_query' => array(
           'relation' => 'AND',
           array(
-            'key' => 'event_start_time_stamp', // Check the start date field
-            'value' => array(
-              date('Y-m-d H:i:s'), // Current date and time
-              date('Y-m-d H:i:s', strtotime('+30 days')) // 30 days from now
-            ),
-            'compare' => 'BETWEEN', // Only get events between now and 30 days from now
+            'key' => 'event_end_time_stamp',
+            'value' => $current_time,
+            'compare' => '>=',
+            'type' => 'DATETIME'
+          ),
+          array(
+            'key' => 'event_start_time_stamp',
+            'value' => $current_plus_thirty,
+            'compare' => '<=',
             'type' => 'DATETIME' // Let WordPress know we're working with date
           ),
         ),
@@ -656,15 +679,18 @@ class mindEventCalendar
     elseif(is_tax('event_category')):  
       $this->is_archive = true;
       $this->show_past_events = false;
+      $per_page = (int) get_option('posts_per_page');
+      if ($per_page < 1) {
+        $per_page = 10;
+      }
+      $paged = max(1, absint(get_query_var('paged') ?: ($_GET['paged'] ?? 1)));
       $default = array(
         'meta_query' => array(
           'relation' => 'AND',
           array(
-            'key' => 'event_start_time_stamp', // Check the start date field
-            'value' => array(
-              date('Y-m-d H:i:s'), // Current date and time
-            ),
-            'compare' => '>=', // Only get events between now and 30 days from now
+            'key' => 'event_end_time_stamp',
+            'value' => $current_time,
+            'compare' => '>=',
             'type' => 'DATETIME' // Let WordPress know we're working with date
           ),
         ),
@@ -674,7 +700,8 @@ class mindEventCalendar
         'order' => 'ASC',
         'post_type' => 'sub_event',
         'suppress_filters' => true,
-        'posts_per_page' => -1
+        'posts_per_page' => $per_page,
+        'paged' => $paged
       );
     else:
       $default = array(
@@ -689,8 +716,11 @@ class mindEventCalendar
     endif;
 
     $args = wp_parse_args($args, $default);
+    $args = apply_filters('mindevents_front_list_query_args', $args, $this, $calDate);
 
-    $eventDates = $this->get_sub_events($args);
+    $list_query = new WP_Query($args);
+    $this->last_front_list_query = $list_query;
+    $eventDates = $list_query->posts;
     $event_type = get_post_meta(get_the_id(), 'event_type', true);
 
     $i = 0;
@@ -705,10 +735,14 @@ class mindEventCalendar
       endforeach;
       $html = $this->renderList();
     else:
-      $html = '<p class="no-events">There are no ' . ($this->show_past_events ? 'events' : 'upcoming events.');
+      $html = '<p class="no-events">There are no ' . ($this->show_past_events ? 'events.' : 'upcoming events.') . '</p>';
     endif;
 
     return $html;
+  }
+
+  public function get_last_front_list_query() {
+    return $this->last_front_list_query;
   }
 
 
