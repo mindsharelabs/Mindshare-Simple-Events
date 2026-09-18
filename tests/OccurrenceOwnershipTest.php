@@ -129,8 +129,9 @@ class OccurrenceOwnershipTest extends Mindshare_Events_TestCase {
         ));
 
         wp_cache_flush();
-        $this->assertSame('2030-05-03 22:00:00', get_post_meta($own_occurrence, 'event_start_time_stamp', true));
-        $this->assertSame('2030-05-03 23:30:00', get_post_meta($own_occurrence, 'event_end_time_stamp', true));
+        $times = mindevents_get_occurrence_times($own_occurrence);
+        $this->assertSame('2030-05-03 22:00', $times['start']->format('Y-m-d H:i'));
+        $this->assertSame('2030-05-03 23:30', $times['end']->format('Y-m-d H:i'));
     }
 
     public function test_invalid_input_is_not_echoed_back_in_errors(): void {

@@ -48,11 +48,9 @@ class mindEventCalendar {
 
         if ($calendarDate) {
             $this->setDate($calendarDate);
-        } elseif (get_post($id)) {
-            $first_date = get_post_meta($id, 'first_event_date', true);
-            $this->setDate($first_date ? $first_date : current_time('mysql'));
         } else {
-            $this->setDate(current_time('mysql'));
+            // An event's own calendar opens on its first date.
+            $this->setDate($id ? mindevents_from_utc(get_post_meta($id, 'mindevents_first_start_utc', true)) : null);
         }
 
         $options = get_option(MINDEVENTS_PREPEND . 'support_settings', array());
@@ -63,7 +61,7 @@ class mindEventCalendar {
     }
 
     public function setDate($date = null) {
-        $this->now = $this->parseDate($date) ?: new DateTimeImmutable(current_time('mysql'), mindevents_wp_timezone());
+        $this->now = $this->parseDate($date) ?: new DateTimeImmutable('now', wp_timezone());
     }
 
     public function getDate() {
@@ -77,7 +75,7 @@ class mindEventCalendar {
         }
 
         if ($today === null || $today === true) {
-            $this->today = new DateTimeImmutable(current_time('mysql'), mindevents_wp_timezone());
+            $this->today = new DateTimeImmutable('now', wp_timezone());
             return;
         }
 
@@ -92,42 +90,23 @@ class mindEventCalendar {
         $this->show_past_events = ($display !== false);
     }
 
-    public function addDailyHtml($html, $startDate, $endDate = null) {
-        static $htmlCount = 0;
+    /**
+     * Add HTML to every day an occurrence covers, in the site timezone.
+     *
+     * An occurrence that ends exactly at midnight does not spill onto the
+     * next day.
+     */
+    public function addDailyHtml($html, DateTimeImmutable $start, ?DateTimeImmutable $end = null) {
+        $end      = ($end && $end > $start) ? $end : $start;
+        $last_day = $end->setTime(0, 0, 0);
 
-        $start = $this->parseDate($startDate);
-        $end   = $endDate ? $this->parseDate($endDate) : $start;
-
-        if (!($start instanceof DateTimeInterface) || !($end instanceof DateTimeInterface)) {
-            throw new InvalidArgumentException('invalid event date');
+        if ($end > $start && $end == $last_day) {
+            $last_day = $last_day->modify('-1 day');
         }
 
-        if ($end->getTimestamp() < $start->getTimestamp()) {
-            throw new InvalidArgumentException('end must come after start');
+        for ($day = $start->setTime(0, 0, 0); $day <= $last_day; $day = $day->modify('+1 day')) {
+            $this->dailyHtml[(int) $day->format('Y')][(int) $day->format('n')][(int) $day->format('j')][] = $html;
         }
-
-        $working = new DateTimeImmutable($start->format('Y-m-d H:i:s'), $start->getTimezone());
-
-        do {
-            $key_year  = (int) $working->format('Y');
-            $key_month = (int) $working->format('n');
-            $key_day   = (int) $working->format('j');
-
-            if (!isset($this->dailyHtml[$key_year])) {
-                $this->dailyHtml[$key_year] = array();
-            }
-            if (!isset($this->dailyHtml[$key_year][$key_month])) {
-                $this->dailyHtml[$key_year][$key_month] = array();
-            }
-            if (!isset($this->dailyHtml[$key_year][$key_month][$key_day])) {
-                $this->dailyHtml[$key_year][$key_month][$key_day] = array();
-            }
-
-            $this->dailyHtml[$key_year][$key_month][$key_day][$htmlCount] = $html;
-            $working = $working->add(new DateInterval('P1D'));
-        } while ($working->getTimestamp() < ($end->getTimestamp() + 1));
-
-        $htmlCount++;
     }
 
     public function clearDailyHtml() {
@@ -174,7 +153,7 @@ class mindEventCalendar {
         }
 
         $out .= '<div class="mindevents-calendar-wrap">';
-        $out .= '<h2 class="mindevents-calendar-title">' . esc_html($referenceDate->format('F Y')) . '</h2>';
+        $out .= '<h2 class="mindevents-calendar-title">' . esc_html(wp_date('F Y', $referenceDate->getTimestamp())) . '</h2>';
         $out .= '<div id="mindEventCalendar" class="' . esc_attr($this->classes['calendar']) . '" data-month="' . esc_attr($month) . '" data-year="' . esc_attr($year) . '" data-view="month">';
         $out .= '<div class="mindevents-calendar-weekday-row">';
         foreach ($daysOfWeek as $dayName) {
@@ -265,7 +244,7 @@ class mindEventCalendar {
 
             $out .= '<div class="' . esc_attr(implode(' ', $headerClasses)) . '">';
             $out .= '<span class="mindevents-weekly-header-day">' . esc_html($daysOfWeek[$dayOffset]) . '</span>';
-            $out .= '<span class="mindevents-weekly-header-date">' . esc_html($date->format('M j')) . '</span>';
+            $out .= '<span class="mindevents-weekly-header-date">' . esc_html(wp_date('M j', $date->getTimestamp())) . '</span>';
             $out .= '</div>';
         }
 
@@ -339,8 +318,8 @@ class mindEventCalendar {
         } else {
             $prevDate  = $currentDate->modify('first day of previous month');
             $nextDate  = $currentDate->modify('first day of next month');
-            $prevLabel = $prevDate->format('F');
-            $nextLabel = $nextDate->format('F');
+            $prevLabel = wp_date('F', $prevDate->getTimestamp());
+            $nextLabel = wp_date('F', $nextDate->getTimestamp());
         }
 
         $currentUrl = home_url(strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'));
@@ -372,12 +351,12 @@ class mindEventCalendar {
         $defaults = array(
             'meta_query'       => array(
                 array(
-                    'key'     => 'event_start_time_stamp',
+                    'key'     => 'mindevents_start_utc',
                     'compare' => 'EXISTS',
                 ),
             ),
             'orderby'          => 'meta_value',
-            'meta_key'         => 'event_start_time_stamp',
+            'meta_key'         => 'mindevents_start_utc',
             'meta_type'        => 'DATETIME',
             'order'            => 'ASC',
             'post_type'        => 'sub_event',
@@ -395,9 +374,9 @@ class mindEventCalendar {
 
         if ($this->show_past_events === false) {
             $defaults['meta_query'][] = array(
-                'key'     => 'event_end_time_stamp',
-                'value'   => current_time('mysql'),
-                'compare' => '>=',
+                'key'     => 'mindevents_end_utc',
+                'value'   => mindevents_now_utc(),
+                'compare' => '>',
                 'type'    => 'DATETIME',
             );
         }
@@ -429,10 +408,13 @@ class mindEventCalendar {
 
         if ($eventDates && $view !== 'week') {
             foreach ($eventDates as $event) {
-                $event_start = get_post_meta($event->ID, 'event_start_time_stamp', true);
-                $event_end   = get_post_meta($event->ID, 'event_end_time_stamp', true);
-                $title       = $this->get_occurrence_title($event->ID);
-                $time_label  = $this->format_time_range($event_start, $event_end);
+                $times = mindevents_get_occurrence_times($event->ID);
+                if (!$times) {
+                    continue;
+                }
+
+                $title      = $this->get_occurrence_title($event->ID);
+                $time_label = $this->format_time_range($times['start'], $times['end']);
 
                 $html  = '<div class="mindevents-calendar-event-card">';
                 $html .= $this->get_event_color_bar($event->ID);
@@ -442,7 +424,7 @@ class mindEventCalendar {
                 $html .= '</button>';
                 $html .= '</div>';
 
-                $this->addDailyHtml($html, $event_start, $event_end);
+                $this->addDailyHtml($html, $times['start'], $times['end']);
             }
         }
 
@@ -460,79 +442,33 @@ class mindEventCalendar {
         $this->last_front_list_query = null;
         $this->setStartOfWeek($this->calendar_start_day);
 
-        $current_time        = current_time('mysql');
-        $current_time_dt     = new DateTimeImmutable($current_time, mindevents_wp_timezone());
-        $current_plus_thirty = $current_time_dt->modify('+30 days')->format('Y-m-d H:i:s');
+        $now                 = mindevents_now_utc();
         $use_frontend_period = $this->should_use_frontend_visible_period();
 
-        if ($use_frontend_period) {
-            $default = array(
-                'orderby'          => 'meta_value',
-                'meta_key'         => 'event_start_time_stamp',
-                'meta_type'        => 'DATETIME',
-                'order'            => 'ASC',
-                'post_type'        => 'sub_event',
-                'suppress_filters' => true,
-                'posts_per_page'   => -1,
-            );
-        } elseif ($calDate === 'archive') {
-            $default = array(
-                'meta_query'       => array(
-                    array(
-                        'key'     => 'event_end_time_stamp',
-                        'value'   => $current_time,
-                        'compare' => '>=',
-                        'type'    => 'DATETIME',
-                    ),
-                    array(
-                        'key'     => 'event_start_time_stamp',
-                        'value'   => $current_plus_thirty,
-                        'compare' => '<=',
-                        'type'    => 'DATETIME',
-                    ),
-                ),
-                'orderby'          => 'meta_value',
-                'meta_key'         => 'event_start_time_stamp',
-                'meta_type'        => 'DATETIME',
-                'order'            => 'ASC',
-                'post_type'        => 'sub_event',
-                'suppress_filters' => true,
-                'posts_per_page'   => -1,
-            );
-        } elseif (is_tax('event_category')) {
-            $per_page = (int) get_option('posts_per_page');
-            if ($per_page < 1) {
-                $per_page = 10;
-            }
+        $default = array(
+            'post_type'        => 'sub_event',
+            'orderby'          => 'meta_value',
+            'meta_key'         => 'mindevents_start_utc',
+            'meta_type'        => 'DATETIME',
+            'order'            => 'ASC',
+            'suppress_filters' => true,
+            'posts_per_page'   => -1,
+            'meta_query'       => array(),
+        );
 
-            $default = array(
-                'meta_query'       => array(
-                    array(
-                        'key'     => 'event_end_time_stamp',
-                        'value'   => $current_time,
-                        'compare' => '>=',
-                        'type'    => 'DATETIME',
-                    ),
-                ),
-                'orderby'          => 'meta_value',
-                'meta_key'         => 'event_start_time_stamp',
-                'meta_type'        => 'DATETIME',
-                'order'            => 'ASC',
-                'post_type'        => 'sub_event',
-                'suppress_filters' => true,
-                'posts_per_page'   => $per_page,
-                'paged'            => max(1, absint(get_query_var('paged') ?: ($_GET['paged'] ?? 1))),
+        if (!$use_frontend_period && $calDate === 'archive') {
+            // Whatever is on now or starts in the next 30 days.
+            $default['meta_query'][] = mindevents_overlapping_meta_query(new DateTimeImmutable('now'), new DateTimeImmutable('+30 days'));
+        } elseif (!$use_frontend_period && is_tax('event_category')) {
+            $default['meta_query'][] = array(
+                'key'     => 'mindevents_end_utc',
+                'value'   => $now,
+                'compare' => '>',
+                'type'    => 'DATETIME',
             );
-        } else {
-            $default = array(
-                'orderby'          => 'meta_value',
-                'meta_key'         => 'event_start_time_stamp',
-                'meta_type'        => 'DATETIME',
-                'order'            => 'ASC',
-                'post_type'        => 'sub_event',
-                'suppress_filters' => true,
-                'posts_per_page'   => -1,
-            );
+            $per_page                  = (int) get_option('posts_per_page');
+            $default['posts_per_page'] = ($per_page > 0) ? $per_page : 10;
+            $default['paged']          = max(1, absint(get_query_var('paged') ?: ($_GET['paged'] ?? 1)));
         }
 
         $args = wp_parse_args($args, $default);
@@ -545,10 +481,11 @@ class mindEventCalendar {
             $args['meta_query'][] = mindevents_public_visibility_meta_query();
         }
 
+        // Within the visible period, the list shows only what is still to come.
         if ($use_frontend_period && $this->get_frontend_view() === 'list') {
             $args['meta_query'][] = array(
-                'key'     => 'event_start_time_stamp',
-                'value'   => $current_time,
+                'key'     => 'mindevents_start_utc',
+                'value'   => $now,
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             );
@@ -556,15 +493,15 @@ class mindEventCalendar {
 
         $list_query = new WP_Query($args);
         $this->last_front_list_query = $list_query;
-        $eventDates = $list_query->posts;
 
-        if ($eventDates) {
-            foreach ($eventDates as $index => $event) {
-                $display_link = true;
-                $startDate    = get_post_meta($event->ID, 'event_start_time_stamp', true);
-                $this->addDailyHtml($this->get_list_item_html($event->ID, $display_link), $startDate);
+        foreach ($list_query->posts as $event) {
+            $times = mindevents_get_occurrence_times($event->ID);
+            if ($times) {
+                $this->addDailyHtml($this->get_list_item_html($event->ID), $times['start']);
             }
+        }
 
+        if ($this->dailyHtml) {
             return $this->renderList();
         }
 
@@ -590,14 +527,14 @@ class mindEventCalendar {
 
         if (empty($this->dailyHtml) && $this->should_use_frontend_visible_period() && $this->get_frontend_view() === 'list') {
             $period = $this->get_visible_period('list');
-            $out .= '<h2 class="mindevents-list-month">' . esc_html($period['start']->format('F Y')) . '</h2>';
+            $out .= '<h2 class="mindevents-list-month">' . esc_html(wp_date('F Y', $period['start']->getTimestamp())) . '</h2>';
         }
 
         foreach ($this->dailyHtml as $year => $year_items) {
             foreach ($year_items as $month => $month_items) {
-                $out .= '<h2 class="mindevents-list-month">' . esc_html(date_i18n('F Y', mktime(0, 0, 0, (int) $month, 1, (int) $year))) . '</h2>';
+                $out .= '<h2 class="mindevents-list-month">' . esc_html(wp_date('F Y', $this->local_day($year, $month, 1)->getTimestamp())) . '</h2>';
                 foreach ($month_items as $day => $daily_items) {
-                    $date_label = date_i18n($this->date_format, mktime(0, 0, 0, (int) $month, (int) $day, (int) $year));
+                    $date_label = wp_date($this->date_format, $this->local_day($year, $month, $day)->getTimestamp());
                     $out .= '<section class="mindevents-list-day">';
                     $out .= '<h3 class="mindevents-list-day-label">' . esc_html($date_label) . '</h3>';
                     foreach ($daily_items as $html) {
@@ -615,13 +552,11 @@ class mindEventCalendar {
 
     public function get_list_item_html($event = '', $display_link = true) {
         $event      = absint($event);
-        $meta       = get_post_meta($event);
         $parent_id  = (int) wp_get_post_parent_id($event);
         $title      = $this->get_occurrence_title($event);
         $permalink  = $parent_id ? get_permalink($parent_id) : get_permalink($event);
-        $start      = $meta['event_start_time_stamp'][0] ?? '';
-        $end        = $meta['event_end_time_stamp'][0] ?? '';
-        $date_label = $this->format_date_range($start, $end);
+        $times      = mindevents_get_occurrence_times($event);
+        $date_label = $times ? $this->format_date_range($times['start'], $times['end']) : '';
         $excerpt    = mindevents_get_occurrence_excerpt($event);
         $location   = mindevents_get_occurrence_location($event);
         $organizer  = $this->get_organizer_block($event);
@@ -678,10 +613,8 @@ class mindEventCalendar {
         $parent_link = $parent_id ? get_permalink($parent_id) : '';
         $image       = get_the_post_thumbnail($parent_id ?: $event, 'large', array('class' => 'mindevents-event-meta__image'));
         $title       = $this->get_occurrence_title($event);
-        $date_label  = $this->format_date_range(
-            get_post_meta($event, 'event_start_time_stamp', true),
-            get_post_meta($event, 'event_end_time_stamp', true)
-        );
+        $times       = mindevents_get_occurrence_times($event);
+        $date_label  = $times ? $this->format_date_range($times['start'], $times['end']) : '';
         $excerpt   = mindevents_get_occurrence_excerpt($event);
         $location  = mindevents_get_occurrence_location($event);
         $organizer = $this->get_organizer_block($event);
@@ -754,98 +687,139 @@ class mindEventCalendar {
 
         if ($eventDates) {
             foreach ($eventDates as $event) {
-                $start = get_post_meta($event->ID, 'event_start_time_stamp', true);
-                $end   = get_post_meta($event->ID, 'event_end_time_stamp', true);
+                $times = mindevents_get_occurrence_times($event->ID);
+                if (!$times) {
+                    continue;
+                }
+
                 $html  = '<div class="mindevents-admin-occurrence">';
                 $html .= $this->get_event_color_bar($event->ID);
                 $html .= '<div class="mindevents-admin-occurrence__actions">';
-                $html .= '<button type="button" class="mindevents-admin-occurrence__edit" data-subid="' . esc_attr($event->ID) . '">' . esc_html($this->format_time_range($start, $end)) . '</button>';
+                $html .= '<button type="button" class="mindevents-admin-occurrence__edit" data-subid="' . esc_attr($event->ID) . '">' . esc_html($this->format_time_range($times['start'], $times['end'])) . '</button>';
                 $html .= '<button type="button" class="mindevents-admin-occurrence__delete" data-subid="' . esc_attr($event->ID) . '" aria-label="' . esc_attr__('Remove occurrence', 'simple-events') . '">&times;</button>';
                 $html .= '</div>';
                 $html .= '</div>';
-                $this->addDailyHtml($html, $start, $end);
+                $this->addDailyHtml($html, $times['start'], $times['end']);
             }
         }
 
         return $this->render();
     }
 
+    /**
+     * @return true|WP_Error
+     */
     public function update_sub_event($sub_event, $meta, $parentID) {
         $sub_event = absint($sub_event);
         $parentID  = absint($parentID);
         if (!$sub_event || !$parentID) {
-            return;
+            return new WP_Error('mindevents_invalid_occurrence', __('That occurrence does not exist.', 'simple-events'));
         }
 
         $meta = $this->sanitize_sub_event_meta($meta, $parentID);
-        $meta['unique_event_key'] = $this->build_unique_key($parentID, $meta['event_start_time_stamp'], $meta);
 
-        foreach ($meta as $key => $value) {
-            update_post_meta($sub_event, $key, $value);
-        }
-
-        mindevents_apply_visibility_meta($sub_event, $meta['mindevents_visibility']);
-
-        wp_update_post(array(
-            'ID'         => $sub_event,
-            'post_title' => $this->build_title($parentID, $meta['event_date'], $meta),
-        ));
-
-        mindevents_sync_event_date_range($parentID);
+        return $this->save_occurrence($sub_event, $parentID, $meta);
     }
 
+    /**
+     * Move an occurrence to another date, keeping its local start time and
+     * its length.
+     *
+     * @return true|WP_Error
+     */
+    public function move_sub_event($occurrence_id, $new_date) {
+        $times = mindevents_get_occurrence_times($occurrence_id);
+        $start = $times ? DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $new_date . ' ' . $times['start']->format('H:i:s'), wp_timezone()) : false;
+
+        if (!$start || $start->format('Y-m-d') !== $new_date) {
+            return new WP_Error('mindevents_invalid_date', __('The new occurrence date is invalid.', 'simple-events'));
+        }
+
+        $length = $times['end']->getTimestamp() - $times['start']->getTimestamp();
+        $end    = (new DateTimeImmutable('@' . ($start->getTimestamp() + $length)))->setTimezone(wp_timezone());
+
+        return $this->save_occurrence($occurrence_id, (int) wp_get_post_parent_id($occurrence_id), array(
+            'mindevents_start_utc' => mindevents_to_utc($start),
+            'mindevents_end_utc'   => mindevents_to_utc($end),
+        ));
+    }
+
+    /**
+     * Write sanitized meta to an existing occurrence, refusing a change that
+     * would duplicate another of the event's occurrences.
+     */
+    private function save_occurrence($occurrence_id, $event_id, array $meta) {
+        if ($this->has_occurrence_at($event_id, $meta['mindevents_start_utc'], $meta['mindevents_end_utc'], $occurrence_id)) {
+            return new WP_Error('mindevents_duplicate', __('An occurrence at that time already exists.', 'simple-events'));
+        }
+
+        foreach ($meta as $key => $value) {
+            update_post_meta($occurrence_id, $key, $value);
+        }
+
+        wp_update_post(array(
+            'ID'         => $occurrence_id,
+            'post_title' => $this->build_title($event_id, $meta),
+        ));
+
+        mindevents_sync_event_date_range($event_id);
+
+        return true;
+    }
+
+    /**
+     * @return int|false|WP_Error The new occurrence ID, false if the event
+     *                            already has one at that time.
+     */
     public function add_sub_event($date, $meta, $eventID, $args = array()) {
         $eventID = absint($eventID);
         if (!$eventID) {
             return false;
         }
 
-        $meta   = $this->sanitize_sub_event_meta($meta, $eventID, $date);
-        $unique = $this->build_unique_key($eventID, $date, $meta);
+        $meta = $this->sanitize_sub_event_meta($meta, $eventID, $date);
 
-        $check_query = new WP_Query(array(
-            'fields'         => 'ids',
-            'post_type'      => 'sub_event',
-            'post_status'    => 'publish',
-            'posts_per_page' => 1,
-            'meta_query'     => array(
-                array(
-                    'key'   => 'unique_event_key',
-                    'value' => $unique,
-                ),
-            ),
-        ));
-
-        if ($check_query->have_posts()) {
+        if ($this->has_occurrence_at($eventID, $meta['mindevents_start_utc'], $meta['mindevents_end_utc'])) {
             return false;
         }
 
-        $terms                = wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids'));
-        $meta['unique_event_key'] = $unique;
-
-        $defaults = array(
-            'post_author'  => (int) get_post_field('post_author', $eventID),
-            'post_title'   => $this->build_title($eventID, $date, $meta),
-            'post_status'  => 'publish',
-            'post_type'    => 'sub_event',
-            'post_parent'  => $eventID,
-            'meta_input'   => $meta,
-            'tax_input'    => array(
-                'event_category' => $terms,
-            ),
-        );
-
-        $post_args = wp_parse_args($args, $defaults);
-        $post_id   = wp_insert_post($post_args, true);
+        $post_id = wp_insert_post(wp_parse_args($args, array(
+            'post_author' => (int) get_post_field('post_author', $eventID),
+            'post_title'  => $this->build_title($eventID, $meta),
+            'post_status' => 'publish',
+            'post_type'   => 'sub_event',
+            'post_parent' => $eventID,
+            'meta_input'  => $meta,
+        )), true);
 
         if (is_wp_error($post_id)) {
             return $post_id;
         }
 
-        mindevents_apply_visibility_meta($post_id, $meta['mindevents_visibility']);
+        // Set directly: tax_input is skipped when the current user cannot
+        // assign terms, and permission was already checked by the caller.
+        wp_set_post_terms($post_id, wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids')), 'event_category');
         mindevents_sync_event_date_range($eventID);
 
         return $post_id;
+    }
+
+    /**
+     * Whether the event has an occurrence at exactly these times.
+     */
+    private function has_occurrence_at($event_id, $start_utc, $end_utc, $exclude_id = 0) {
+        return (bool) get_posts(array(
+            'post_type'      => 'sub_event',
+            'post_status'    => 'any',
+            'post_parent'    => $event_id,
+            'post__not_in'   => array_filter(array((int) $exclude_id)),
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => array(
+                array('key' => 'mindevents_start_utc', 'value' => $start_utc),
+                array('key' => 'mindevents_end_utc', 'value' => $end_utc),
+            ),
+        ));
     }
 
     public function delete_sub_events($parentID = '') {
@@ -881,8 +855,8 @@ class mindEventCalendar {
             '@context'    => 'https://schema.org',
             '@type'       => 'Event',
             'name'        => mindevents_get_plain_title($this->eventID),
-            'startDate'   => get_post_meta($this->eventID, 'first_event_date', true),
-            'endDate'     => get_post_meta($this->eventID, 'last_event_date', true),
+            'startDate'   => mindevents_iso8601(get_post_meta($this->eventID, 'mindevents_first_start_utc', true)),
+            'endDate'     => mindevents_iso8601(get_post_meta($this->eventID, 'mindevents_last_end_utc', true)),
             'description' => mindevents_plain_text(get_the_excerpt($this->eventID)),
             'url'         => get_permalink($this->eventID),
             'image'       => array_filter(array(get_the_post_thumbnail_url($this->eventID, 'large'))),
@@ -908,8 +882,8 @@ class mindEventCalendar {
                 $sub_schema = array(
                     '@type'       => 'Event',
                     'name'        => mindevents_get_plain_title($this->eventID),
-                    'startDate'   => get_post_meta($event->ID, 'event_start_time_stamp', true),
-                    'endDate'     => get_post_meta($event->ID, 'event_end_time_stamp', true),
+                    'startDate'   => mindevents_iso8601(get_post_meta($event->ID, 'mindevents_start_utc', true)),
+                    'endDate'     => mindevents_iso8601(get_post_meta($event->ID, 'mindevents_end_utc', true)),
                     'description' => mindevents_plain_text(mindevents_get_occurrence_excerpt($event->ID)),
                     'url'         => get_permalink($this->eventID),
                 );
@@ -931,18 +905,22 @@ class mindEventCalendar {
         return wp_json_encode($schema, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
+    /**
+     * A date from a timestamp, a DateTime, or a string read in the site
+     * timezone. Null if it cannot be parsed.
+     */
     private function parseDate($date = null) {
         if ($date instanceof DateTimeInterface) {
-            return $date;
+            $date = $date->getTimestamp();
         }
 
         if (is_int($date)) {
-            return (new DateTimeImmutable('now', mindevents_wp_timezone()))->setTimestamp($date);
+            return (new DateTimeImmutable('@' . $date))->setTimezone(wp_timezone());
         }
 
         if (is_string($date) && $date !== '') {
             try {
-                return new DateTimeImmutable($date, mindevents_wp_timezone());
+                return new DateTimeImmutable($date, wp_timezone());
             } catch (Exception $exception) {
                 return null;
             }
@@ -952,13 +930,11 @@ class mindEventCalendar {
     }
 
     private function get_calendar_reference_date() {
-        if (!($this->now instanceof DateTimeInterface)) {
-            $this->setDate(current_time('mysql'));
+        if (!($this->now instanceof DateTimeImmutable)) {
+            $this->setDate();
         }
 
-        return ($this->now instanceof DateTimeImmutable)
-            ? $this->now
-            : new DateTimeImmutable($this->now->format('Y-m-d H:i:s'), $this->now->getTimezone());
+        return $this->now;
     }
 
     private function get_frontend_filters_state() {
@@ -1020,30 +996,34 @@ class mindEventCalendar {
             return $args;
         }
 
-        $period       = $this->get_visible_period($view);
-        $period_start = $period['start']->format('Y-m-d H:i:s');
-        $period_end   = $period['end']->format('Y-m-d H:i:s');
+        $period = $this->get_visible_period($view);
 
         if (!isset($args['meta_query']) || !is_array($args['meta_query'])) {
             $args['meta_query'] = array();
         }
 
-        $args['meta_query'][] = array(
-            'key'     => 'event_start_time_stamp',
-            'value'   => array($period_start, $period_end),
-            'compare' => 'BETWEEN',
-            'type'    => 'DATETIME',
-        );
+        $args['meta_query'][] = mindevents_overlapping_meta_query($period['start'], $period['end']);
 
         return $args;
     }
 
+    /**
+     * Noon on a calendar day in the site timezone. Noon, because a daylight
+     * saving change can make midnight not exist.
+     */
+    private function local_day($year, $month, $day) {
+        return (new DateTimeImmutable('now', wp_timezone()))->setDate((int) $year, (int) $month, (int) $day)->setTime(12, 0, 0);
+    }
+
     private function get_week_display_label(DateTimeInterface $period_start, DateTimeInterface $period_end) {
-        if ($period_start->format('F Y') === $period_end->format('F Y')) {
-            return $period_start->format('F j') . ' - ' . $period_end->format('j, Y');
+        $start = $period_start->getTimestamp();
+        $end   = $period_end->getTimestamp();
+
+        if ($period_start->format('Y-m') === $period_end->format('Y-m')) {
+            return wp_date('F j', $start) . ' - ' . wp_date('j, Y', $end);
         }
 
-        return $period_start->format('F j, Y') . ' - ' . $period_end->format('F j, Y');
+        return wp_date('F j, Y', $start) . ' - ' . wp_date('F j, Y', $end);
     }
 
     private function rotate(array &$data, $steps) {
@@ -1063,12 +1043,15 @@ class mindEventCalendar {
         }
     }
 
+    /**
+     * Weekday names, Monday first, in the site's language.
+     */
     private function weekdays() {
-        $days = array();
-        $base = new DateTimeImmutable('monday this week', mindevents_wp_timezone());
+        global $wp_locale;
 
-        for ($index = 0; $index < 7; $index++) {
-            $days[] = $base->modify('+' . $index . ' days')->format('l');
+        $days = array();
+        for ($index = 1; $index <= 7; $index++) {
+            $days[] = $wp_locale->get_weekday($index % 7);
         }
 
         return $days;
@@ -1091,14 +1074,9 @@ class mindEventCalendar {
     }
 
     private function is_past_occurrence($event_id) {
-        $start = get_post_meta($event_id, 'event_start_time_stamp', true);
-        if (!$start || !($this->today instanceof DateTimeInterface)) {
-            return false;
-        }
+        $times = mindevents_get_occurrence_times($event_id);
 
-        $start_dt = new DateTimeImmutable($start, $this->today->getTimezone());
-
-        return $start_dt < $this->today;
+        return $times && $this->today && $times['start'] < $this->today;
     }
 
     private function get_occurrence_title($event_id) {
@@ -1161,27 +1139,19 @@ class mindEventCalendar {
         return $html;
     }
 
-    private function format_time_range($start, $end) {
-        if (!$start) {
-            return '';
+    private function format_time_range(DateTimeInterface $start, ?DateTimeInterface $end = null) {
+        $label = wp_date($this->time_format, $start->getTimestamp());
+
+        if ($end) {
+            $label .= ' - ' . wp_date($this->time_format, $end->getTimestamp());
         }
 
-        $start_dt = new DateTimeImmutable($start, mindevents_wp_timezone());
-
-        if (!$end) {
-            return $start_dt->format($this->time_format);
-        }
-
-        $end_dt = new DateTimeImmutable($end, mindevents_wp_timezone());
-
-        return $start_dt->format($this->time_format) . ' - ' . $end_dt->format($this->time_format);
+        return $label;
     }
 
     private function format_hour_label($hour) {
-        $normalized = ((int) $hour) % 24;
-        $date       = new DateTimeImmutable(sprintf('2000-01-01 %02d:00:00', $normalized), mindevents_wp_timezone());
-
-        return $date->format('g a');
+        // A fixed UTC date, so a daylight saving change cannot skip or repeat an hour.
+        return wp_date('g a', gmmktime(((int) $hour) % 24, 0, 0, 1, 1, 2000), new DateTimeZone('UTC'));
     }
 
     private function build_week_events_by_day($events, DateTimeImmutable $weekStart, DateTimeImmutable $weekEnd) {
@@ -1193,20 +1163,15 @@ class mindEventCalendar {
         }
 
         foreach ((array) $events as $event) {
-            $event_id  = (int) ($event->ID ?? 0);
-            $start_raw = get_post_meta($event_id, 'event_start_time_stamp', true);
-            $end_raw   = get_post_meta($event_id, 'event_end_time_stamp', true);
+            $event_id = (int) ($event->ID ?? 0);
+            $times    = $event_id ? mindevents_get_occurrence_times($event_id) : null;
 
-            if (!$event_id || !$start_raw || !$end_raw) {
+            if (!$times) {
                 continue;
             }
 
-            try {
-                $start = new DateTimeImmutable($start_raw, mindevents_wp_timezone());
-                $end   = new DateTimeImmutable($end_raw, mindevents_wp_timezone());
-            } catch (Throwable $exception) {
-                continue;
-            }
+            $start = $times['start'];
+            $end   = $times['end'];
 
             if ($end <= $weekStart || $start >= $weekEnd->modify('+1 second')) {
                 continue;
@@ -1239,7 +1204,7 @@ class mindEventCalendar {
                     $eventsByDay[$dayKey][] = array(
                         'id'            => $event_id,
                         'title'         => $this->get_occurrence_title($event_id),
-                        'time'          => $this->format_time_range($daySegmentStart->format('Y-m-d H:i:s'), $daySegmentEnd->format('Y-m-d H:i:s')),
+                        'time'          => $this->format_time_range($daySegmentStart, $daySegmentEnd),
                         'color'         => $this->get_primary_event_color($event_id),
                         'start_minutes' => $startMinutes,
                         'end_minutes'   => $endMinutes,
@@ -1341,63 +1306,47 @@ class mindEventCalendar {
         return $cluster;
     }
 
-    private function format_date_range($start, $end) {
-        if (!$start) {
-            return '';
+    private function format_date_range(DateTimeInterface $start, DateTimeInterface $end) {
+        if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
+            return wp_date($this->date_format, $start->getTimestamp()) . ' · ' . $this->format_time_range($start, $end);
         }
 
-        $start_dt = new DateTimeImmutable($start, mindevents_wp_timezone());
+        $format = $this->date_format . ' ' . $this->time_format;
 
-        if (!$end) {
-            return $start_dt->format($this->date_format . ' ' . $this->time_format);
-        }
-
-        $end_dt = new DateTimeImmutable($end, mindevents_wp_timezone());
-
-        if ($start_dt->format('Y-m-d') === $end_dt->format('Y-m-d')) {
-            return $start_dt->format($this->date_format) . ' · ' . $start_dt->format($this->time_format) . ' - ' . $end_dt->format($this->time_format);
-        }
-
-        return $start_dt->format($this->date_format . ' ' . $this->time_format) . ' - ' . $end_dt->format($this->date_format . ' ' . $this->time_format);
+        return wp_date($format, $start->getTimestamp()) . ' - ' . wp_date($format, $end->getTimestamp());
     }
 
+    /**
+     * Occurrence meta from admin input, ready to store.
+     *
+     * Only known keys are returned, each sanitized. The date and times are
+     * read in the site timezone and stored as UTC.
+     *
+     * @throws InvalidArgumentException When the date or times are not valid.
+     */
     private function sanitize_sub_event_meta($meta, $parentID, $date = '') {
         $meta = is_array($meta) ? $meta : array();
+        $date = sanitize_text_field((string) ($date ?: ($meta['event_date'] ?? '')));
 
-        $event_date = $date ? sanitize_text_field((string) $date) : sanitize_text_field((string) ($meta['event_date'] ?? ''));
-        if ($event_date === '') {
-            $existing_start = $meta['event_start_time_stamp'] ?? '';
-            if ($existing_start) {
-                $event_date = (new DateTimeImmutable($existing_start, mindevents_wp_timezone()))->format('Y-m-d');
-            }
-        }
+        $times = mindevents_local_times(
+            $date,
+            mindevents_normalize_time_value($meta['starttime'] ?? '', $this->default_time_from_parent($parentID, 'starttime')),
+            mindevents_normalize_time_value($meta['endtime'] ?? '', $this->default_time_from_parent($parentID, 'endtime'))
+        );
 
-        $starttime = mindevents_normalize_time_value($meta['starttime'] ?? '', $this->default_time_from_parent($parentID, 'starttime'));
-        $endtime   = mindevents_normalize_time_value($meta['endtime'] ?? '', $this->default_time_from_parent($parentID, 'endtime'));
-
-        $start_dt = DateTimeImmutable::createFromFormat('Y-m-d H:i', $event_date . ' ' . $starttime, mindevents_wp_timezone());
-        $end_dt   = DateTimeImmutable::createFromFormat('Y-m-d H:i', $event_date . ' ' . $endtime, mindevents_wp_timezone());
-
-        if (!($start_dt instanceof DateTimeImmutable)) {
-            throw new InvalidArgumentException('Invalid occurrence start date.');
-        }
-
-        if (!($end_dt instanceof DateTimeImmutable)) {
-            $end_dt = $start_dt;
+        if (!$times) {
+            throw new InvalidArgumentException('Invalid occurrence date or time.');
         }
 
         return array(
-            'event_date'                 => $event_date,
-            'starttime'                  => $starttime,
-            'endtime'                    => $endtime,
-            'event_start_time_stamp'     => $start_dt->format('Y-m-d H:i:s'),
-            'event_end_time_stamp'       => $end_dt->format('Y-m-d H:i:s'),
-            'eventColor'                 => sanitize_hex_color($meta['eventColor'] ?? '') ?: '',
-            'eventDescription'           => wp_kses_post($meta['eventDescription'] ?? ''),
-            'mindevents_location'        => sanitize_text_field((string) ($meta['mindevents_location'] ?? '')),
-            'mindevents_visibility'      => mindevents_sanitize_visibility($meta['mindevents_visibility'] ?? mindevents_get_post_visibility($parentID)),
-            'mindevents_organizer_name'  => sanitize_text_field((string) ($meta['mindevents_organizer_name'] ?? '')),
-            'mindevents_organizer_title' => sanitize_text_field((string) ($meta['mindevents_organizer_title'] ?? '')),
+            'mindevents_start_utc'          => mindevents_to_utc($times['start']),
+            'mindevents_end_utc'            => mindevents_to_utc($times['end']),
+            'eventColor'                    => sanitize_hex_color($meta['eventColor'] ?? '') ?: '',
+            'eventDescription'              => wp_kses_post($meta['eventDescription'] ?? ''),
+            'mindevents_location'           => sanitize_text_field((string) ($meta['mindevents_location'] ?? '')),
+            'mindevents_visibility'         => mindevents_sanitize_visibility($meta['mindevents_visibility'] ?? mindevents_get_post_visibility($parentID)),
+            'mindevents_organizer_name'     => sanitize_text_field((string) ($meta['mindevents_organizer_name'] ?? '')),
+            'mindevents_organizer_title'    => sanitize_text_field((string) ($meta['mindevents_organizer_title'] ?? '')),
             'mindevents_organizer_image_id' => absint($meta['mindevents_organizer_image_id'] ?? 0),
         );
     }
@@ -1416,13 +1365,15 @@ class mindEventCalendar {
         return $options[$option_key] ?? (($key === 'endtime') ? '21:00' : '19:00');
     }
 
-    private function build_unique_key($eventID, $date = '', $times = array()) {
-        return sanitize_title($eventID . '_' . $date . '_' . ($times['event_start_time_stamp'] ?? '') . '-' . ($times['event_end_time_stamp'] ?? ''));
+    /**
+     * The occurrence's admin title, e.g. "Pottery | 2030-07-01 | 19:00-21:00".
+     */
+    private function build_title($parentID, array $meta) {
+        $start = mindevents_from_utc($meta['mindevents_start_utc']);
+        $end   = mindevents_from_utc($meta['mindevents_end_utc']);
+        $title = mindevents_get_plain_title($parentID) . ' | ' . $start->format('Y-m-d') . ' | ' . $start->format('H:i') . '-' . $end->format('H:i');
+
+        return apply_filters('mindevents_occurrence_title', $title, $start, $end, $parentID);
     }
 
-    private function build_title($parentID, $date = '', $times = array()) {
-        $title = mindevents_get_plain_title($parentID) . ' | ' . $date . ' | ' . ($times['starttime'] ?? '') . '-' . ($times['endtime'] ?? '');
-
-        return apply_filters('mind_events_title', $title, $date, $times, $this);
-    }
 }

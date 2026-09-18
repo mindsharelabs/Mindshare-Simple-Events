@@ -4,15 +4,129 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!function_exists('mindevents_wp_timezone')) {
-    function mindevents_wp_timezone() {
-        if (function_exists('wp_timezone')) {
-            return wp_timezone();
+/*
+ * Time
+ *
+ * An occurrence's time is stored in exactly two meta keys,
+ * mindevents_start_utc and mindevents_end_utc, as Y-m-d H:i:s in UTC: the
+ * same way WordPress stores post_date_gmt. Nothing else is stored.
+ *
+ * Admin input is read as wall-clock time in the site timezone and converted
+ * once, on save. Display converts back to the site timezone. The functions
+ * below are the only code that needs to know how times are stored.
+ */
+
+if (!function_exists('mindevents_to_utc')) {
+    /**
+     * A moment in time, formatted for storage.
+     */
+    function mindevents_to_utc(DateTimeInterface $time) {
+        return gmdate('Y-m-d H:i:s', $time->getTimestamp());
+    }
+}
+
+if (!function_exists('mindevents_from_utc')) {
+    /**
+     * A stored value, in the site timezone. Null if missing or malformed.
+     */
+    function mindevents_from_utc($value) {
+        if (!is_string($value) || $value === '') {
+            return null;
         }
 
-        $timezone_string = get_option('timezone_string');
+        $time = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value, new DateTimeZone('UTC'));
 
-        return new DateTimeZone($timezone_string ? $timezone_string : 'UTC');
+        return $time ? $time->setTimezone(wp_timezone()) : null;
+    }
+}
+
+if (!function_exists('mindevents_iso8601')) {
+    /**
+     * A stored value as ISO 8601 with the site's UTC offset, for output
+     * read by machines. Empty if the value is missing.
+     */
+    function mindevents_iso8601($utc) {
+        $time = mindevents_from_utc($utc);
+
+        return $time ? $time->format('c') : '';
+    }
+}
+
+if (!function_exists('mindevents_now_utc')) {
+    /**
+     * The current time, formatted for comparing against stored values.
+     */
+    function mindevents_now_utc() {
+        return gmdate('Y-m-d H:i:s');
+    }
+}
+
+if (!function_exists('mindevents_get_occurrence_times')) {
+    /**
+     * An occurrence's start and end in the site timezone, or null.
+     *
+     * @return array{start: DateTimeImmutable, end: DateTimeImmutable}|null
+     */
+    function mindevents_get_occurrence_times($occurrence_id) {
+        $start = mindevents_from_utc(get_post_meta($occurrence_id, 'mindevents_start_utc', true));
+        $end   = mindevents_from_utc(get_post_meta($occurrence_id, 'mindevents_end_utc', true));
+
+        if (!$start || !$end) {
+            return null;
+        }
+
+        return array('start' => $start, 'end' => $end);
+    }
+}
+
+if (!function_exists('mindevents_local_times')) {
+    /**
+     * An occurrence's start and end, from a Y-m-d date and two H:i
+     * wall-clock times in the site timezone.
+     *
+     * An end earlier than the start is taken to be on the following day, so
+     * 22:00 to 01:00 runs overnight. Returns null if anything is invalid.
+     */
+    function mindevents_local_times($date, $start_time, $end_time) {
+        $timezone = wp_timezone();
+        $start    = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $date . ' ' . $start_time, $timezone);
+        $end      = DateTimeImmutable::createFromFormat('!Y-m-d H:i', $date . ' ' . $end_time, $timezone);
+
+        if (!$start || !$end || $start->format('Y-m-d') !== $date) {
+            return null;
+        }
+
+        if ($end < $start) {
+            $end = $end->modify('+1 day');
+        }
+
+        return array('start' => $start, 'end' => $end);
+    }
+}
+
+if (!function_exists('mindevents_overlapping_meta_query')) {
+    /**
+     * A meta query clause matching occurrences that overlap a period.
+     *
+     * An occurrence overlaps when it starts before the period ends and ends
+     * after it starts, so one that began the night before still appears.
+     */
+    function mindevents_overlapping_meta_query(DateTimeInterface $from, DateTimeInterface $to) {
+        return array(
+            'relation' => 'AND',
+            array(
+                'key'     => 'mindevents_start_utc',
+                'value'   => mindevents_to_utc($to),
+                'compare' => '<=',
+                'type'    => 'DATETIME',
+            ),
+            array(
+                'key'     => 'mindevents_end_utc',
+                'value'   => mindevents_to_utc($from),
+                'compare' => '>',
+                'type'    => 'DATETIME',
+            ),
+        );
     }
 }
 
@@ -163,46 +277,41 @@ if (!function_exists('mindevents_sync_event_visibility_to_children')) {
 }
 
 if (!function_exists('mindevents_sync_event_date_range')) {
+    /**
+     * Record an event's first start and last end, for sorting and schema.
+     */
     function mindevents_sync_event_date_range($event_id) {
         $event_id = absint($event_id);
         if (!$event_id) {
             return;
         }
 
-        $first_event = get_posts(array(
-            'post_type'      => 'sub_event',
-            'post_status'    => array('publish', 'pending', 'draft', 'future', 'private'),
-            'posts_per_page' => 1,
-            'post_parent'    => $event_id,
-            'orderby'        => 'meta_value',
-            'meta_key'       => 'event_start_time_stamp',
-            'meta_type'      => 'DATETIME',
-            'order'          => 'ASC',
-            'suppress_filters' => true,
-        ));
+        $range = array(
+            'mindevents_first_start_utc' => array('mindevents_start_utc', 'ASC'),
+            'mindevents_last_end_utc'    => array('mindevents_end_utc', 'DESC'),
+        );
 
-        $last_event = get_posts(array(
-            'post_type'      => 'sub_event',
-            'post_status'    => array('publish', 'pending', 'draft', 'future', 'private'),
-            'posts_per_page' => 1,
-            'post_parent'    => $event_id,
-            'orderby'        => 'meta_value',
-            'meta_key'       => 'event_end_time_stamp',
-            'meta_type'      => 'DATETIME',
-            'order'          => 'DESC',
-            'suppress_filters' => true,
-        ));
+        foreach ($range as $event_key => $order) {
+            list($occurrence_key, $direction) = $order;
 
-        if (!empty($first_event[0])) {
-            update_post_meta($event_id, 'first_event_date', get_post_meta($first_event[0]->ID, 'event_start_time_stamp', true));
-        } else {
-            delete_post_meta($event_id, 'first_event_date');
-        }
+            $occurrences = get_posts(array(
+                'post_type'        => 'sub_event',
+                'post_status'      => array('publish', 'pending', 'draft', 'future', 'private'),
+                'post_parent'      => $event_id,
+                'posts_per_page'   => 1,
+                'fields'           => 'ids',
+                'orderby'          => 'meta_value',
+                'meta_key'         => $occurrence_key,
+                'meta_type'        => 'DATETIME',
+                'order'            => $direction,
+                'suppress_filters' => true,
+            ));
 
-        if (!empty($last_event[0])) {
-            update_post_meta($event_id, 'last_event_date', get_post_meta($last_event[0]->ID, 'event_end_time_stamp', true));
-        } else {
-            delete_post_meta($event_id, 'last_event_date');
+            if ($occurrences) {
+                update_post_meta($event_id, $event_key, get_post_meta($occurrences[0], $occurrence_key, true));
+            } else {
+                delete_post_meta($event_id, $event_key);
+            }
         }
     }
 }

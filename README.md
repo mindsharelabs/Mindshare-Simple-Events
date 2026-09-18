@@ -25,7 +25,33 @@ Mindshare Simple Events is a self-contained WordPress events plugin for sites th
 
 ## Data Model
 
-Event and occurrence data is stored in these plugin-owned meta keys:
+### Times
+
+Each occurrence stores its time in exactly two meta keys, as `Y-m-d H:i:s`
+in UTC, the same way WordPress stores `post_date_gmt`:
+
+- `mindevents_start_utc`
+- `mindevents_end_utc`
+
+Each event keeps its range across all its occurrences, for sorting and
+structured data:
+
+- `mindevents_first_start_utc`
+- `mindevents_last_end_utc`
+
+Times are entered and displayed in the site timezone (Settings > General).
+An end time earlier than the start time is read as the following day, so
+22:00 to 01:00 runs overnight. If the site timezone is changed, existing
+occurrences keep their moment in time and show at the new local time.
+Choose a city rather than a fixed UTC offset, since offsets do not observe
+daylight saving.
+
+Read times through `mindevents_get_occurrence_times()`, which returns the
+start and end in the site timezone, rather than reading the meta directly.
+
+### Details
+
+Event and occurrence details are stored in these plugin-owned meta keys:
 
 - `mindevents_organizer_name`
 - `mindevents_organizer_title`
@@ -65,7 +91,7 @@ Supported filters:
 - `page`
 - `per_page`
 - `status`
-- `after`
+- `after`: a date or date-time, read in the site timezone unless it carries an offset
 - `before`
 - `orderby`
 - `order`
@@ -83,7 +109,7 @@ Response fields:
 - `permalink`
 - `excerpt`
 - `image`
-- `start`
+- `start`: ISO 8601 with the site's UTC offset, e.g. `2030-07-01T19:00:00-06:00`
 - `end`
 - `location`
 - `organizer`

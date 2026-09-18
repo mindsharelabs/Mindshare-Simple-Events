@@ -46,10 +46,6 @@ function mindevents_get_frontend_filter_context($context = null) {
     return '';
 }
 
-function mindevents_get_frontend_filter_timezone() {
-    return mindevents_wp_timezone();
-}
-
 function mindevents_normalize_frontend_event_view($view) {
     $view = sanitize_key((string) $view);
 
@@ -62,7 +58,7 @@ function mindevents_parse_frontend_filter_date($value) {
         return null;
     }
 
-    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value, mindevents_get_frontend_filter_timezone());
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value, wp_timezone());
     if (!($date instanceof DateTimeImmutable) || $date->format('Y-m-d') !== $value) {
         return null;
     }
@@ -300,7 +296,7 @@ function mindevents_get_archive_initial_calendar_date($filters = null) {
         return $filters['calendar_date'];
     }
 
-    $fallback = new DateTimeImmutable(current_time('mysql'), mindevents_get_frontend_filter_timezone());
+    $fallback = new DateTimeImmutable('now', wp_timezone());
 
     if (!empty($filters['force_empty'])) {
         return ($selected_view === 'week')
@@ -312,14 +308,14 @@ function mindevents_get_archive_initial_calendar_date($filters = null) {
         'post_type'        => 'sub_event',
         'posts_per_page'   => 1,
         'orderby'          => 'meta_value',
-        'meta_key'         => 'event_start_time_stamp',
+        'meta_key'         => 'mindevents_start_utc',
         'meta_type'        => 'DATETIME',
         'order'            => 'ASC',
         'suppress_filters' => true,
         'meta_query'       => array(
             array(
-                'key'     => 'event_start_time_stamp',
-                'value'   => current_time('mysql'),
+                'key'     => 'mindevents_start_utc',
+                'value'   => mindevents_now_utc(),
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
@@ -332,9 +328,9 @@ function mindevents_get_archive_initial_calendar_date($filters = null) {
     $upcoming = get_posts($query_args);
 
     if (!empty($upcoming[0])) {
-        $start = get_post_meta($upcoming[0]->ID, 'event_start_time_stamp', true);
-        if ($start) {
-            $date = new DateTimeImmutable($start, mindevents_get_frontend_filter_timezone());
+        $times = mindevents_get_occurrence_times($upcoming[0]->ID);
+        if ($times) {
+            $date = $times['start'];
 
             return ($selected_view === 'week')
                 ? $date->format('Y-m-d')
@@ -520,19 +516,21 @@ add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
 }, 10, 1);
 
 add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
-    $now = current_time('mysql');
-    $sub_events = new WP_Query(array(
+    $date_format = get_option('date_format') ?: 'F j, Y';
+
+    $next = get_posts(array(
         'post_type'      => 'sub_event',
         'post_parent'    => $id,
         'posts_per_page' => 1,
+        'fields'         => 'ids',
         'orderby'        => 'meta_value',
-        'meta_key'       => 'event_start_time_stamp',
+        'meta_key'       => 'mindevents_start_utc',
         'meta_type'      => 'DATETIME',
         'order'          => 'ASC',
         'meta_query'     => array(
             array(
-                'key'     => 'event_start_time_stamp',
-                'value'   => $now,
+                'key'     => 'mindevents_start_utc',
+                'value'   => mindevents_now_utc(),
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
@@ -540,20 +538,16 @@ add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
         ),
     ));
 
-    if ($sub_events->have_posts()) {
-        $sub_events->the_post();
-        $next_event = get_post();
-        $next_date  = get_post_meta($next_event->ID, 'event_start_time_stamp', true);
-        $start_date = new DateTimeImmutable($next_date, mindevents_wp_timezone());
-        echo '<p class="mindevents-single-subtitle">' . esc_html(sprintf(__('Next occurrence: %s', 'simple-events'), $start_date->format(get_option('date_format') ?: 'F j, Y'))) . '</p>';
-        wp_reset_postdata();
+    $times = $next ? mindevents_get_occurrence_times($next[0]) : null;
+    if ($times) {
+        /* translators: %s: date of the event's next occurrence */
+        echo '<p class="mindevents-single-subtitle">' . esc_html(sprintf(__('Next occurrence: %s', 'simple-events'), wp_date($date_format, $times['start']->getTimestamp()))) . '</p>';
         return;
     }
 
-    $first_event = get_post_meta($id, 'first_event_date', true);
-    if ($first_event) {
-        $start_date = new DateTimeImmutable($first_event, mindevents_wp_timezone());
-        echo '<p class="mindevents-single-subtitle">' . esc_html($start_date->format(get_option('date_format') ?: 'F j, Y')) . '</p>';
+    $first = mindevents_from_utc(get_post_meta($id, 'mindevents_first_start_utc', true));
+    if ($first) {
+        echo '<p class="mindevents-single-subtitle">' . esc_html(wp_date($date_format, $first->getTimestamp())) . '</p>';
     }
 }, 20, 1);
 
@@ -636,15 +630,11 @@ function mindevents_build_ics_event_block($occurrence_id) {
         return '';
     }
 
-    $start = get_post_meta($occurrence_id, 'event_start_time_stamp', true);
-    $end   = get_post_meta($occurrence_id, 'event_end_time_stamp', true);
-    if (!$start || !$end) {
+    $times = mindevents_get_occurrence_times($occurrence_id);
+    if (!$times) {
         return '';
     }
 
-    $timezone = mindevents_wp_timezone();
-    $start_dt = new DateTimeImmutable($start, $timezone);
-    $end_dt   = new DateTimeImmutable($end, $timezone);
     $title    = mindevents_get_plain_title(wp_get_post_parent_id($occurrence_id));
     $summary  = mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id));
     $location = mindevents_get_occurrence_location($occurrence_id);
@@ -653,8 +643,8 @@ function mindevents_build_ics_event_block($occurrence_id) {
     $block  = "BEGIN:VEVENT\r\n";
     $block .= 'UID:event-' . $occurrence_id . '@' . $domain . "\r\n";
     $block .= 'DTSTAMP:' . gmdate('Ymd\THis\Z') . "\r\n";
-    $block .= 'DTSTART:' . $start_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z') . "\r\n";
-    $block .= 'DTEND:' . $end_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z') . "\r\n";
+    $block .= 'DTSTART:' . gmdate('Ymd\THis\Z', $times['start']->getTimestamp()) . "\r\n";
+    $block .= 'DTEND:' . gmdate('Ymd\THis\Z', $times['end']->getTimestamp()) . "\r\n";
     $block .= 'SUMMARY:' . str_replace(array("\r", "\n"), ' ', $title) . "\r\n";
     $block .= 'DESCRIPTION:' . str_replace(array("\r", "\n"), ' ', $summary) . "\r\n";
     if ($location !== '') {
@@ -671,14 +661,14 @@ function mindevents_generate_ics_feed() {
         'post_status'    => 'publish',
         'posts_per_page' => -1,
         'orderby'        => 'meta_value',
-        'meta_key'       => 'event_start_time_stamp',
+        'meta_key'       => 'mindevents_start_utc',
         'meta_type'      => 'DATETIME',
         'order'          => 'ASC',
         'suppress_filters' => true,
         'meta_query'     => array(
             array(
-                'key'     => 'event_start_time_stamp',
-                'value'   => current_time('mysql'),
+                'key'     => 'mindevents_start_utc',
+                'value'   => mindevents_now_utc(),
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
@@ -715,18 +705,17 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
         return '';
     }
 
-    $start = get_post_meta($event_id, 'event_start_time_stamp', true);
-    $end   = get_post_meta($event_id, 'event_end_time_stamp', true);
-    if (!$start || !$end) {
+    $times = mindevents_get_occurrence_times($event_id);
+    if (!$times) {
         return '';
     }
+
+    $start = $times['start']->getTimestamp();
+    $end   = $times['end']->getTimestamp();
 
     $title       = mindevents_get_plain_title(wp_get_post_parent_id($event_id));
     $description = mindevents_plain_text(mindevents_get_occurrence_excerpt($event_id));
     $location    = mindevents_get_occurrence_location($event_id);
-    $timezone    = mindevents_wp_timezone();
-    $start_dt    = new DateTimeImmutable($start, $timezone);
-    $end_dt      = new DateTimeImmutable($end, $timezone);
     $ics_url     = home_url('/event-ics/' . $event_id . '/');
 
     // add_query_arg() does not encode values; an & or # in a title would
@@ -734,7 +723,7 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
     $gcal_url = add_query_arg(array_map('rawurlencode', array(
         'action'   => 'TEMPLATE',
         'text'     => $title,
-        'dates'    => $start_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z') . '/' . $end_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z'),
+        'dates'    => gmdate('Ymd\THis\Z', $start) . '/' . gmdate('Ymd\THis\Z', $end),
         'details'  => $description,
         'location' => $location,
         'output'   => 'xml',
@@ -745,8 +734,8 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
         'view'   => 'd',
         'type'   => '20',
         'title'  => $title,
-        'st'     => gmdate('Ymd\THi\Z', strtotime($start)),
-        'et'     => gmdate('Ymd\THi\Z', strtotime($end)),
+        'st'     => gmdate('Ymd\THi\Z', $start),
+        'et'     => gmdate('Ymd\THi\Z', $end),
         'desc'   => $description,
         'in_loc' => $location,
     )), 'https://calendar.yahoo.com/');

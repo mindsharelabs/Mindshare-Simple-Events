@@ -44,18 +44,22 @@ function mindevents_rest_csv_to_ints($value) {
     return array_values(array_unique($ids));
 }
 
-function mindevents_rest_datetime_to_mysql($value) {
+/**
+ * A date filter from the request, read in the site timezone unless it
+ * carries its own offset, formatted for comparing against stored values.
+ */
+function mindevents_rest_datetime_to_utc($value) {
     if (empty($value)) {
         return '';
     }
 
     try {
-        $date = new DateTimeImmutable((string) $value, mindevents_wp_timezone());
+        $date = new DateTimeImmutable((string) $value, wp_timezone());
     } catch (Exception $exception) {
         return '';
     }
 
-    return $date->setTimezone(mindevents_wp_timezone())->format('Y-m-d H:i:s');
+    return mindevents_to_utc($date);
 }
 
 function mindevents_rest_find_parent_ids($search_term) {
@@ -84,8 +88,8 @@ function mindevents_rest_event_payload($occurrence_id) {
         'permalink'  => get_permalink($parent_id ?: $occurrence_id),
         'excerpt'    => mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id)),
         'image'      => get_the_post_thumbnail_url($parent_id ?: $occurrence_id, 'large') ?: '',
-        'start'      => get_post_meta($occurrence_id, 'event_start_time_stamp', true),
-        'end'        => get_post_meta($occurrence_id, 'event_end_time_stamp', true),
+        'start'      => mindevents_iso8601(get_post_meta($occurrence_id, 'mindevents_start_utc', true)),
+        'end'        => mindevents_iso8601(get_post_meta($occurrence_id, 'mindevents_end_utc', true)),
         'location'   => mindevents_get_occurrence_location($occurrence_id),
         'organizer'  => mindevents_get_organizer_data($occurrence_id),
         'categories' => mindevents_get_occurrence_terms_payload($occurrence_id),
@@ -96,8 +100,8 @@ function mindevents_rest_events(WP_REST_Request $request) {
     $per_page = min(100, max(1, (int) $request->get_param('per_page')));
     $page     = max(1, (int) $request->get_param('page'));
     $status   = $request->get_param('status') ?: 'upcoming';
-    $after    = mindevents_rest_datetime_to_mysql($request->get_param('after'));
-    $before   = mindevents_rest_datetime_to_mysql($request->get_param('before'));
+    $after    = mindevents_rest_datetime_to_utc($request->get_param('after'));
+    $before   = mindevents_rest_datetime_to_utc($request->get_param('before'));
     $orderby  = $request->get_param('orderby') ?: 'start_time';
     $order    = strtoupper((string) $request->get_param('order')) === 'DESC' ? 'DESC' : 'ASC';
     $search   = sanitize_text_field((string) $request->get_param('search'));
@@ -112,22 +116,22 @@ function mindevents_rest_events(WP_REST_Request $request) {
 
     if ($after) {
         $meta_query[] = array(
-            'key'     => 'event_start_time_stamp',
+            'key'     => 'mindevents_start_utc',
             'value'   => $after,
             'compare' => '>=',
             'type'    => 'DATETIME',
         );
     } elseif ($status === 'upcoming') {
         $meta_query[] = array(
-            'key'     => 'event_start_time_stamp',
-            'value'   => current_time('mysql'),
+            'key'     => 'mindevents_start_utc',
+            'value'   => mindevents_now_utc(),
             'compare' => '>=',
             'type'    => 'DATETIME',
         );
     } elseif ($status === 'past') {
         $meta_query[] = array(
-            'key'     => 'event_start_time_stamp',
-            'value'   => current_time('mysql'),
+            'key'     => 'mindevents_start_utc',
+            'value'   => mindevents_now_utc(),
             'compare' => '<',
             'type'    => 'DATETIME',
         );
@@ -135,7 +139,7 @@ function mindevents_rest_events(WP_REST_Request $request) {
 
     if ($before) {
         $meta_query[] = array(
-            'key'     => 'event_start_time_stamp',
+            'key'     => 'mindevents_start_utc',
             'value'   => $before,
             'compare' => '<=',
             'type'    => 'DATETIME',
@@ -143,8 +147,8 @@ function mindevents_rest_events(WP_REST_Request $request) {
     }
 
     $orderby_map = array(
-        'start_time' => array('meta_key' => 'event_start_time_stamp', 'orderby' => 'meta_value'),
-        'end_time'   => array('meta_key' => 'event_end_time_stamp', 'orderby' => 'meta_value'),
+        'start_time' => array('meta_key' => 'mindevents_start_utc', 'orderby' => 'meta_value'),
+        'end_time'   => array('meta_key' => 'mindevents_end_utc', 'orderby' => 'meta_value'),
         'title'      => array('orderby' => 'title'),
         'date'       => array('orderby' => 'date'),
     );

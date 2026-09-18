@@ -131,9 +131,13 @@ class mindEventsAjax {
 
         try {
             $calendar = new mindEventCalendar($parent_id, $meta['event_date'] ?? '');
-            $calendar->update_sub_event($id, $meta, $parent_id);
+            $result   = $calendar->update_sub_event($id, $meta, $parent_id);
         } catch (Throwable $exception) {
             wp_send_json_error(__('That occurrence date or time is not valid.', 'simple-events'));
+        }
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
         }
 
         wp_send_json_success(array(
@@ -152,34 +156,11 @@ class mindEventsAjax {
             wp_send_json_error(__('You cannot move this occurrence.', 'simple-events'));
         }
 
-        // Keep the stored time of day and duration; only the date changes.
-        try {
-            $timezone  = mindevents_wp_timezone();
-            $start_dt  = new DateTimeImmutable(get_post_meta($event_id, 'event_start_time_stamp', true), $timezone);
-            $end_dt    = new DateTimeImmutable(get_post_meta($event_id, 'event_end_time_stamp', true), $timezone);
-            $new_start = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $new_date . ' ' . $start_dt->format('H:i:s'), $timezone);
-        } catch (Throwable $exception) {
-            $new_start = false;
+        $result = (new mindEventCalendar($parent_id))->move_sub_event($event_id, $new_date);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
         }
-
-        if (!($new_start instanceof DateTimeImmutable) || $new_start->format('Y-m-d') !== $new_date) {
-            wp_send_json_error(__('The new occurrence date is invalid.', 'simple-events'));
-        }
-
-        $new_end = $new_start->add($start_dt->diff($end_dt));
-
-        update_post_meta($event_id, 'event_date', $new_date);
-        update_post_meta($event_id, 'starttime', $new_start->format('H:i'));
-        update_post_meta($event_id, 'endtime', $new_end->format('H:i'));
-        update_post_meta($event_id, 'event_start_time_stamp', $new_start->format('Y-m-d H:i:s'));
-        update_post_meta($event_id, 'event_end_time_stamp', $new_end->format('Y-m-d H:i:s'));
-
-        wp_update_post(array(
-            'ID'         => $event_id,
-            'post_title' => mindevents_get_plain_title($parent_id) . ' | ' . $new_date . ' | ' . $new_start->format('H:i') . '-' . $new_end->format('H:i'),
-        ));
-
-        mindevents_sync_event_date_range($parent_id);
 
         wp_send_json_success();
     }
@@ -196,7 +177,7 @@ class mindEventsAjax {
             wp_send_json_error(__('You cannot edit this event.', 'simple-events'));
         }
 
-        $date = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $year, $month), mindevents_wp_timezone());
+        $date = new DateTimeImmutable(sprintf('%04d-%02d-01 00:00:00', $year, $month), wp_timezone());
 
         if ($direction === 'prev') {
             $date = $date->modify('first day of previous month');
@@ -229,11 +210,9 @@ class mindEventsAjax {
 
     private function get_meta_form($sub_event_id) {
         $values     = get_post_meta($sub_event_id);
-        $timezone   = mindevents_wp_timezone();
-        $start_ts   = $values['event_start_time_stamp'][0] ?? '';
-        $end_ts     = $values['event_end_time_stamp'][0] ?? '';
-        $start_date = new DateTimeImmutable($start_ts, $timezone);
-        $end_date   = new DateTimeImmutable($end_ts, $timezone);
+        $times      = mindevents_get_occurrence_times($sub_event_id);
+        $start_date = $times ? $times['start'] : new DateTimeImmutable('now', wp_timezone());
+        $end_date   = $times ? $times['end'] : $start_date;
 
         $html  = '<fieldset id="subEventEdit" class="mindevents-admin-form-grid">';
         $html .= '<h3 class="mindevents-admin-heading">' . esc_html__('Edit Occurrence', 'simple-events') . '</h3>';
