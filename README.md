@@ -148,6 +148,13 @@ Available scripts:
 - `npm run build`
 - `npm run watch`
 
+## Continuous integration
+
+Every push runs `.github/workflows/ci.yml`: the test suite against a fresh
+WordPress install on PHP 8.2 and 8.4, the coding standards, a syntax check
+on PHP 7.4 (the oldest supported version), and a check that the committed
+CSS matches the Sass.
+
 ## Coding standards
 
 `composer lint` runs the WordPress security, database and translation
