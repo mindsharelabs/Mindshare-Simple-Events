@@ -148,6 +148,15 @@ Available scripts:
 - `npm run build`
 - `npm run watch`
 
+## Coding standards
+
+`composer lint` runs the WordPress security, database and translation
+checks, and a PHP 7.4 compatibility check, over the plugin code. It must
+pass before release.
+
+Where a check cannot see that output is already safe, the line carries a
+`phpcs:ignore` naming the specific rule and the reason.
+
 ## Translations
 
 Strings use the `simple-events` text domain. Translations are loaded from

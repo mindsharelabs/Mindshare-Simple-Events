@@ -41,17 +41,17 @@ if (have_posts()) :
 
         echo '<section class="mindevents-surface mindevents-single-schedule">';
         if ($display_type === 'list') {
-            echo apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h2 class="mindevents-section-heading">' . esc_html__('Occurrences', 'simple-events') . '</h2>');
+            echo wp_kses_post(apply_filters(MINDEVENTS_PREPEND . 'list_label', '<h2 class="mindevents-section-heading">' . esc_html__('Occurrences', 'simple-events') . '</h2>'));
             do_action(MINDEVENTS_PREPEND . 'single_before_list', get_the_ID());
             echo '<div id="mindEventList" class="mindevents-calendar-region">';
-            echo $calendar->get_front_list();
+            echo $calendar->get_front_list(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
             echo '</div>';
             do_action(MINDEVENTS_PREPEND . 'single_after_list', get_the_ID());
         } else {
-            echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h2 class="mindevents-section-heading">' . esc_html__('Event Schedule', 'simple-events') . '</h2>');
+            echo wp_kses_post(apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h2 class="mindevents-section-heading">' . esc_html__('Event Schedule', 'simple-events') . '</h2>'));
             do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
             echo '<div id="publicCalendar" class="mindevents-calendar-region">';
-            echo $calendar->get_front_calendar();
+            echo $calendar->get_front_calendar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
             echo '</div>';
             do_action(MINDEVENTS_PREPEND . 'single_after_calendar', get_the_ID());
         }

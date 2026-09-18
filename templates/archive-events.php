@@ -20,30 +20,28 @@ $calendar->set_past_events_display($show_all);
 
 echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="' . esc_attr__('Content', 'simple-events') . '">';
 echo '<header class="mindevents-archive-header">';
-echo '<p class="mindevents-kicker">' . esc_html__('Simple Events', 'simple-events') . '</p>';
-echo '<h1 class="mindevents-page-title">' . esc_html(post_type_archive_title('', false)) . '</h1>';
-echo '<p class="mindevents-page-intro">' . esc_html__('Browse upcoming events in calendar, week, or list view. Use the filters to narrow the schedule by title or category.', 'simple-events') . '</p>';
+    echo '<h1 class="mindevents-page-title">' . esc_html(post_type_archive_title('', false)) . '</h1>';
 echo '</header>';
 
 echo '<section id="archiveContainer" class="mindevents-surface mindevents-schedule-panel">';
 if (function_exists('mindevents_get_frontend_filter_form')) {
-    echo mindevents_get_frontend_filter_form($filters);
+    echo mindevents_get_frontend_filter_form($filters); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
 }
 
 echo '<div class="mindevents-section-heading-wrap">';
-echo apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h2 class="mindevents-section-heading">' . esc_html__('Event Schedule', 'simple-events') . '</h2>');
+echo wp_kses_post(apply_filters(MINDEVENTS_PREPEND . 'calendar_label', '<h2 class="mindevents-section-heading">' . esc_html__('Event Schedule', 'simple-events') . '</h2>'));
 echo '</div>';
 
 do_action(MINDEVENTS_PREPEND . 'single_before_calendar', get_the_ID());
 
 echo '<div id="publicCalendar" class="mindevents-calendar-region">';
 if ($event_view === 'list') {
-    echo $calendar->get_front_list();
+    echo $calendar->get_front_list(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
     if (function_exists('mindevents_get_frontend_list_pagination')) {
-        echo mindevents_get_frontend_list_pagination($calendar, $filters);
+        echo mindevents_get_frontend_list_pagination($calendar, $filters); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
     }
 } else {
-    echo $calendar->get_front_calendar();
+    echo $calendar->get_front_calendar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
 }
 echo '</div>';
 

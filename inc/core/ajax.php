@@ -23,7 +23,7 @@ class mindEventsAjax {
      * one printed into cached pages would expire and break this request.
      */
     public function get_event_meta_html() {
-        $id = absint($_POST['eventid'] ?? 0);
+        $id = absint($_POST['eventid'] ?? 0); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- public and read-only, see above.
         if (!mindevents_is_public_occurrence($id)) {
             wp_send_json_error(null, 404);
         }
@@ -36,7 +36,7 @@ class mindEventsAjax {
     }
 
     public function deleteevent() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $event_id  = absint($_POST['eventid'] ?? 0);
         $parent_id = $this->get_occurrence_event_id($event_id);
@@ -53,11 +53,11 @@ class mindEventsAjax {
     }
 
     public function selectday() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $date    = sanitize_text_field(wp_unslash($_POST['date'] ?? ''));
         $event_id = absint($_POST['eventid'] ?? 0);
-        $meta    = isset($_POST['meta']['event']) ? wp_unslash($_POST['meta']['event']) : array();
+        $meta    = isset($_POST['meta']['event']) ? wp_unslash($_POST['meta']['event']) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized key by key in sanitize_sub_event_meta().
 
         if (!$this->is_event($event_id) || !current_user_can('edit_post', $event_id)) {
             wp_send_json_error(__('You cannot edit this event.', 'simple-events'));
@@ -104,7 +104,7 @@ class mindEventsAjax {
     }
 
     public function clearevents() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $event_id = absint($_POST['eventid'] ?? 0);
         if (!$this->is_event($event_id) || !current_user_can('edit_post', $event_id)) {
@@ -121,11 +121,11 @@ class mindEventsAjax {
     }
 
     public function updatesubevent() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $id        = absint($_POST['eventid'] ?? 0);
         $parent_id = $this->get_occurrence_event_id($id);
-        $meta      = isset($_POST['meta']) ? wp_unslash($_POST['meta']) : array();
+        $meta      = isset($_POST['meta']) ? wp_unslash($_POST['meta']) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized key by key in sanitize_sub_event_meta().
 
         if (!$parent_id || !current_user_can('edit_post', $parent_id)) {
             wp_send_json_error(__('You cannot edit this occurrence.', 'simple-events'));
@@ -148,7 +148,7 @@ class mindEventsAjax {
     }
 
     public function moveevent() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $event_id  = absint($_POST['eventid'] ?? 0);
         $parent_id = $this->get_occurrence_event_id($event_id);
@@ -168,7 +168,7 @@ class mindEventsAjax {
     }
 
     public function movecalendar() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $direction = sanitize_key(wp_unslash($_POST['direction'] ?? ''));
         $month     = absint($_POST['month'] ?? 0);
@@ -196,7 +196,7 @@ class mindEventsAjax {
     }
 
     public function editevent() {
-        $this->verify_nonce();
+        check_ajax_referer('mindevents_ajax', 'nonce');
 
         $event_id  = absint($_POST['eventid'] ?? 0);
         $parent_id = $this->get_occurrence_event_id($event_id);
@@ -256,10 +256,6 @@ class mindEventsAjax {
         $html .= '</div>';
 
         return $html;
-    }
-
-    private function verify_nonce() {
-        check_ajax_referer('mindevents_ajax', 'nonce');
     }
 
     private function is_event($post_id) {

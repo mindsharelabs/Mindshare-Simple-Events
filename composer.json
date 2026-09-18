@@ -7,13 +7,19 @@
         "php": ">=7.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.5"
+        "phpcompatibility/phpcompatibility-wp": "*",
+        "phpunit/phpunit": "^11.5",
+        "wp-coding-standards/wpcs": "^3.1"
     },
     "scripts": {
         "test": "phpunit",
-        "make-pot": "mkdir -p languages && xgettext --language=PHP --from-code=UTF-8 --add-comments=translators: --package-name='Mindshare Simple Events' --sort-by-file --keyword=__ --keyword=_e --keyword=esc_html__ --keyword=esc_html_e --keyword=esc_attr__ --keyword=esc_attr_e --keyword=_x:1,2c --keyword=esc_html_x:1,2c --keyword=esc_attr_x:1,2c --keyword=_n:1,2 --keyword=_nx:1,2,4c --output=languages/simple-events.pot mindshare-events.php inc/core/*.php templates/*.php"
+        "make-pot": "mkdir -p languages && xgettext --language=PHP --from-code=UTF-8 --add-comments=translators: --package-name='Mindshare Simple Events' --sort-by-file --keyword=__ --keyword=_e --keyword=esc_html__ --keyword=esc_html_e --keyword=esc_attr__ --keyword=esc_attr_e --keyword=_x:1,2c --keyword=esc_html_x:1,2c --keyword=esc_attr_x:1,2c --keyword=_n:1,2 --keyword=_nx:1,2,4c --output=languages/simple-events.pot mindshare-events.php inc/core/*.php templates/*.php",
+        "lint": "phpcs"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

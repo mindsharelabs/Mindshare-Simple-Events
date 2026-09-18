@@ -34,7 +34,7 @@ echo '</header>';
 echo '<section id="archiveContainer" class="mindevents-surface mindevents-schedule-panel">';
 
 if (function_exists('mindevents_get_frontend_filter_form')) {
-    echo mindevents_get_frontend_filter_form($filters);
+    echo mindevents_get_frontend_filter_form($filters); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
 }
 
 do_action(MINDEVENTS_PREPEND . 'archive_before_calendar_buttons');
@@ -42,12 +42,12 @@ do_action(MINDEVENTS_PREPEND . 'archive_after_calendar_buttons');
 
 echo '<div id="publicCalendar" class="mindevents-calendar-region">';
 if ($event_view === 'list') {
-    echo $calendar->get_front_list();
+    echo $calendar->get_front_list(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
     if (function_exists('mindevents_get_frontend_list_pagination')) {
-        echo mindevents_get_frontend_list_pagination($calendar, $filters);
+        echo mindevents_get_frontend_list_pagination($calendar, $filters); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
     }
 } else {
-    echo $calendar->get_front_calendar();
+    echo $calendar->get_front_calendar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
 }
 echo '</div>';
 

@@ -203,7 +203,7 @@ final class mindEvents {
             return;
         }
 
-        echo '<script type="application/ld+json">' . $schema . '</script>';
+        echo '<script type="application/ld+json">' . $schema . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON with JSON_HEX_TAG, so it cannot close the block.
     }
 
     public function sync_event_children($post_id, $post) {

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+    Checks that matter for a plugin running on other people's sites:
+    output escaping, input sanitizing, nonces, database safety, translation
+    calls, and compatibility with the PHP versions in the plugin header.
+
+    WordPress's code *style* rules are deliberately not included; this
+    plugin uses its own formatting, and style warnings would bury these.
+
+    Run with: composer lint
+-->
+<ruleset name="Mindshare Simple Events">
+    <file>mindshare-events.php</file>
+    <file>uninstall.php</file>
+    <file>inc</file>
+    <file>templates</file>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <rule ref="WordPress.Security"/>
+    <rule ref="WordPress.Security.ValidatedSanitizedInput">
+        <properties>
+            <property name="customSanitizingFunctions" type="array">
+                <element value="mindevents_sanitize_color"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="WordPress.DB">
+        <!--
+            Occurrence times live in post meta by design, so meta queries are
+            how events are found. They are bounded by the visible period.
+        -->
+        <exclude name="WordPress.DB.SlowDBQuery"/>
+    </rule>
+    <rule ref="WordPress.WP.I18n"/>
+    <rule ref="WordPress.WP.DeprecatedFunctions"/>
+    <rule ref="WordPress.WP.DeprecatedParameters"/>
+    <rule ref="WordPress.PHP.DontExtract"/>
+    <rule ref="WordPress.PHP.RestrictedPHPFunctions"/>
+    <rule ref="Generic.PHP.Syntax"/>
+
+    <config name="text_domain" value="simple-events"/>
+    <config name="minimum_wp_version" value="6.0"/>
+
+    <rule ref="PHPCompatibilityWP"/>
+    <config name="testVersion" value="7.4-"/>
+</ruleset>

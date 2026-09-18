@@ -39,8 +39,8 @@ class mindEventCalendar {
         $this->setToday($today);
 
         // Only a strict Y-m-d from the URL; anything else is ignored.
-        if (isset($_GET['calendar_date'])) {
-            $url_date = mindevents_parse_frontend_filter_date($_GET['calendar_date']);
+        if (isset($_GET['calendar_date'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public, read-only view state.
+            $url_date = mindevents_parse_frontend_filter_date(sanitize_text_field(wp_unslash($_GET['calendar_date']))); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public, read-only view state.
             if ($url_date) {
                 $calendarDate = $url_date;
             }
@@ -464,7 +464,7 @@ class mindEventCalendar {
             );
             $per_page                  = (int) get_option('posts_per_page');
             $default['posts_per_page'] = ($per_page > 0) ? $per_page : 10;
-            $default['paged']          = max(1, absint(get_query_var('paged') ?: ($_GET['paged'] ?? 1)));
+            $default['paged']          = max(1, absint(get_query_var('paged') ?: ($_GET['paged'] ?? 1))); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public, read-only view state.
         }
 
         $args = wp_parse_args($args, $default);

@@ -140,7 +140,7 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
     }
 
     $context = mindevents_get_frontend_filter_context($context);
-    $source  = is_array($source) ? $source : $_GET;
+    $source  = is_array($source) ? $source : $_GET; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- public, read-only filters, each sanitized below.
 
     $filters = array(
         'context'               => $context,
@@ -616,7 +616,7 @@ add_action('template_redirect', function() {
     if (get_query_var('calendar_feed')) {
         header('Content-Type: text/calendar; charset=utf-8');
         header('Content-Disposition: inline; filename="events.ics"');
-        echo mindevents_generate_ics_feed();
+        echo mindevents_generate_ics_feed(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- text/calendar, escaped per RFC 5545.
         exit;
     }
 
@@ -632,7 +632,7 @@ add_action('template_redirect', function() {
     if ($event_ics_id) {
         header('Content-Type: text/calendar; charset=utf-8');
         header('Content-Disposition: attachment; filename="event-' . $event_ics_id . '.ics"');
-        echo mindevents_generate_single_event_ics($event_ics_id);
+        echo mindevents_generate_single_event_ics($event_ics_id); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- text/calendar, escaped per RFC 5545.
         exit;
     }
 });

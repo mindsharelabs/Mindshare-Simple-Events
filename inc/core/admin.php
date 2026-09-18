@@ -88,7 +88,7 @@ class mindeventsAdmin {
         echo '<button type="button" data-dir="next" class="mindevents-button mindevents-button--secondary mindevents-admin-nav">' . esc_html__('Next Month', 'simple-events') . '</button>';
         echo '</div>';
         echo '<div id="eventsCalendar" class="mindevents-admin-calendar">';
-        echo $calendar->get_calendar();
+        echo $calendar->get_calendar(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
         echo '</div>';
         echo '<div id="errorBox" class="mindevents-admin-messages"></div>';
         echo '<button type="button" class="mindevents-button mindevents-button--danger clear-occurances">' . esc_html__('Clear All Occurrences', 'simple-events') . '</button>';
@@ -108,13 +108,13 @@ class mindeventsAdmin {
             return;
         }
 
-        $nonce = $_POST[MINDEVENTS_PREPEND . 'event_meta_nonce'] ?? '';
+        $nonce = sanitize_text_field(wp_unslash($_POST[MINDEVENTS_PREPEND . 'event_meta_nonce'] ?? ''));
         if (!$nonce || !wp_verify_nonce($nonce, 'mindevents_event_meta')) {
             return;
         }
 
-        $event_meta = isset($_POST['event_meta']) ? wp_unslash($_POST['event_meta']) : array();
-        $defaults   = isset($_POST['event']) ? wp_unslash($_POST['event']) : array();
+        $event_meta = isset($_POST['event_meta']) ? wp_unslash($_POST['event_meta']) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized key by key below.
+        $defaults   = isset($_POST['event']) ? wp_unslash($_POST['event']) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized key by key below.
 
         $event_meta = $this->sanitize_event_meta($event_meta);
         $defaults   = $this->sanitize_occurrence_defaults($defaults);
