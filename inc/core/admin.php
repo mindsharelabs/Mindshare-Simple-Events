@@ -73,7 +73,7 @@ class mindeventsAdmin {
         $this->render_text_control('event_meta[mindevents_location]', 'event_meta_mindevents_location', __('Location', 'simple-events'), $location, __('Optional venue or room name.', 'simple-events'));
         $this->render_text_control('event_meta[mindevents_organizer_name]', 'event_meta_mindevents_organizer_name', __('Organizer Name', 'simple-events'), $organizer_name);
         $this->render_text_control('event_meta[mindevents_organizer_title]', 'event_meta_mindevents_organizer_title', __('Organizer Title', 'simple-events'), $organizer_title);
-        $this->render_text_control('event_meta[mindevents_organizer_image_id]', 'event_meta_mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $organizer_image, __('Media Library attachment ID for the organizer photo.', 'simple-events'), 'number');
+        echo mindevents_image_field('event_meta[mindevents_organizer_image_id]', 'event_meta_mindevents_organizer_image_id', __('Organizer Image', 'simple-events'), $organizer_image); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped as it is built.
         echo '</div>';
     }
 
@@ -195,3 +195,22 @@ class mindeventsAdmin {
     }
 }
 
+/**
+ * An image chosen from the media library, stored as an attachment ID in a
+ * hidden field. js/admin.js opens the library and fills it in.
+ */
+function mindevents_image_field($name, $id, $label, $attachment_id) {
+    $attachment_id = absint($attachment_id);
+    $preview       = $attachment_id ? wp_get_attachment_image($attachment_id, 'thumbnail', false, array('alt' => '')) : '';
+
+    $html  = '<div class="mindevents-admin-field mindevents-image-field">';
+    $html .= '<label for="' . esc_attr($id) . '">' . esc_html($label) . '</label>';
+    $html .= '<input type="hidden" class="mindevents-image-id" name="' . esc_attr($name) . '" value="' . esc_attr($attachment_id ? (string) $attachment_id : '') . '">';
+    $html .= '<div class="mindevents-image-preview">' . $preview . '</div>';
+    $html .= '<div class="mindevents-image-actions">';
+    $html .= '<button type="button" class="button mindevents-image-choose" id="' . esc_attr($id) . '">' . esc_html__('Choose image', 'simple-events') . '</button>';
+    $html .= '<button type="button" class="button-link mindevents-image-remove"' . ($attachment_id ? '' : ' hidden') . '>' . esc_html__('Remove', 'simple-events') . '</button>';
+    $html .= '</div></div>';
+
+    return $html;
+}

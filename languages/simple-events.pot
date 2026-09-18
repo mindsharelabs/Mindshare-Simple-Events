@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 10:56-0600\n"
+"POT-Creation-Date: 2026-09-18 10:59-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,12 +67,8 @@ msgstr ""
 msgid "Organizer Title"
 msgstr ""
 
-#: inc/core/admin.php:76
-msgid "Media Library attachment ID for the organizer photo."
-msgstr ""
-
 #: inc/core/admin.php:76 inc/core/ajax.php:229
-msgid "Organizer Image ID"
+msgid "Organizer Image"
 msgstr ""
 
 #: inc/core/admin.php:85
@@ -103,6 +99,14 @@ msgstr ""
 
 #: inc/core/admin.php:167
 msgid "End"
+msgstr ""
+
+#: inc/core/admin.php:211
+msgid "Choose image"
+msgstr ""
+
+#: inc/core/admin.php:212
+msgid "Remove"
 msgstr ""
 
 #: inc/core/ajax.php:44
@@ -228,7 +232,7 @@ msgid "Organizer"
 msgstr ""
 
 #: inc/core/frontend.php:367 inc/core/frontend.php:378
-#: inc/core/frontend.php:450 mindshare-events.php:120
+#: inc/core/frontend.php:450 mindshare-events.php:122
 msgid "Categories"
 msgstr ""
 
@@ -483,51 +487,59 @@ msgid "Edit occurrence"
 msgstr ""
 
 #: mindshare-events.php:101
-msgid "Unable to add an occurrence for that day."
+msgid "Choose organizer image"
 msgstr ""
 
 #: mindshare-events.php:102
-msgid "Unable to load that occurrence."
+msgid "Use this image"
 msgstr ""
 
 #: mindshare-events.php:103
-msgid "Unable to move that occurrence."
+msgid "Unable to add an occurrence for that day."
 msgstr ""
 
 #: mindshare-events.php:104
-msgid "Unable to update that occurrence."
+msgid "Unable to load that occurrence."
 msgstr ""
 
 #: mindshare-events.php:105
-msgid "Unable to delete that occurrence."
+msgid "Unable to move that occurrence."
 msgstr ""
 
 #: mindshare-events.php:106
-msgid "Unable to clear those occurrences."
+msgid "Unable to update that occurrence."
 msgstr ""
 
 #: mindshare-events.php:107
-msgid "Delete this occurrence?"
+msgid "Unable to delete that occurrence."
 msgstr ""
 
 #: mindshare-events.php:108
+msgid "Unable to clear those occurrences."
+msgstr ""
+
+#: mindshare-events.php:109
+msgid "Delete this occurrence?"
+msgstr ""
+
+#: mindshare-events.php:110
 msgid "Clear every occurrence for this event?"
 msgstr ""
 
-#: mindshare-events.php:117
+#: mindshare-events.php:119
 msgid "Loading event details..."
 msgstr ""
 
-#: mindshare-events.php:118
+#: mindshare-events.php:120
 msgid "Event details"
 msgstr ""
 
-#: mindshare-events.php:119
+#: mindshare-events.php:121
 msgid "Unable to load event details right now."
 msgstr ""
 
 #. translators: %d: number of selected categories, always more than one
-#: mindshare-events.php:122
+#: mindshare-events.php:124
 #, php-format
 msgid "%d Categories"
 msgstr ""

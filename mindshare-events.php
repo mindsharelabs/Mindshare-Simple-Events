@@ -98,6 +98,8 @@ final class mindEvents {
         return array(
             'loadingEditor'  => __('Loading occurrence editor...', 'simple-events'),
             'editOccurrence' => __('Edit occurrence', 'simple-events'),
+            'chooseImage'    => __('Choose organizer image', 'simple-events'),
+            'useImage'       => __('Use this image', 'simple-events'),
             'cannotAdd'      => __('Unable to add an occurrence for that day.', 'simple-events'),
             'cannotLoad'     => __('Unable to load that occurrence.', 'simple-events'),
             'cannotMove'     => __('Unable to move that occurrence.', 'simple-events'),
@@ -175,6 +177,7 @@ final class mindEvents {
         );
 
         if ($is_event_editor) {
+            wp_enqueue_media();
             wp_enqueue_style('wp-color-picker');
             wp_enqueue_script(
                 'mindevents-admin',

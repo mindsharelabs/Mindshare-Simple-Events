@@ -226,7 +226,7 @@ class mindEventsAjax {
         $html .= $this->render_modal_field('mindevents_location', __('Location', 'simple-events'), $values['mindevents_location'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_name', __('Organizer Name', 'simple-events'), $values['mindevents_organizer_name'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_title', __('Organizer Title', 'simple-events'), $values['mindevents_organizer_title'][0] ?? '');
-        $html .= $this->render_modal_field('mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $values['mindevents_organizer_image_id'][0] ?? '', 'number');
+        $html .= mindevents_image_field('mindevents_organizer_image_id', 'mindevents_organizer_image_id', __('Organizer Image', 'simple-events'), $values['mindevents_organizer_image_id'][0] ?? 0);
         $html .= '<div class="mindevents-admin-modal-actions">';
         $html .= '<button type="button" class="mindevents-button edit-button update-event" data-subid="' . esc_attr($sub_event_id) . '">' . esc_html__('Update Occurrence', 'simple-events') . '</button>';
         $html .= '<button type="button" class="mindevents-button mindevents-button--secondary edit-button cancel">' . esc_html__('Cancel', 'simple-events') . '</button>';

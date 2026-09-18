@@ -484,3 +484,18 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-add-date:focus-visible {
     outline: 2px solid var(--mindevents-admin-accent);
 }
+
+.mindevents-image-preview img {
+    border: 1px solid var(--mindevents-admin-border);
+    display: block;
+    height: 64px;
+    margin-bottom: 6px;
+    object-fit: cover;
+    width: 64px;
+}
+
+.mindevents-image-actions {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+}

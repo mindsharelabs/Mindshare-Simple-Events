@@ -144,10 +144,15 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         }
     }
 
+    // The media library opens as its own dialog on top of ours.
+    function mediaLibraryIsOpen() {
+        return $('.media-modal:visible').length > 0;
+    }
+
     // Keep Tab and Shift+Tab cycling inside the open dialog.
     function trapFocus(event) {
         const $dialog = $('.mindevents-admin-modal.is-open .mindevents-admin-modal__dialog');
-        if (!$dialog.length) {
+        if (!$dialog.length || mediaLibraryIsOpen()) {
             return;
         }
 
@@ -491,10 +496,54 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         closeModal();
     });
 
+    // Organizer image: pick from the media library into a hidden ID field.
+    $(document).on('click', '.mindevents-image-choose', function (event) {
+        event.preventDefault();
+
+        if (!window.wp || !wp.media) {
+            return;
+        }
+
+        const $field = $(this).closest('.mindevents-image-field');
+        const chooser = this;
+        const frame = wp.media({
+            title: i18n.chooseImage,
+            button: { text: i18n.useImage },
+            library: { type: 'image' },
+            multiple: false
+        });
+
+        frame.on('select', function () {
+            const image = frame.state().get('selection').first().toJSON();
+            const url = (image.sizes && image.sizes.thumbnail) ? image.sizes.thumbnail.url : image.url;
+
+            $field.find('.mindevents-image-id').val(image.id).trigger('change');
+            $field.find('.mindevents-image-preview').empty().append($('<img>').attr({ src: url, alt: '' }));
+            $field.find('.mindevents-image-remove').prop('hidden', false);
+        });
+
+        // Return focus to the button, inside our dialog if there is one.
+        frame.on('close', function () {
+            chooser.focus();
+        });
+
+        frame.open();
+    });
+
+    $(document).on('click', '.mindevents-image-remove', function (event) {
+        event.preventDefault();
+
+        const $field = $(this).closest('.mindevents-image-field');
+        $field.find('.mindevents-image-id').val('').trigger('change');
+        $field.find('.mindevents-image-preview').empty();
+        $(this).prop('hidden', true);
+        $field.find('.mindevents-image-choose').trigger('focus');
+    });
+
     $(document).on('keydown', function (event) {
         if (event.key === 'Tab') {
             trapFocus(event);
-        } else if (event.key === 'Escape') {
+        } else if (event.key === 'Escape' && !mediaLibraryIsOpen()) {
             closeModal();
         }
     });
