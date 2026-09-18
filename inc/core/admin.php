@@ -40,7 +40,6 @@ class mindeventsAdmin {
 
     public function display_event_options_metabox() {
         $post_id          = get_the_ID();
-        $event_type       = get_post_meta($post_id, 'event_type', true);
         $cal_display      = get_post_meta($post_id, 'cal_display', true);
         $show_past_events = get_post_meta($post_id, 'show_past_events', true);
         $location         = get_post_meta($post_id, 'mindevents_location', true);
@@ -52,16 +51,6 @@ class mindeventsAdmin {
         wp_nonce_field('mindevents_event_meta', MINDEVENTS_PREPEND . 'event_meta_nonce');
 
         echo '<div class="mindevents-admin-panel">';
-        $this->render_select_control(
-            'event_meta[event_type]',
-            'event_meta_event_type',
-            __('Event Type', 'simple-events'),
-            array(
-                'multiple-events' => __('Multiple Unique Events', 'simple-events'),
-                'single-event'    => __('One Event, Multiple Dates', 'simple-events'),
-            ),
-            $event_type ?: 'multiple-events'
-        );
         $this->render_select_control(
             'event_meta[cal_display]',
             'event_meta_cal_display',
@@ -155,7 +144,6 @@ class mindeventsAdmin {
         $event_meta = is_array($event_meta) ? $event_meta : array();
 
         return array(
-            'event_type'                   => in_array(($event_meta['event_type'] ?? 'multiple-events'), array('multiple-events', 'single-event'), true) ? $event_meta['event_type'] : 'multiple-events',
             'cal_display'                  => in_array(($event_meta['cal_display'] ?? 'calendar'), array('calendar', 'list'), true) ? $event_meta['cal_display'] : 'calendar',
             'show_past_events'             => (($event_meta['show_past_events'] ?? '0') === '1') ? '1' : '0',
             'mindevents_visibility'        => mindevents_sanitize_visibility($event_meta['mindevents_visibility'] ?? 'public'),

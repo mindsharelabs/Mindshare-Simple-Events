@@ -15,11 +15,8 @@ class mindEventCalendar {
     const WEEK_EVENT_GUTTER_TOTAL = '0.3rem';
 
     private $eventID = '';
-    private $wp_post = null;
     private $calendar_start_day = 'Monday';
     private $show_past_events = true;
-    private $event_categories = false;
-    private $weekDayNames = null;
     private $today = null;
     private $now = null;
     private $date_format = 'F j, Y';
@@ -39,9 +36,7 @@ class mindEventCalendar {
 
     public function __construct($id = '', $calendarDate = null, $today = null) {
         $this->eventID = $id;
-        $this->wp_post = is_numeric($id) ? get_post($id) : null;
         $this->setToday($today);
-        $this->setCalendarClasses();
 
         // Only a strict Y-m-d from the URL; anything else is ignored.
         if (isset($_GET['calendar_date'])) {
@@ -87,26 +82,6 @@ class mindEventCalendar {
         }
 
         $this->today = $this->parseDate($today);
-    }
-
-    public function setWeekDayNames(?array $weekDayNames = null) {
-        if (is_array($weekDayNames) && count($weekDayNames) !== 7) {
-            throw new InvalidArgumentException('week array must have exactly 7 values');
-        }
-
-        $this->weekDayNames = $weekDayNames ? array_values($weekDayNames) : null;
-    }
-
-    public function setCalendarClasses(array $classes = array()) {
-        foreach ($classes as $key => $value) {
-            if (isset($this->classes[$key])) {
-                $this->classes[$key] = $value;
-            }
-        }
-    }
-
-    public function setEventCategories($array = array()) {
-        $this->event_categories = $array;
     }
 
     public function set_past_events_display($display) {
@@ -165,38 +140,12 @@ class mindEventCalendar {
             return;
         }
 
-        if ($this->weekDayNames !== null) {
-            $weekOffset = array_search($offset, $this->weekDayNames, true);
-            if ($weekOffset !== false) {
-                $this->offset = $weekOffset;
-                return;
-            }
-        }
-
         $weekTime = strtotime((string) $offset);
         if ($weekTime === false) {
             throw new InvalidArgumentException('invalid offset');
         }
 
         $this->offset = (int) date('N', $weekTime) % 7;
-    }
-
-    public function inject_event_html($year, $month, $day, $html) {
-        $year  = (int) $year;
-        $month = (int) $month;
-        $day   = (int) $day;
-
-        if (!isset($this->dailyHtml[$year])) {
-            $this->dailyHtml[$year] = array();
-        }
-        if (!isset($this->dailyHtml[$year][$month])) {
-            $this->dailyHtml[$year][$month] = array();
-        }
-        if (!isset($this->dailyHtml[$year][$month][$day])) {
-            $this->dailyHtml[$year][$month][$day] = array();
-        }
-
-        $this->dailyHtml[$year][$month][$day][] = $html;
     }
 
     public function render() {
@@ -411,28 +360,6 @@ class mindEventCalendar {
         return $out;
     }
 
-    public function get_all_events($args = array()) {
-        $defaults = array(
-            'meta_query'       => array(
-                array(
-                    'key'     => 'event_start_time_stamp',
-                    'compare' => 'EXISTS',
-                ),
-            ),
-            'orderby'          => 'meta_value',
-            'meta_key'         => 'event_start_time_stamp',
-            'meta_type'        => 'DATETIME',
-            'order'            => 'ASC',
-            'post_type'        => 'sub_event',
-            'suppress_filters' => true,
-            'posts_per_page'   => -1,
-        );
-
-        $args = wp_parse_args($args, $defaults);
-
-        return get_posts($args);
-    }
-
     public function get_sub_events($args = array()) {
         $passed_meta_query = array();
         if (!empty($args['meta_query']) && is_array($args['meta_query'])) {
@@ -472,16 +399,6 @@ class mindEventCalendar {
                 'value'   => current_time('mysql'),
                 'compare' => '>=',
                 'type'    => 'DATETIME',
-            );
-        }
-
-        if ($this->event_categories) {
-            $args['tax_query'] = array(
-                array(
-                    'taxonomy' => 'event_category',
-                    'field'    => 'slug',
-                    'terms'    => $this->event_categories,
-                ),
             );
         }
 
@@ -951,10 +868,6 @@ class mindEventCalendar {
         return true;
     }
 
-    public function get_archive_url() {
-        return get_post_type_archive_link('events');
-    }
-
     public function generate_schema() {
         if (!$this->eventID || get_post_type($this->eventID) !== 'events' || mindevents_is_internal_post($this->eventID)) {
             return '';
@@ -1151,10 +1064,6 @@ class mindEventCalendar {
     }
 
     private function weekdays() {
-        if ($this->weekDayNames !== null) {
-            return $this->weekDayNames;
-        }
-
         $days = array();
         $base = new DateTimeImmutable('monday this week', mindevents_wp_timezone());
 

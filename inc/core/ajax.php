@@ -312,13 +312,4 @@ class mindEventsAjax {
 
         return $this->is_event($parent_id) ? $parent_id : 0;
     }
-
-    private function format_admin_time_range($start, $end) {
-        $timezone = mindevents_wp_timezone();
-        $start_dt = new DateTimeImmutable($start, $timezone);
-        $end_dt   = new DateTimeImmutable($end, $timezone);
-        $format   = get_option('time_format') ?: 'g:i a';
-
-        return $start_dt->format($format) . ' - ' . $end_dt->format($format);
-    }
 }
