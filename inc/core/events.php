@@ -618,6 +618,12 @@ class mindEventCalendar {
         $args = apply_filters('mindevents_front_list_query_args', $args, $this, $calDate);
         $args = $this->apply_visible_period_to_query_args($args, 'list');
 
+        if (!is_admin()) {
+            $args['post_status']  = 'publish';
+            $args['meta_query']   = $args['meta_query'] ?? array();
+            $args['meta_query'][] = mindevents_public_visibility_meta_query();
+        }
+
         if ($use_frontend_period && $this->get_frontend_view() === 'list') {
             $args['meta_query'][] = array(
                 'key'     => 'event_start_time_stamp',

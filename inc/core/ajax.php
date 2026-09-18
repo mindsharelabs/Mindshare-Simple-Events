@@ -21,7 +21,11 @@ class mindEventsAjax {
     public function get_event_meta_html() {
         $this->verify_nonce();
 
-        $id    = absint($_POST['eventid'] ?? 0);
+        $id = absint($_POST['eventid'] ?? 0);
+        if (!mindevents_is_public_occurrence($id)) {
+            wp_send_json_error(null, 404);
+        }
+
         $event = new mindEventCalendar();
 
         wp_send_json_success(array(

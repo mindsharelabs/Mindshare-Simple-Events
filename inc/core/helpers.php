@@ -92,6 +92,29 @@ if (!function_exists('mindevents_is_internal_post')) {
     }
 }
 
+if (!function_exists('mindevents_is_public_occurrence')) {
+    /**
+     * Whether an occurrence may be shown to someone who cannot edit it.
+     *
+     * The occurrence and its event must both be published, and neither may
+     * be internal. Every public read path that is handed an ID, rather
+     * than running a filtered query, must check this first.
+     */
+    function mindevents_is_public_occurrence($post_id) {
+        $occurrence = get_post(absint($post_id));
+        if (!$occurrence || $occurrence->post_type !== 'sub_event' || $occurrence->post_status !== 'publish') {
+            return false;
+        }
+
+        $event = get_post($occurrence->post_parent);
+        if (!$event || $event->post_type !== 'events' || $event->post_status !== 'publish') {
+            return false;
+        }
+
+        return !mindevents_is_internal_post($occurrence->ID) && !mindevents_is_internal_post($event->ID);
+    }
+}
+
 if (!function_exists('mindevents_public_visibility_meta_query')) {
     function mindevents_public_visibility_meta_query() {
         return array(

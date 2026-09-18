@@ -536,6 +536,7 @@ add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
+            mindevents_public_visibility_meta_query(),
         ),
     ));
 
@@ -608,6 +609,14 @@ add_action('template_redirect', function() {
     }
 
     $event_ics_id = absint(get_query_var('event_ics_id'));
+    if ($event_ics_id && !mindevents_is_public_occurrence($event_ics_id)) {
+        global $wp_query;
+        $wp_query->set_404();
+        status_header(404);
+        nocache_headers();
+        return;
+    }
+
     if ($event_ics_id) {
         header('Content-Type: text/calendar; charset=utf-8');
         header('Content-Disposition: attachment; filename="event-' . $event_ics_id . '.ics"');
@@ -623,7 +632,7 @@ function mindevents_get_ics_uid_domain() {
 
 function mindevents_build_ics_event_block($occurrence_id) {
     $occurrence_id = absint($occurrence_id);
-    if (!$occurrence_id || get_post_type($occurrence_id) !== 'sub_event' || mindevents_is_internal_post($occurrence_id)) {
+    if (!mindevents_is_public_occurrence($occurrence_id)) {
         return '';
     }
 
@@ -702,7 +711,7 @@ function mindevents_generate_single_event_ics($event_id) {
 
 function mindevents_get_event_add_to_calendar_links($event_id) {
     $event_id = absint($event_id);
-    if (!$event_id || mindevents_is_internal_post($event_id)) {
+    if (!mindevents_is_public_occurrence($event_id)) {
         return '';
     }
 

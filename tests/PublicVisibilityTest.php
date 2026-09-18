@@ -86,4 +86,17 @@ class PublicVisibilityTest extends Mindshare_Events_TestCase {
         $this->assertContains($public, $listed);
         $this->assertNotContains($internal, $listed);
     }
+
+    public function test_next_occurrence_subtitle_skips_internal_occurrences(): void {
+        $event_id = $this->createEvent();
+        $this->createOccurrence($event_id, '2030-05-01', '19:00', '21:00', array('mindevents_visibility' => 'internal'));
+        $this->createOccurrence($event_id, '2030-06-15');
+
+        ob_start();
+        do_action('mindevents_single_title', $event_id);
+        $html = ob_get_clean();
+
+        $this->assertStringContainsString(date_i18n(get_option('date_format'), strtotime('2030-06-15')), $html);
+        $this->assertStringNotContainsString(date_i18n(get_option('date_format'), strtotime('2030-05-01')), $html);
+    }
 }
