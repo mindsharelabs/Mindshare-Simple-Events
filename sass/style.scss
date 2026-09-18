@@ -83,8 +83,7 @@
 }
 
 .mindevents-page-intro,
-.mindevents-single-content,
-.mindevents-single-excerpt {
+.mindevents-single-content {
     color: var(--mindevents-muted);
     font-size: 1rem;
     line-height: 1.7;
@@ -116,25 +115,8 @@
     gap: 1.5rem;
 }
 
-.mindevents-single-layout {
-    display: grid;
-    gap: 1.5rem;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-}
-
-.mindevents-single-summary,
 .mindevents-single-details {
     min-width: 0;
-}
-
-.mindevents-single-media {
-    overflow: hidden;
-}
-
-.mindevents-single-image {
-    display: block;
-    height: auto;
-    width: 100%;
 }
 
 .mindevents-section-heading-wrap {
@@ -954,14 +936,26 @@
 }
 
 /*
- * Mini calendar: one small grid per month, up to three across. Columns are
- * at least 15rem, and the width cap leaves room for no more than three.
+ * Mini calendar: one grid per month, up to three across, always filling
+ * the width. Each month is a size container, so its numbers scale with it.
  */
 .mindevents-mini-calendar {
     display: grid;
     gap: 2rem;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
-    max-width: 64rem;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.mindevents-mini-calendar--columns-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mindevents-mini-calendar--columns-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mindevents-mini-month {
+    container-type: inline-size;
+    min-width: 0;
 }
 
 .mindevents-mini-month__title {
@@ -974,13 +968,13 @@
 
 .mindevents-mini-month__grid {
     display: grid;
-    gap: 0.25rem;
+    gap: clamp(0.25rem, 1.5cqi, 1rem);
     grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .mindevents-mini-month__weekday {
     color: var(--mindevents-muted);
-    font-size: 0.75rem;
+    font-size: clamp(0.75rem, 3cqi, 1.25rem);
     font-weight: 700;
     text-align: center;
 }
@@ -991,7 +985,7 @@
     aspect-ratio: 1;
     color: var(--mindevents-muted);
     display: flex;
-    font-size: 0.95rem;
+    font-size: clamp(0.95rem, 5cqi, 3rem);
     justify-content: center;
     line-height: 1;
 }
@@ -1004,7 +998,6 @@
     color: #fff;
     cursor: pointer;
     font: inherit;
-    font-size: 0.95rem;
     font-weight: 700;
     padding: 0;
     width: 100%;
@@ -1065,8 +1058,8 @@ body.mindevents-has-modal {
 }
 
 @media (max-width: 960px) {
-    .mindevents-single-layout {
-        grid-template-columns: 1fr;
+    .mindevents-mini-calendar--columns-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -1128,6 +1121,11 @@ body.mindevents-has-modal {
 }
 
 @media (max-width: 640px) {
+    .mindevents-mini-calendar--columns-2,
+    .mindevents-mini-calendar--columns-3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .mindevents-shell {
         padding: 1rem;
     }

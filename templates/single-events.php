@@ -28,16 +28,9 @@ if (have_posts()) :
         do_action(MINDEVENTS_PREPEND . 'single_title', get_the_ID());
         echo '</header>';
 
-        echo '<section class="mindevents-single-layout">';
-        echo '<div class="mindevents-single-summary">';
-        do_action(MINDEVENTS_PREPEND . 'single_thumb', get_the_ID());
-        do_action(MINDEVENTS_PREPEND . 'single_content', get_the_ID());
-        echo '</div>';
-
         echo '<div class="mindevents-surface mindevents-single-details">';
         do_action(MINDEVENTS_PREPEND . 'single_before_events', get_the_ID());
         echo '</div>';
-        echo '</section>';
 
         echo '<section class="mindevents-surface mindevents-single-schedule">';
         if ($display_type === 'list') {

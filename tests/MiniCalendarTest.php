@@ -29,6 +29,22 @@ class MiniCalendarTest extends Mindshare_Events_TestCase {
         return $days;
     }
 
+    public function test_months_share_the_width_up_to_three_across(): void {
+        $event_id = $this->createEvent();
+        $this->createOccurrence($event_id, '2030-07-20');
+        $this->assertStringContainsString('mindevents-mini-calendar--columns-1', (new mindEventCalendar($event_id))->get_mini_calendar());
+
+        foreach (array('2030-08-20', '2030-09-20', '2030-10-20') as $date) {
+            $this->createOccurrence($event_id, $date);
+        }
+        $this->assertStringContainsString('mindevents-mini-calendar--columns-3', (new mindEventCalendar($event_id))->get_mini_calendar());
+    }
+
+    public function test_the_event_page_has_no_summary_column(): void {
+        $this->assertFalse(has_action('mindevents_single_thumb'));
+        $this->assertFalse(has_action('mindevents_single_content'));
+    }
+
     public function test_the_display_type_can_be_saved(): void {
         $method = new ReflectionMethod('mindeventsAdmin', 'sanitize_event_meta');
         $method->setAccessible(true);

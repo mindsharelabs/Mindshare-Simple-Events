@@ -570,23 +570,6 @@ add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
     }
 }, 20, 1);
 
-add_action(MINDEVENTS_PREPEND . 'single_thumb', function($id) {
-    if (!has_post_thumbnail($id)) {
-        return;
-    }
-
-    echo '<div class="mindevents-single-media">';
-    echo get_the_post_thumbnail($id, 'large', array('class' => 'mindevents-single-image'));
-    echo '</div>';
-}, 10, 1);
-
-add_action(MINDEVENTS_PREPEND . 'single_content', function($id) {
-    $excerpt = get_the_excerpt($id);
-    if ($excerpt) {
-        echo '<div class="mindevents-single-excerpt">' . wp_kses_post(wpautop($excerpt)) . '</div>';
-    }
-}, 10, 1);
-
 add_action(MINDEVENTS_PREPEND . 'single_before_events', function() {
     echo '<div class="mindevents-single-content">';
     the_content();

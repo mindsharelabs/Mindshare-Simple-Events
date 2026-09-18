@@ -557,7 +557,7 @@ class mindEventCalendar {
     }
 
     /**
-     * Every month the event has dates in, as small month grids. A day with
+     * Every month the event has dates in, as month grids. A day with
      * events is a button that opens a dialog listing that day's
      * occurrences. Each day's list is printed into the page as a
      * <template>, so opening one needs no request.
@@ -580,13 +580,15 @@ class mindEventCalendar {
 
         ksort($this->dailyHtml);
 
-        $months    = '';
-        $templates = '';
+        $months      = '';
+        $templates   = '';
+        $month_count = 0;
 
         foreach ($this->dailyHtml as $year => $year_items) {
             ksort($year_items);
             foreach ($year_items as $month => $month_items) {
                 $months .= $this->render_mini_month($year, $month, $month_items);
+                $month_count++;
 
                 foreach ($month_items as $day => $daily_items) {
                     $templates .= $this->render_mini_day_template($this->local_day($year, $month, $day), $daily_items);
@@ -594,7 +596,10 @@ class mindEventCalendar {
             }
         }
 
-        return '<div class="mindevents-mini-calendar">' . $months . '</div>' . $templates;
+        // One column per month, up to three, so the months always fill the width.
+        $columns = min($month_count, 3);
+
+        return '<div class="mindevents-mini-calendar mindevents-mini-calendar--columns-' . $columns . '">' . $months . '</div>' . $templates;
     }
 
     private function render_mini_month($year, $month, array $month_items) {
