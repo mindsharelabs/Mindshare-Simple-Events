@@ -46,6 +46,25 @@ function mindevents_get_frontend_filter_context($context = null) {
     return '';
 }
 
+/**
+ * The canonical URL of the event page being viewed, without query args.
+ *
+ * Built from WordPress's own links rather than the request path, which
+ * already contains any subdirectory WordPress is installed in.
+ */
+function mindevents_current_view_url() {
+    if (is_tax('event_category')) {
+        $link = get_term_link(get_queried_object());
+        return is_wp_error($link) ? '' : $link;
+    }
+
+    if (is_singular('events')) {
+        return get_permalink(get_queried_object_id());
+    }
+
+    return get_post_type_archive_link('events');
+}
+
 function mindevents_normalize_frontend_event_view($view) {
     $view = sanitize_key((string) $view);
 

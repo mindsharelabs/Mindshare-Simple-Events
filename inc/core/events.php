@@ -322,7 +322,7 @@ class mindEventCalendar {
             $nextLabel = wp_date('F', $nextDate->getTimestamp());
         }
 
-        $currentUrl = home_url(strtok((string) ($_SERVER['REQUEST_URI'] ?? ''), '?'));
+        $currentUrl = mindevents_current_view_url();
         $prevArgs   = array('calendar_date' => $prevDate->format('Y-m-d'));
         $nextArgs   = array('calendar_date' => $nextDate->format('Y-m-d'));
 
