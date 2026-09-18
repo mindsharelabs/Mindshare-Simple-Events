@@ -136,6 +136,18 @@ Available scripts:
 - `npm run build`
 - `npm run watch`
 
+## Translations
+
+Strings use the `simple-events` text domain. Translations are loaded from
+`languages/`, and from `wp-content/languages/plugins/` as usual.
+
+Regenerate the template after changing any translatable string (needs GNU
+gettext's `xgettext`):
+
+```bash
+composer make-pot
+```
+
 ## Tests
 
 Tests run against the WordPress install the plugin sits in, with the plugin

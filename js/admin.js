@@ -4,6 +4,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     'use strict';
 
     const settings = window.mindeventsSettings || {};
+    const i18n = settings.i18n || {};
     let isDraggingOccurrence = false;
     let suppressDayClick = false;
 
@@ -90,7 +91,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     }
 
     function setModalLoading() {
-        openModal('<div class="mindevents-admin-loading" role="status" aria-live="polite"><span>Loading occurrence editor...</span></div>');
+        openModal($('<div class="mindevents-admin-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingEditor)));
     }
 
     function showErrors(messages) {
@@ -212,9 +213,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                         return;
                     }
 
-                    showErrors([response && response.data ? response.data : 'Unable to move that occurrence.']);
+                    showErrors([response && response.data ? response.data : i18n.cannotMove]);
                 }).fail(function () {
-                    showErrors(['Unable to move that occurrence.']);
+                    showErrors([i18n.cannotMove]);
                 });
             }
         });
@@ -272,7 +273,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
             showErrors(response && response.errors ? response.errors : []);
         }).fail(function () {
-            showErrors(['Unable to add an occurrence for that day.']);
+            showErrors([i18n.cannotAdd]);
         });
     });
 
@@ -303,10 +304,10 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             }
 
             closeModal();
-            showErrors(['Unable to load that occurrence.']);
+            showErrors([i18n.cannotLoad]);
         }).fail(function () {
             closeModal();
-            showErrors(['Unable to load that occurrence.']);
+            showErrors([i18n.cannotLoad]);
         });
     });
 
@@ -334,9 +335,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 return;
             }
 
-            showErrors([response && response.data ? response.data : 'Unable to update that occurrence.']);
+            showErrors([response && response.data ? response.data : i18n.cannotUpdate]);
         }).fail(function () {
-            showErrors(['Unable to update that occurrence.']);
+            showErrors([i18n.cannotUpdate]);
         });
     });
 
@@ -344,7 +345,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         event.preventDefault();
 
         const eventId = $(this).data('subid');
-        if (!eventId || !window.confirm('Delete this occurrence?')) {
+        if (!eventId || !window.confirm(i18n.confirmDelete)) {
             return;
         }
 
@@ -364,16 +365,16 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 return;
             }
 
-            showErrors([response && response.data ? response.data : 'Unable to delete that occurrence.']);
+            showErrors([response && response.data ? response.data : i18n.cannotDelete]);
         }).fail(function () {
-            showErrors(['Unable to delete that occurrence.']);
+            showErrors([i18n.cannotDelete]);
         });
     });
 
     $(document).on('click', '.clear-occurances', function (event) {
         event.preventDefault();
 
-        if (!window.confirm('Clear every occurrence for this event?')) {
+        if (!window.confirm(i18n.confirmClear)) {
             return;
         }
 
@@ -393,9 +394,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 return;
             }
 
-            showErrors(['Unable to clear those occurrences.']);
+            showErrors([i18n.cannotClear]);
         }).fail(function () {
-            showErrors(['Unable to clear those occurrences.']);
+            showErrors([i18n.cannotClear]);
         });
     });
 

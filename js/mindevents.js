@@ -4,6 +4,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     'use strict';
 
     const settings = window.mindeventsSettings || {};
+    const i18n = settings.i18n || {};
 
     function syncFilterPanel($form) {
         const isOpen = $form.hasClass('is-open');
@@ -13,12 +14,12 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
     function syncMultiSelect($multiselect) {
         const checked = $multiselect.find('input[type="checkbox"]:checked');
-        let label = $multiselect.data('default-label') || 'Categories';
+        let label = $multiselect.data('default-label') || i18n.categories;
 
         if (checked.length === 1) {
             label = $.trim(checked.first().closest('.mindevents-filter-checkbox').find('.mindevents-filter-checkbox-text').text());
         } else if (checked.length > 1) {
-            label = `${checked.length} Categories`;
+            label = i18n.categoriesCount.replace('%d', checked.length);
         }
 
         $multiselect.find('.mindevents-multiselect-label').text(label);
@@ -78,7 +79,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     }
 
     function setModalLoading() {
-        openModal('<div class="mindevents-loading" role="status" aria-live="polite"><span>Loading event details...</span></div>');
+        openModal($('<div class="mindevents-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingDetails)));
     }
 
     function closeDropdownMenus() {
@@ -107,9 +108,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 return;
             }
 
-            openModal('<div class="mindevents-notice">Unable to load event details right now.</div>');
+            openModal($('<div class="mindevents-notice">').text(i18n.cannotLoad));
         }).fail(function () {
-            openModal('<div class="mindevents-notice">Unable to load event details right now.</div>');
+            openModal($('<div class="mindevents-notice">').text(i18n.cannotLoad));
         });
     }
 

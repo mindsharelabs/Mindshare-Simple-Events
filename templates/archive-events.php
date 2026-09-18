@@ -18,7 +18,7 @@ $show_all              = apply_filters(MINDEVENTS_PREPEND . 'events_archive_show
 
 $calendar->set_past_events_display($show_all);
 
-echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="Content">';
+echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="' . esc_attr__('Content', 'simple-events') . '">';
 echo '<header class="mindevents-archive-header">';
 echo '<p class="mindevents-kicker">' . esc_html__('Simple Events', 'simple-events') . '</p>';
 echo '<h1 class="mindevents-page-title">' . esc_html(post_type_archive_title('', false)) . '</h1>';

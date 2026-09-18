@@ -364,6 +364,7 @@ function mindevents_get_category_filter_summary($categories, $selected_ids) {
         return $selected_names[0];
     }
 
+    /* translators: %d: number of selected categories */
     return sprintf(_n('%d Category', '%d Categories', count($selected_names), 'simple-events'), count($selected_names));
 }
 

@@ -7,6 +7,9 @@
  * Author: Mindshare Labs, Inc.
  * Author URI: https://mind.sh/are
  * Text Domain: simple-events
+ * Domain Path: /languages
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
  */
 
 if (!defined('ABSPATH')) {
@@ -62,6 +65,8 @@ final class mindEvents {
     }
 
     private function bootstrap() {
+        // Priority 0: before anything on init asks for a translated string.
+        add_action('init', array($this, 'load_textdomain'), 0);
         add_action('init', array('mindEventsInstaller', 'maybe_install'));
 
         $this->components['options'] = new mindEventsOptions();
@@ -78,6 +83,40 @@ final class mindEvents {
         add_action('transition_post_status', array($this, 'transition_sub_events'), 20, 3);
         add_action('before_delete_post', array($this, 'maybe_delete_event_children'), 20);
         add_action('deleted_post', array($this, 'sync_parent_after_delete'), 20, 2);
+    }
+
+    public function load_textdomain() {
+        load_plugin_textdomain('simple-events', false, dirname(plugin_basename(MINDEVENTS_PLUGIN_FILE)) . '/languages');
+    }
+
+    /**
+     * Strings for js/admin.js, read there as settings.i18n.
+     */
+    public static function admin_script_strings() {
+        return array(
+            'loadingEditor'  => __('Loading occurrence editor...', 'simple-events'),
+            'cannotAdd'      => __('Unable to add an occurrence for that day.', 'simple-events'),
+            'cannotLoad'     => __('Unable to load that occurrence.', 'simple-events'),
+            'cannotMove'     => __('Unable to move that occurrence.', 'simple-events'),
+            'cannotUpdate'   => __('Unable to update that occurrence.', 'simple-events'),
+            'cannotDelete'   => __('Unable to delete that occurrence.', 'simple-events'),
+            'cannotClear'    => __('Unable to clear those occurrences.', 'simple-events'),
+            'confirmDelete'  => __('Delete this occurrence?', 'simple-events'),
+            'confirmClear'   => __('Clear every occurrence for this event?', 'simple-events'),
+        );
+    }
+
+    /**
+     * Strings for js/mindevents.js, read there as settings.i18n.
+     */
+    public static function front_script_strings() {
+        return array(
+            'loadingDetails'  => __('Loading event details...', 'simple-events'),
+            'cannotLoad'      => __('Unable to load event details right now.', 'simple-events'),
+            'categories'      => __('Categories', 'simple-events'),
+            /* translators: %d: number of selected categories, always more than one */
+            'categoriesCount' => __('%d Categories', 'simple-events'),
+        );
     }
 
     public function enqueue_front_assets() {
@@ -102,6 +141,7 @@ final class mindEvents {
 
         wp_localize_script('mindevents-frontend', 'mindeventsSettings', array(
             'ajax_url' => admin_url('admin-ajax.php'),
+            'i18n'     => self::front_script_strings(),
         ));
     }
 
@@ -144,6 +184,7 @@ final class mindEvents {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce'    => wp_create_nonce('mindevents_ajax'),
                 'post_id'  => get_the_ID(),
+                'i18n'     => self::admin_script_strings(),
             ));
         }
     }

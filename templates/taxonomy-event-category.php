@@ -19,7 +19,7 @@ $queried               = get_queried_object();
 
 $calendar->set_past_events_display($show_all);
 
-echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="Content">';
+echo '<main class="mindevents-shell mindevents-shell--archive" role="main" aria-label="' . esc_attr__('Content', 'simple-events') . '">';
 echo '<header class="mindevents-archive-header">';
 echo '<p class="mindevents-kicker">' . esc_html__('Category Archive', 'simple-events') . '</p>';
 

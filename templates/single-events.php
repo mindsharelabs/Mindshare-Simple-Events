@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
 get_header('events');
 do_action(MINDEVENTS_PREPEND . 'before_main_content', get_the_ID());
 
-echo '<main class="mindevents-shell mindevents-shell--single" role="main" aria-label="Content">';
+echo '<main class="mindevents-shell mindevents-shell--single" role="main" aria-label="' . esc_attr__('Content', 'simple-events') . '">';
 do_action(MINDEVENTS_PREPEND . 'single_page_start');
 
 if (have_posts()) :
