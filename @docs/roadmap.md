@@ -16,28 +16,38 @@ real site.
 
 **Quality gates**
 
-- [ ] WordPress coding-standards security checks and a PHP 7.4
+- [x] WordPress coding-standards security checks and a PHP 7.4
       compatibility check, with their findings fixed
-- [ ] Continuous integration: tests and checks on every push
+- [x] Continuous integration: tests and checks on every push
 
 **Front end**
 
-- [ ] A single event's calendar opens on its next upcoming occurrence
-- [ ] Accessible event detail dialog and dropdowns: keyboard, focus,
+- [x] A single event's calendar opens on its next upcoming occurrence
+- [x] Accessible event detail dialog and dropdowns: keyboard, focus,
       screen-reader labels
-- [ ] No plugin branding in the archive header
-- [ ] Views and dialog work at phone width
+- [x] No plugin branding in the archive header
+- [x] Views and dialog work at phone width
 
 **Admin**
 
-- [ ] Hide the empty occurrence screens
-- [ ] Media-library picker for the organizer image
-- [ ] Accessible occurrence edit dialog
-- [ ] Visual pass over the admin screens
+- [x] Hide the empty occurrence screens
+- [x] Media-library picker for the organizer image
+- [x] Accessible occurrence edit dialog
+- [x] Visual pass over the admin screens
 
 **Packaging**
 
-- [ ] Build script for a clean distributable zip
+- [x] Build script for a clean distributable zip
+
+**Found and fixed along the way**
+
+- Quick Edit, the REST API and code erased a category's color
+- Asset URLs never changed within a version, so updates were served stale
+- The admin calendar's delete button covered the date, so clicking a date
+  to edit it asked to delete it
+- Occurrence defaults were copied into every new date, so later changes to
+  the event did not reach them; defaults are now start and end times only
+- Closed dialogs stayed in the tab order, invisible
 
 ## Phase 2: Mini monthly calendar
 
