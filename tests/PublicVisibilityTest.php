@@ -33,9 +33,9 @@ class PublicVisibilityTest extends Mindshare_Events_TestCase {
         $this->assertFalse($response['success'] ?? false);
     }
 
-    public function test_event_detail_hides_internal_occurrences(): void {
-        $event_id      = $this->createEvent(array('post_title' => 'Staff Only'));
-        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01', '19:00', '21:00', array('mindevents_visibility' => 'internal'));
+    public function test_event_detail_hides_occurrences_of_private_events(): void {
+        $event_id      = $this->createEvent(array('post_title' => 'Staff Only', 'post_status' => 'private'));
+        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01');
 
         $response = $this->eventDetail($occurrence_id);
 
@@ -74,22 +74,21 @@ class PublicVisibilityTest extends Mindshare_Events_TestCase {
         $this->assertStringNotContainsString('BEGIN:VEVENT', mindevents_generate_single_event_ics($occurrence_id));
     }
 
-    public function test_event_list_excludes_internal_occurrences(): void {
-        $event_id = $this->createEvent();
-        $public   = $this->createOccurrence($event_id, '2030-05-01');
-        $internal = $this->createOccurrence($event_id, '2030-05-02', '19:00', '21:00', array('mindevents_visibility' => 'internal'));
+    public function test_event_list_excludes_occurrences_of_private_events(): void {
+        $public  = $this->createOccurrence($this->createEvent(), '2030-05-01');
+        $private = $this->createOccurrence($this->createEvent(array('post_status' => 'private')), '2030-05-02');
 
-        $calendar = new mindEventCalendar($event_id);
+        $calendar = new mindEventCalendar();
         $calendar->get_front_list();
         $listed = wp_list_pluck($calendar->get_last_front_list_query()->posts, 'ID');
 
         $this->assertContains($public, $listed);
-        $this->assertNotContains($internal, $listed);
+        $this->assertNotContains($private, $listed);
     }
 
-    public function test_next_occurrence_subtitle_skips_internal_occurrences(): void {
+    public function test_next_occurrence_subtitle_skips_unpublished_occurrences(): void {
         $event_id = $this->createEvent();
-        $this->createOccurrence($event_id, '2030-05-01', '19:00', '21:00', array('mindevents_visibility' => 'internal'));
+        wp_trash_post($this->createOccurrence($event_id, '2030-05-01'));
         $this->createOccurrence($event_id, '2030-06-15');
 
         ob_start();

@@ -103,7 +103,6 @@ class mindEventsCPTS {
         // admin forms, so meta is clean however it arrives.
         $details = array(
             'mindevents_location'           => array('string', 'sanitize_text_field'),
-            'mindevents_visibility'         => array('string', 'mindevents_sanitize_visibility'),
             'mindevents_organizer_name'     => array('string', 'sanitize_text_field'),
             'mindevents_organizer_title'    => array('string', 'sanitize_text_field'),
             'mindevents_organizer_image_id' => array('integer', 'absint'),

@@ -10,7 +10,7 @@ Mindshare Simple Events is a self-contained WordPress events plugin for sites th
 - category filtering and title search on the public archive
 - ICS feed subscription and single-occurrence downloads
 - read-only REST API at `/wp-json/simple-events/v1/events`
-- plugin-owned organizer, location, visibility, and category color data
+- plugin-owned organizer, location, and category color data
 - self-contained frontend and admin styling with no Bootstrap or Font Awesome requirement
 
 ## Not Included In v1
@@ -57,7 +57,6 @@ Event and occurrence details are stored in these plugin-owned meta keys:
 - `mindevents_organizer_title`
 - `mindevents_organizer_image_id`
 - `mindevents_location`
-- `mindevents_visibility`
 
 Category color is stored in:
 
@@ -85,7 +84,7 @@ define('MINDEVENTS_REMOVE_ALL_DATA', true);
 
 ## Usage
 
-Create an event post, then use the `Occurrences` metabox to add one or more dates. Each occurrence can store its own date, time, short description, color override, organizer details, location, and visibility.
+Create an event post, then use the `Occurrences` metabox to add one or more dates. Each occurrence can store its own date, time, short description, color override, organizer details, and location.
 
 Theme overrides are supported with these template files:
 
@@ -128,7 +127,7 @@ Response fields:
 - `organizer`
 - `categories`
 
-Internal events are excluded from public API results.
+Only published events appear in public results. To hide an event from the public, set its visibility to Private in the Publish box: WordPress then hides it, and its occurrences, from the site, search, feeds, sitemaps and every API.
 
 ## Calendar Feeds
 

@@ -152,14 +152,6 @@ if (!function_exists('mindevents_normalize_time_value')) {
     }
 }
 
-if (!function_exists('mindevents_sanitize_visibility')) {
-    function mindevents_sanitize_visibility($value) {
-        $value = sanitize_key((string) $value);
-
-        return ($value === 'internal') ? 'internal' : 'public';
-    }
-}
-
 if (!function_exists('mindevents_sanitize_color')) {
     /**
      * A hex color, or '' for anything else. sanitize_hex_color() returns
@@ -167,41 +159,6 @@ if (!function_exists('mindevents_sanitize_color')) {
      */
     function mindevents_sanitize_color($value) {
         return (string) sanitize_hex_color((string) $value);
-    }
-}
-
-if (!function_exists('mindevents_apply_visibility_meta')) {
-    function mindevents_apply_visibility_meta($post_id, $visibility) {
-        $visibility = mindevents_sanitize_visibility($visibility);
-
-        update_post_meta($post_id, 'mindevents_visibility', $visibility);
-    }
-}
-
-if (!function_exists('mindevents_get_post_visibility')) {
-    function mindevents_get_post_visibility($post_id) {
-        $post_id = absint($post_id);
-        if (!$post_id) {
-            return 'public';
-        }
-
-        $value = get_post_meta($post_id, 'mindevents_visibility', true);
-        if ($value === 'public' || $value === 'internal') {
-            return $value;
-        }
-
-        $parent_id = (int) wp_get_post_parent_id($post_id);
-        if ($parent_id > 0) {
-            return mindevents_get_post_visibility($parent_id);
-        }
-
-        return 'public';
-    }
-}
-
-if (!function_exists('mindevents_is_internal_post')) {
-    function mindevents_is_internal_post($post_id) {
-        return mindevents_get_post_visibility($post_id) === 'internal';
     }
 }
 
@@ -228,9 +185,9 @@ if (!function_exists('mindevents_is_public_occurrence')) {
     /**
      * Whether an occurrence may be shown to someone who cannot edit it.
      *
-     * The occurrence and its event must both be published, and neither may
-     * be internal. Every public read path that is handed an ID, rather
-     * than running a filtered query, must check this first.
+     * The occurrence and its event must both be published. Every public
+     * read path that is handed an ID, rather than running a query limited
+     * to published posts, must check this first.
      */
     function mindevents_is_public_occurrence($post_id) {
         $occurrence = get_post(absint($post_id));
@@ -243,46 +200,7 @@ if (!function_exists('mindevents_is_public_occurrence')) {
             return false;
         }
 
-        return !mindevents_is_internal_post($occurrence->ID) && !mindevents_is_internal_post($event->ID);
-    }
-}
-
-if (!function_exists('mindevents_public_visibility_meta_query')) {
-    function mindevents_public_visibility_meta_query() {
-        return array(
-            'relation' => 'OR',
-            array(
-                'key'     => 'mindevents_visibility',
-                'value'   => 'public',
-                'compare' => '=',
-            ),
-            array(
-                'key'     => 'mindevents_visibility',
-                'compare' => 'NOT EXISTS',
-            ),
-        );
-    }
-}
-
-if (!function_exists('mindevents_sync_event_visibility_to_children')) {
-    function mindevents_sync_event_visibility_to_children($event_id) {
-        $event_id = absint($event_id);
-        if (!$event_id) {
-            return;
-        }
-
-        $visibility = mindevents_get_post_visibility($event_id);
-        $children   = get_posts(array(
-            'post_type'      => 'sub_event',
-            'post_status'    => array('publish', 'pending', 'draft', 'future', 'private', 'inherit', 'trash'),
-            'post_parent'    => $event_id,
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-        ));
-
-        foreach ($children as $child_id) {
-            mindevents_apply_visibility_meta($child_id, $visibility);
-        }
+        return true;
     }
 }
 

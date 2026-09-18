@@ -368,10 +368,6 @@ class mindEventCalendar {
             $defaults['post_parent'] = (int) $this->eventID;
         }
 
-        if (!is_admin()) {
-            $defaults['meta_query'][] = mindevents_public_visibility_meta_query();
-        }
-
         if ($this->show_past_events === false) {
             $defaults['meta_query'][] = array(
                 'key'     => 'mindevents_end_utc',
@@ -476,9 +472,7 @@ class mindEventCalendar {
         $args = $this->apply_visible_period_to_query_args($args, 'list');
 
         if (!is_admin()) {
-            $args['post_status']  = 'publish';
-            $args['meta_query']   = $args['meta_query'] ?? array();
-            $args['meta_query'][] = mindevents_public_visibility_meta_query();
+            $args['post_status'] = 'publish';
         }
 
         // Within the visible period, the list shows only what is still to come.
@@ -845,7 +839,7 @@ class mindEventCalendar {
     }
 
     public function generate_schema() {
-        if (!$this->eventID || get_post_type($this->eventID) !== 'events' || mindevents_is_internal_post($this->eventID)) {
+        if (!$this->eventID || get_post_type($this->eventID) !== 'events' || get_post_status($this->eventID) !== 'publish') {
             return '';
         }
 
@@ -1348,7 +1342,6 @@ class mindEventCalendar {
             'eventColor'                    => sanitize_hex_color($meta['eventColor'] ?? '') ?: '',
             'eventDescription'              => wp_kses_post($meta['eventDescription'] ?? ''),
             'mindevents_location'           => sanitize_text_field((string) ($meta['mindevents_location'] ?? '')),
-            'mindevents_visibility'         => mindevents_sanitize_visibility($meta['mindevents_visibility'] ?? mindevents_get_post_visibility($parentID)),
             'mindevents_organizer_name'     => sanitize_text_field((string) ($meta['mindevents_organizer_name'] ?? '')),
             'mindevents_organizer_title'    => sanitize_text_field((string) ($meta['mindevents_organizer_title'] ?? '')),
             'mindevents_organizer_image_id' => absint($meta['mindevents_organizer_image_id'] ?? 0),
@@ -1379,5 +1372,4 @@ class mindEventCalendar {
 
         return apply_filters('mindevents_occurrence_title', $title, $start, $end, $parentID);
     }
-
 }

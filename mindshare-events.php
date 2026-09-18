@@ -212,7 +212,6 @@ final class mindEvents {
         }
 
         mindevents_sync_event_taxonomies_to_children($post_id);
-        mindevents_sync_event_visibility_to_children($post_id);
         mindevents_sync_event_date_range($post_id);
     }
 

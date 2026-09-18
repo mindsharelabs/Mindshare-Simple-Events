@@ -25,12 +25,4 @@ class OccurrenceDetailsTest extends Mindshare_Events_TestCase {
         $this->assertSame('Studio Lead', mindevents_get_organizer_data($plain)['title']);
         $this->assertSame('Guest Artist', mindevents_get_organizer_data($override)['name']);
     }
-
-    public function test_visibility_is_stored_in_one_key_only(): void {
-        $event_id      = $this->createEvent();
-        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01', '19:00', '21:00', array('mindevents_visibility' => 'internal'));
-
-        $this->assertSame('internal', get_post_meta($occurrence_id, 'mindevents_visibility', true));
-        $this->assertSame('', get_post_meta($occurrence_id, '_members_only', true));
-    }
 }

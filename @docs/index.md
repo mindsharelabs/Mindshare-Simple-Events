@@ -14,7 +14,7 @@ This folder now tracks the public-release v1 plugin, which focuses on the portab
 - single event pages and template overrides
 - ICS feeds and add-to-calendar links
 - read-only REST API at `/wp-json/simple-events/v1/events`
-- plugin-owned organizer, location, and visibility metadata
+- plugin-owned organizer and location metadata
 
 ## Excluded From v1
 

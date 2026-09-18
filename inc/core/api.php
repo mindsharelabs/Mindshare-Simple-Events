@@ -110,9 +110,7 @@ function mindevents_rest_events(WP_REST_Request $request) {
     $exclude  = mindevents_rest_csv_to_ints($request->get_param('exclude'));
     $cats     = sanitize_text_field((string) $request->get_param('categories'));
 
-    $meta_query = array(
-        mindevents_public_visibility_meta_query(),
-    );
+    $meta_query = array();
 
     if ($after) {
         $meta_query[] = array(

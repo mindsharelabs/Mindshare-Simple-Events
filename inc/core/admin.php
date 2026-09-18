@@ -43,7 +43,6 @@ class mindeventsAdmin {
         $cal_display      = get_post_meta($post_id, 'cal_display', true);
         $show_past_events = get_post_meta($post_id, 'show_past_events', true);
         $location         = get_post_meta($post_id, 'mindevents_location', true);
-        $visibility       = mindevents_get_post_visibility($post_id);
         $organizer_name   = get_post_meta($post_id, 'mindevents_organizer_name', true);
         $organizer_title  = get_post_meta($post_id, 'mindevents_organizer_title', true);
         $organizer_image  = get_post_meta($post_id, 'mindevents_organizer_image_id', true);
@@ -70,16 +69,6 @@ class mindeventsAdmin {
                 '1' => __('Show past and upcoming', 'simple-events'),
             ),
             ($show_past_events === '1') ? '1' : '0'
-        );
-        $this->render_select_control(
-            'event_meta[mindevents_visibility]',
-            'event_meta_mindevents_visibility',
-            __('Visibility', 'simple-events'),
-            array(
-                'public'   => __('Public', 'simple-events'),
-                'internal' => __('Internal', 'simple-events'),
-            ),
-            $visibility
         );
         $this->render_text_control('event_meta[mindevents_location]', 'event_meta_mindevents_location', __('Location', 'simple-events'), $location, __('Optional venue or room name.', 'simple-events'));
         $this->render_text_control('event_meta[mindevents_organizer_name]', 'event_meta_mindevents_organizer_name', __('Organizer Name', 'simple-events'), $organizer_name);
@@ -137,8 +126,6 @@ class mindeventsAdmin {
 
         update_post_meta($post_id, 'event_defaults', wp_slash($defaults));
 
-        mindevents_apply_visibility_meta($post_id, $event_meta['mindevents_visibility'] ?? 'public');
-        mindevents_sync_event_visibility_to_children($post_id);
     }
 
     private function sanitize_event_meta($event_meta) {
@@ -148,7 +135,6 @@ class mindeventsAdmin {
         return array(
             'cal_display'                  => in_array($cal_display, array('calendar', 'list'), true) ? $cal_display : 'calendar',
             'show_past_events'             => (($event_meta['show_past_events'] ?? '0') === '1') ? '1' : '0',
-            'mindevents_visibility'        => mindevents_sanitize_visibility($event_meta['mindevents_visibility'] ?? 'public'),
             'mindevents_location'          => sanitize_text_field((string) ($event_meta['mindevents_location'] ?? '')),
             'mindevents_organizer_name'    => sanitize_text_field((string) ($event_meta['mindevents_organizer_name'] ?? '')),
             'mindevents_organizer_title'   => sanitize_text_field((string) ($event_meta['mindevents_organizer_title'] ?? '')),
@@ -167,7 +153,6 @@ class mindeventsAdmin {
             'eventColor'                   => $event_color ? $event_color : '',
             'eventDescription'             => wp_kses_post($defaults['eventDescription'] ?? ''),
             'mindevents_location'          => sanitize_text_field((string) ($defaults['mindevents_location'] ?? '')),
-            'mindevents_visibility'        => mindevents_sanitize_visibility($defaults['mindevents_visibility'] ?? 'public'),
             'mindevents_organizer_name'    => sanitize_text_field((string) ($defaults['mindevents_organizer_name'] ?? '')),
             'mindevents_organizer_title'   => sanitize_text_field((string) ($defaults['mindevents_organizer_title'] ?? '')),
             'mindevents_organizer_image_id'=> absint($defaults['mindevents_organizer_image_id'] ?? 0),
@@ -184,16 +169,6 @@ class mindeventsAdmin {
         $this->render_text_control('event[eventColor]', 'eventColor', __('Occurrence Color', 'simple-events'), $defaults['eventColor'] ?? '', __('Optional override for the category color.', 'simple-events'), 'color');
         $this->render_textarea_control('event[eventDescription]', 'eventDescription', __('Short Description', 'simple-events'), $defaults['eventDescription'] ?? '');
         $this->render_text_control('event[mindevents_location]', 'mindevents_location', __('Location', 'simple-events'), $defaults['mindevents_location'] ?? '');
-        $this->render_select_control(
-            'event[mindevents_visibility]',
-            'mindevents_visibility',
-            __('Visibility', 'simple-events'),
-            array(
-                'public'   => __('Public', 'simple-events'),
-                'internal' => __('Internal', 'simple-events'),
-            ),
-            $defaults['mindevents_visibility'] ?? mindevents_get_post_visibility(get_the_ID())
-        );
         $this->render_text_control('event[mindevents_organizer_name]', 'mindevents_organizer_name', __('Organizer Name', 'simple-events'), $defaults['mindevents_organizer_name'] ?? '');
         $this->render_text_control('event[mindevents_organizer_title]', 'mindevents_organizer_title', __('Organizer Title', 'simple-events'), $defaults['mindevents_organizer_title'] ?? '');
         $this->render_text_control('event[mindevents_organizer_image_id]', 'mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $defaults['mindevents_organizer_image_id'] ?? '', __('Media Library attachment ID for the organizer photo.', 'simple-events'), 'number');

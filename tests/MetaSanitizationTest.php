@@ -14,12 +14,10 @@ class MetaSanitizationTest extends Mindshare_Events_TestCase {
 
         update_post_meta($event_id, 'mindevents_location', '<b>Main</b> Hall');
         update_post_meta($event_id, 'mindevents_organizer_name', "Ana\n<script>x</script>");
-        update_post_meta($event_id, 'mindevents_visibility', 'anything-else');
         update_post_meta($event_id, 'mindevents_organizer_image_id', '-12');
 
         $this->assertSame('Main Hall', get_post_meta($event_id, 'mindevents_location', true));
         $this->assertSame('Ana', get_post_meta($event_id, 'mindevents_organizer_name', true));
-        $this->assertSame('public', get_post_meta($event_id, 'mindevents_visibility', true));
         $this->assertSame('12', get_post_meta($event_id, 'mindevents_organizer_image_id', true));
     }
 

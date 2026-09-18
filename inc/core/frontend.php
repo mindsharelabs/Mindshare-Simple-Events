@@ -338,7 +338,6 @@ function mindevents_get_archive_initial_calendar_date($filters = null) {
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
-            mindevents_public_visibility_meta_query(),
         ),
     );
 
@@ -554,7 +553,6 @@ add_action(MINDEVENTS_PREPEND . 'single_title', function($id) {
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
-            mindevents_public_visibility_meta_query(),
         ),
     ));
 
@@ -739,7 +737,6 @@ function mindevents_generate_ics_feed() {
                 'compare' => '>=',
                 'type'    => 'DATETIME',
             ),
-            mindevents_public_visibility_meta_query(),
         ),
     ));
 

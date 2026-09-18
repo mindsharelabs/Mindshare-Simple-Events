@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 23:09-0600\n"
+"POT-Creation-Date: 2026-09-17 23:58-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,99 +27,87 @@ msgstr ""
 msgid "Event Settings"
 msgstr ""
 
-#: inc/core/admin.php:57
+#: inc/core/admin.php:56
 msgid "Display Type"
 msgstr ""
 
-#: inc/core/admin.php:59 inc/core/frontend.php:427
+#: inc/core/admin.php:58 inc/core/frontend.php:426
 msgid "List"
 msgstr ""
 
-#: inc/core/admin.php:60
+#: inc/core/admin.php:59
 msgid "Calendar"
 msgstr ""
 
-#: inc/core/admin.php:67
+#: inc/core/admin.php:66
 msgid "Past Events"
 msgstr ""
 
-#: inc/core/admin.php:69
+#: inc/core/admin.php:68
 msgid "Show upcoming only"
 msgstr ""
 
-#: inc/core/admin.php:70
+#: inc/core/admin.php:69
 msgid "Show past and upcoming"
 msgstr ""
 
-#: inc/core/admin.php:77 inc/core/admin.php:190 inc/core/ajax.php:227
-msgid "Visibility"
-msgstr ""
-
-#: inc/core/admin.php:79 inc/core/admin.php:192 inc/core/ajax.php:228
-msgid "Public"
-msgstr ""
-
-#: inc/core/admin.php:80 inc/core/admin.php:193 inc/core/ajax.php:229
-msgid "Internal"
-msgstr ""
-
-#: inc/core/admin.php:84 inc/core/admin.php:186 inc/core/ajax.php:226
+#: inc/core/admin.php:73 inc/core/admin.php:171 inc/core/ajax.php:226
 msgid "Location"
 msgstr ""
 
-#: inc/core/admin.php:84
+#: inc/core/admin.php:73
 msgid "Optional venue or room name."
 msgstr ""
 
-#: inc/core/admin.php:85 inc/core/admin.php:197 inc/core/ajax.php:231
+#: inc/core/admin.php:74 inc/core/admin.php:172 inc/core/ajax.php:227
 msgid "Organizer Name"
 msgstr ""
 
-#: inc/core/admin.php:86 inc/core/admin.php:198 inc/core/ajax.php:232
+#: inc/core/admin.php:75 inc/core/admin.php:173 inc/core/ajax.php:228
 msgid "Organizer Title"
 msgstr ""
 
-#: inc/core/admin.php:87 inc/core/admin.php:199
+#: inc/core/admin.php:76 inc/core/admin.php:174
 msgid "Media Library attachment ID for the organizer photo."
 msgstr ""
 
-#: inc/core/admin.php:87 inc/core/admin.php:199 inc/core/ajax.php:233
+#: inc/core/admin.php:76 inc/core/admin.php:174 inc/core/ajax.php:229
 msgid "Organizer Image ID"
 msgstr ""
 
-#: inc/core/admin.php:95
+#: inc/core/admin.php:84
 msgid "Default Occurrence Fields"
 msgstr ""
 
-#: inc/core/admin.php:98
+#: inc/core/admin.php:87
 msgid "Previous Month"
 msgstr ""
 
-#: inc/core/admin.php:99
+#: inc/core/admin.php:88
 msgid "Next Month"
 msgstr ""
 
-#: inc/core/admin.php:105
+#: inc/core/admin.php:94
 msgid "Clear All Occurrences"
 msgstr ""
 
-#: inc/core/admin.php:182 inc/core/ajax.php:222
+#: inc/core/admin.php:167 inc/core/ajax.php:222
 msgid "Occurrence Start"
 msgstr ""
 
-#: inc/core/admin.php:183 inc/core/ajax.php:223
+#: inc/core/admin.php:168 inc/core/ajax.php:223
 msgid "Occurrence End"
 msgstr ""
 
-#: inc/core/admin.php:184 inc/core/ajax.php:224
+#: inc/core/admin.php:169 inc/core/ajax.php:224
 msgid "Occurrence Color"
 msgstr ""
 
-#: inc/core/admin.php:184
+#: inc/core/admin.php:169
 msgid "Optional override for the category color."
 msgstr ""
 
-#: inc/core/admin.php:185 inc/core/ajax.php:225
+#: inc/core/admin.php:170 inc/core/ajax.php:225
 msgid "Short Description"
 msgstr ""
 
@@ -139,7 +127,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:753
+#: inc/core/ajax.php:85 inc/core/events.php:747
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -159,11 +147,11 @@ msgstr ""
 msgid "Occurrence Date"
 msgstr ""
 
-#: inc/core/ajax.php:235
+#: inc/core/ajax.php:231
 msgid "Update Occurrence"
 msgstr ""
 
-#: inc/core/ajax.php:236
+#: inc/core/ajax.php:232
 msgid "Cancel"
 msgstr ""
 
@@ -175,126 +163,126 @@ msgstr ""
 msgid "Next Week"
 msgstr ""
 
-#: inc/core/events.php:434
+#: inc/core/events.php:430
 msgid "No events matched the current filters."
 msgstr ""
 
-#: inc/core/events.php:509
+#: inc/core/events.php:503
 msgid "No events matched the current view."
 msgstr ""
 
-#: inc/core/events.php:512
+#: inc/core/events.php:506
 msgid "There are no upcoming events."
 msgstr ""
 
-#: inc/core/events.php:598 inc/core/post-types.php:28
+#: inc/core/events.php:592 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:654
+#: inc/core/events.php:648
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:665
+#: inc/core/events.php:659
 msgid "Open Event Page"
 msgstr ""
 
-#: inc/core/events.php:699
+#: inc/core/events.php:693
 msgid "Remove occurrence"
 msgstr ""
 
-#: inc/core/events.php:716
+#: inc/core/events.php:710
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:735
+#: inc/core/events.php:729
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1134
+#: inc/core/events.php:1130
 msgid "Organizer"
 msgstr ""
 
-#: inc/core/frontend.php:368 inc/core/frontend.php:379
-#: inc/core/frontend.php:450 mindshare-events.php:116
+#: inc/core/frontend.php:367 inc/core/frontend.php:378
+#: inc/core/frontend.php:449 mindshare-events.php:118
 msgid "Categories"
 msgstr ""
 
 #. translators: %d: number of selected categories
-#: inc/core/frontend.php:387
+#: inc/core/frontend.php:386
 #, php-format
 msgid "%d Category"
 msgid_plural "%d Categories"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/core/frontend.php:426
+#: inc/core/frontend.php:425
 msgid "Event views"
 msgstr ""
 
-#: inc/core/frontend.php:427
+#: inc/core/frontend.php:426
 msgid "Month"
 msgstr ""
 
-#: inc/core/frontend.php:427
+#: inc/core/frontend.php:426
 msgid "Week"
 msgstr ""
 
-#: inc/core/frontend.php:442
+#: inc/core/frontend.php:441
 msgid "Filters"
 msgstr ""
 
-#: inc/core/frontend.php:467
+#: inc/core/frontend.php:466
 msgid "Search events"
 msgstr ""
 
-#: inc/core/frontend.php:468
+#: inc/core/frontend.php:467
 msgid "Search event title"
 msgstr ""
 
-#: inc/core/frontend.php:472
+#: inc/core/frontend.php:471
 msgid "Apply"
 msgstr ""
 
-#: inc/core/frontend.php:473
+#: inc/core/frontend.php:472
 msgid "Reset"
 msgstr ""
 
-#: inc/core/frontend.php:515
+#: inc/core/frontend.php:514
 msgid "Previous"
 msgstr ""
 
-#: inc/core/frontend.php:516
+#: inc/core/frontend.php:515
 msgid "Next"
 msgstr ""
 
-#: inc/core/frontend.php:523
+#: inc/core/frontend.php:522
 msgid "Event list pagination"
 msgstr ""
 
 #. translators: %s: date of the event's next occurrence
-#: inc/core/frontend.php:564
+#: inc/core/frontend.php:562
 #, php-format
 msgid "Next occurrence: %s"
 msgstr ""
 
-#: inc/core/frontend.php:601
+#: inc/core/frontend.php:599
 msgid "Subscribe to Calendar Feed"
 msgstr ""
 
-#: inc/core/frontend.php:798
+#: inc/core/frontend.php:795
 msgid "Add to Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:802
+#: inc/core/frontend.php:799
 msgid "Google Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:803
+#: inc/core/frontend.php:800
 msgid "Apple / Outlook (.ics)"
 msgstr ""
 
-#: inc/core/frontend.php:804
+#: inc/core/frontend.php:801
 msgid "Yahoo Calendar"
 msgstr ""
 
@@ -454,60 +442,60 @@ msgstr ""
 msgid "View Category"
 msgstr ""
 
-#: inc/core/post-types.php:155 inc/core/post-types.php:170
+#: inc/core/post-types.php:154 inc/core/post-types.php:169
 msgid "Category Color"
 msgstr ""
 
-#: inc/core/post-types.php:157 inc/core/post-types.php:174
+#: inc/core/post-types.php:156 inc/core/post-types.php:173
 msgid "Used for calendar and list color accents."
 msgstr ""
 
-#: mindshare-events.php:97
+#: mindshare-events.php:99
 msgid "Loading occurrence editor..."
 msgstr ""
 
-#: mindshare-events.php:98
+#: mindshare-events.php:100
 msgid "Unable to add an occurrence for that day."
 msgstr ""
 
-#: mindshare-events.php:99
+#: mindshare-events.php:101
 msgid "Unable to load that occurrence."
 msgstr ""
 
-#: mindshare-events.php:100
+#: mindshare-events.php:102
 msgid "Unable to move that occurrence."
 msgstr ""
 
-#: mindshare-events.php:101
+#: mindshare-events.php:103
 msgid "Unable to update that occurrence."
 msgstr ""
 
-#: mindshare-events.php:102
+#: mindshare-events.php:104
 msgid "Unable to delete that occurrence."
 msgstr ""
 
-#: mindshare-events.php:103
+#: mindshare-events.php:105
 msgid "Unable to clear those occurrences."
 msgstr ""
 
-#: mindshare-events.php:104
+#: mindshare-events.php:106
 msgid "Delete this occurrence?"
 msgstr ""
 
-#: mindshare-events.php:105
+#: mindshare-events.php:107
 msgid "Clear every occurrence for this event?"
 msgstr ""
 
-#: mindshare-events.php:114
+#: mindshare-events.php:116
 msgid "Loading event details..."
 msgstr ""
 
-#: mindshare-events.php:115
+#: mindshare-events.php:117
 msgid "Unable to load event details right now."
 msgstr ""
 
 #. translators: %d: number of selected categories, always more than one
-#: mindshare-events.php:118
+#: mindshare-events.php:120
 #, php-format
 msgid "%d Categories"
 msgstr ""

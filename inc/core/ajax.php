@@ -224,10 +224,6 @@ class mindEventsAjax {
         $html .= $this->render_modal_field('eventColor', __('Occurrence Color', 'simple-events'), $values['eventColor'][0] ?? '', 'color');
         $html .= $this->render_modal_textarea('eventDescription', __('Short Description', 'simple-events'), $values['eventDescription'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_location', __('Location', 'simple-events'), $values['mindevents_location'][0] ?? '');
-        $html .= $this->render_modal_select('mindevents_visibility', __('Visibility', 'simple-events'), array(
-            'public'   => __('Public', 'simple-events'),
-            'internal' => __('Internal', 'simple-events'),
-        ), $values['mindevents_visibility'][0] ?? mindevents_get_post_visibility($sub_event_id));
         $html .= $this->render_modal_field('mindevents_organizer_name', __('Organizer Name', 'simple-events'), $values['mindevents_organizer_name'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_title', __('Organizer Title', 'simple-events'), $values['mindevents_organizer_title'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $values['mindevents_organizer_image_id'][0] ?? '', 'number');
@@ -258,18 +254,6 @@ class mindEventsAjax {
         $html .= '<label for="' . esc_attr($name) . '">' . esc_html($label) . '</label>';
         $html .= '<textarea name="' . esc_attr($name) . '" id="' . esc_attr($name) . '" rows="4">' . esc_textarea((string) $value) . '</textarea>';
         $html .= '</div>';
-
-        return $html;
-    }
-
-    private function render_modal_select($name, $label, $options, $value) {
-        $html  = '<div class="mindevents-admin-field">';
-        $html .= '<label for="' . esc_attr($name) . '">' . esc_html($label) . '</label>';
-        $html .= '<select name="' . esc_attr($name) . '" id="' . esc_attr($name) . '">';
-        foreach ($options as $option_value => $option_label) {
-            $html .= '<option value="' . esc_attr($option_value) . '" ' . selected($value, $option_value, false) . '>' . esc_html($option_label) . '</option>';
-        }
-        $html .= '</select></div>';
 
         return $html;
     }
