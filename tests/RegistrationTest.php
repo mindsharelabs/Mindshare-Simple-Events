@@ -19,4 +19,15 @@ class RegistrationTest extends Mindshare_Events_TestCase {
 
         $this->assertArrayNotHasKey('post_type', $wp->query_vars, 'post_type=sub_event should not be accepted from a URL');
     }
+
+    /**
+     * Occurrences are managed from their event's calendar. Their own list and
+     * edit screens held nothing, since the type supports no fields.
+     */
+    public function test_occurrences_have_no_admin_screens_of_their_own(): void {
+        $type = get_post_type_object('mind_sub_event');
+
+        $this->assertFalse($type->show_ui);
+        $this->assertFalse($type->show_in_menu);
+    }
 }

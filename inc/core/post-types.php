@@ -62,8 +62,9 @@ class mindEventsCPTS {
             ),
             'supports'            => false,
             'public'              => false,
-            'show_ui'             => true,
-            'show_in_menu'        => 'edit.php?post_type=events',
+            // Managed from the event's calendar; the type has no fields to edit.
+            'show_ui'             => false,
+            'show_in_menu'        => false,
             'show_in_rest'        => false,
             'has_archive'         => false,
             'exclude_from_search' => true,
