@@ -263,7 +263,7 @@ class mindEventsAjax {
     }
 
     private function is_event($post_id) {
-        return $post_id && get_post_type($post_id) === 'events';
+        return $post_id && get_post_type($post_id) === 'mind_events';
     }
 
     /**
@@ -273,7 +273,7 @@ class mindEventsAjax {
      * request, which the client controls.
      */
     private function get_occurrence_event_id($occurrence_id) {
-        if (!$occurrence_id || get_post_type($occurrence_id) !== 'sub_event') {
+        if (!$occurrence_id || get_post_type($occurrence_id) !== 'mind_sub_event') {
             return 0;
         }
 

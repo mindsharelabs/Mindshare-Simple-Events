@@ -39,7 +39,7 @@ class SavedTextTest extends Mindshare_Events_TestCase {
             'event_meta'                  => array('mindevents_location' => 'C:\\Studio'),
             'event'                       => array('eventDescription' => 'Bring a 1\\2 inch brush'),
         ));
-        do_action('save_post_events', $event_id, get_post($event_id), true);
+        do_action('save_post_mind_events', $event_id, get_post($event_id), true);
 
         $this->assertSame('C:\\Studio', get_post_meta($event_id, 'mindevents_location', true));
         $this->assertSame('Bring a 1\\2 inch brush', get_post_meta($event_id, 'event_defaults', true)['eventDescription']);

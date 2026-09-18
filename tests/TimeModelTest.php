@@ -106,7 +106,7 @@ class TimeModelTest extends Mindshare_Events_TestCase {
         $before   = $this->createOccurrence($event_id, '2030-06-29', '10:00', '11:00');
 
         $found = get_posts(array(
-            'post_type'  => 'sub_event',
+            'post_type'  => 'mind_sub_event',
             'fields'     => 'ids',
             'meta_query' => array(mindevents_overlapping_meta_query(
                 new DateTimeImmutable('2030-07-01 00:00:00', wp_timezone()),

@@ -2,10 +2,10 @@
 
 class CapabilitiesTest extends Mindshare_Events_TestCase {
     public function test_events_use_their_own_namespaced_capabilities(): void {
-        $caps = get_post_type_object('events')->cap;
+        $caps = get_post_type_object('mind_events')->cap;
 
         $this->assertSame('edit_mindevents_events', $caps->edit_posts);
-        $this->assertSame('edit_mindevents_events', get_post_type_object('sub_event')->cap->edit_posts);
+        $this->assertSame('edit_mindevents_events', get_post_type_object('mind_sub_event')->cap->edit_posts);
     }
 
     public function test_administrators_and_editors_manage_events(): void {

@@ -15,7 +15,7 @@ class mindEventsCPTS {
     }
 
     public function create_post_types() {
-        register_post_type('events', array(
+        register_post_type('mind_events', array(
             'label'               => __('Events', 'simple-events'),
             'description'         => __('Events', 'simple-events'),
             'labels'              => array(
@@ -36,7 +36,9 @@ class mindEventsCPTS {
             'menu_position'       => 6,
             'menu_icon'           => 'dashicons-calendar',
             'show_in_rest'        => true,
-            'has_archive'         => true,
+            // The type is prefixed to avoid collisions; the URLs stay /events/.
+            'has_archive'         => 'events',
+            'rewrite'             => array('slug' => 'events'),
             'publicly_queryable'  => true,
             'exclude_from_search' => false,
             'can_export'          => true,
@@ -44,7 +46,7 @@ class mindEventsCPTS {
             'map_meta_cap'        => true,
         ));
 
-        register_post_type('sub_event', array(
+        register_post_type('mind_sub_event', array(
             'label'               => __('Occurrences', 'simple-events'),
             'description'         => __('Event occurrences', 'simple-events'),
             'labels'              => array(
@@ -74,7 +76,7 @@ class mindEventsCPTS {
             'map_meta_cap'        => true,
         ));
 
-        register_taxonomy('event_category', array('events', 'sub_event'), array(
+        register_taxonomy('event_category', array('mind_events', 'mind_sub_event'), array(
             'labels'            => array(
                 'name'          => _x('Event Categories', 'Taxonomy General Name', 'simple-events'),
                 'singular_name' => _x('Event Category', 'Taxonomy Singular Name', 'simple-events'),
@@ -108,7 +110,7 @@ class mindEventsCPTS {
             'mindevents_organizer_image_id' => array('integer', 'absint'),
         );
 
-        foreach (array('events', 'sub_event') as $post_type) {
+        foreach (array('mind_events', 'mind_sub_event') as $post_type) {
             foreach ($details as $meta_key => $schema) {
                 register_post_meta($post_type, $meta_key, array(
                     'show_in_rest'      => true,
@@ -138,7 +140,7 @@ class mindEventsCPTS {
         }
 
         $occurrence = get_post($args[0]);
-        if (!$occurrence || $occurrence->post_type !== 'sub_event' || !$occurrence->post_parent) {
+        if (!$occurrence || $occurrence->post_type !== 'mind_sub_event' || !$occurrence->post_parent) {
             return $caps;
         }
 

@@ -359,7 +359,7 @@ class mindEventCalendar {
             'meta_key'         => 'mindevents_start_utc',
             'meta_type'        => 'DATETIME',
             'order'            => 'ASC',
-            'post_type'        => 'sub_event',
+            'post_type'        => 'mind_sub_event',
             'suppress_filters' => true,
             'posts_per_page'   => -1,
         );
@@ -442,7 +442,7 @@ class mindEventCalendar {
         $use_frontend_period = $this->should_use_frontend_visible_period();
 
         $default = array(
-            'post_type'        => 'sub_event',
+            'post_type'        => 'mind_sub_event',
             'orderby'          => 'meta_value',
             'meta_key'         => 'mindevents_start_utc',
             'meta_type'        => 'DATETIME',
@@ -673,7 +673,7 @@ class mindEventCalendar {
         $this->setStartOfWeek($this->calendar_start_day);
 
         $eventDates = $this->get_sub_events(array(
-            'post_type'      => 'sub_event',
+            'post_type'      => 'mind_sub_event',
             'post_status'    => 'any',
             'posts_per_page' => -1,
             'post_parent'    => $this->eventID,
@@ -783,7 +783,7 @@ class mindEventCalendar {
             'post_author' => (int) get_post_field('post_author', $eventID),
             'post_title'  => $this->build_title($eventID, $meta),
             'post_status' => mindevents_occurrence_status(get_post_status($eventID)),
-            'post_type'   => 'sub_event',
+            'post_type'   => 'mind_sub_event',
             'post_parent' => $eventID,
             'meta_input'  => $meta,
         ))), true);
@@ -805,7 +805,7 @@ class mindEventCalendar {
      */
     private function has_occurrence_at($event_id, $start_utc, $end_utc, $exclude_id = 0) {
         return (bool) get_posts(array(
-            'post_type'      => 'sub_event',
+            'post_type'      => 'mind_sub_event',
             'post_status'    => 'any',
             'post_parent'    => $event_id,
             'post__not_in'   => array_filter(array((int) $exclude_id)),
@@ -839,7 +839,7 @@ class mindEventCalendar {
     }
 
     public function generate_schema() {
-        if (!$this->eventID || get_post_type($this->eventID) !== 'events' || get_post_status($this->eventID) !== 'publish') {
+        if (!$this->eventID || get_post_type($this->eventID) !== 'mind_events' || get_post_status($this->eventID) !== 'publish') {
             return '';
         }
 

@@ -80,8 +80,8 @@ final class mindEvents {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_front_assets'));
         add_action('wp_head', array($this, 'output_schema'), 20);
 
-        add_action('save_post_events', array($this, 'sync_event_children'), 40, 2);
-        add_action('save_post_sub_event', array($this, 'sync_sub_event_parent_dates'), 20, 3);
+        add_action('save_post_mind_events', array($this, 'sync_event_children'), 40, 2);
+        add_action('save_post_mind_sub_event', array($this, 'sync_sub_event_parent_dates'), 20, 3);
         add_action('transition_post_status', array($this, 'transition_sub_events'), 20, 3);
         add_action('before_delete_post', array($this, 'maybe_delete_event_children'), 20);
         add_action('deleted_post', array($this, 'sync_parent_after_delete'), 20, 2);
@@ -122,7 +122,7 @@ final class mindEvents {
     }
 
     public function enqueue_front_assets() {
-        if (!is_post_type_archive('events') && !is_singular('events') && !is_tax('event_category')) {
+        if (!is_post_type_archive('mind_events') && !is_singular('mind_events') && !is_tax('event_category')) {
             return;
         }
 
@@ -157,7 +157,7 @@ final class mindEvents {
             return;
         }
 
-        $is_event_editor = ($screen->post_type === 'events' && in_array($screen->base, array('post', 'post-new'), true));
+        $is_event_editor = ($screen->post_type === 'mind_events' && in_array($screen->base, array('post', 'post-new'), true));
         $is_event_terms = ($screen->taxonomy ?? '') === 'event_category';
         $is_settings = $screen->id === 'settings_page_mindevents-settings';
 
@@ -192,7 +192,7 @@ final class mindEvents {
     }
 
     public function output_schema() {
-        if (!is_singular('events')) {
+        if (!is_singular('mind_events')) {
             return;
         }
 
@@ -207,7 +207,7 @@ final class mindEvents {
     }
 
     public function sync_event_children($post_id, $post) {
-        if (!($post instanceof WP_Post) || $post->post_type !== 'events') {
+        if (!($post instanceof WP_Post) || $post->post_type !== 'mind_events') {
             return;
         }
 
@@ -216,7 +216,7 @@ final class mindEvents {
     }
 
     public function sync_sub_event_parent_dates($post_id, $post, $update = false) {
-        if (!($post instanceof WP_Post) || $post->post_type !== 'sub_event') {
+        if (!($post instanceof WP_Post) || $post->post_type !== 'mind_sub_event') {
             return;
         }
 
@@ -232,13 +232,13 @@ final class mindEvents {
 
     public function maybe_delete_event_children($post_id) {
         $post = get_post($post_id);
-        if ($post instanceof WP_Post && $post->post_type === 'events') {
+        if ($post instanceof WP_Post && $post->post_type === 'mind_events') {
             mindevents_delete_child_occurrences($post_id);
         }
     }
 
     public function sync_parent_after_delete($post_id, $post = null) {
-        if (!($post instanceof WP_Post) || $post->post_type !== 'sub_event') {
+        if (!($post instanceof WP_Post) || $post->post_type !== 'mind_sub_event') {
             return;
         }
 

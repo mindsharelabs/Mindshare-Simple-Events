@@ -31,7 +31,7 @@ class OccurrenceOwnershipTest extends Mindshare_Events_TestCase {
      * Returns a role that can edit and publish its own events but not others'.
      */
     private function ownEventsOnlyRole(): string {
-        $type = get_post_type_object('events');
+        $type = get_post_type_object('mind_events');
         add_role('mindevents_test_own_only', 'Own events only', array(
             'read'                         => true,
             $type->cap->edit_posts         => true,
@@ -107,7 +107,7 @@ class OccurrenceOwnershipTest extends Mindshare_Events_TestCase {
             'meta'    => array('event' => array('starttime' => '10:00', 'endtime' => '11:00')),
         ));
 
-        $children = get_posts(array('post_type' => 'sub_event', 'post_parent' => $page_id, 'post_status' => 'any'));
+        $children = get_posts(array('post_type' => 'mind_sub_event', 'post_parent' => $page_id, 'post_status' => 'any'));
         $this->assertEmpty($children);
     }
 

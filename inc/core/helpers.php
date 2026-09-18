@@ -191,12 +191,12 @@ if (!function_exists('mindevents_is_public_occurrence')) {
      */
     function mindevents_is_public_occurrence($post_id) {
         $occurrence = get_post(absint($post_id));
-        if (!$occurrence || $occurrence->post_type !== 'sub_event' || $occurrence->post_status !== 'publish') {
+        if (!$occurrence || $occurrence->post_type !== 'mind_sub_event' || $occurrence->post_status !== 'publish') {
             return false;
         }
 
         $event = get_post($occurrence->post_parent);
-        if (!$event || $event->post_type !== 'events' || $event->post_status !== 'publish') {
+        if (!$event || $event->post_type !== 'mind_events' || $event->post_status !== 'publish') {
             return false;
         }
 
@@ -223,7 +223,7 @@ if (!function_exists('mindevents_sync_event_date_range')) {
             list($occurrence_key, $direction) = $order;
 
             $occurrences = get_posts(array(
-                'post_type'        => 'sub_event',
+                'post_type'        => 'mind_sub_event',
                 'post_status'      => array('publish', 'pending', 'draft', 'future', 'private'),
                 'post_parent'      => $event_id,
                 'posts_per_page'   => 1,
@@ -253,7 +253,7 @@ if (!function_exists('mindevents_sync_event_taxonomies_to_children')) {
 
         $term_ids = wp_get_post_terms($event_id, 'event_category', array('fields' => 'ids'));
         $children = get_posts(array(
-            'post_type'      => 'sub_event',
+            'post_type'      => 'mind_sub_event',
             'post_status'    => array('publish', 'pending', 'draft', 'future', 'private', 'inherit', 'trash'),
             'post_parent'    => $event_id,
             'posts_per_page' => -1,
@@ -284,12 +284,12 @@ if (!function_exists('mindevents_occurrence_status')) {
 if (!function_exists('mindevents_transition_child_statuses')) {
     function mindevents_transition_child_statuses($new_status, $old_status, $parent_post) {
         // transition_post_status fires on every save, not only on changes.
-        if ($new_status === $old_status || !($parent_post instanceof WP_Post) || $parent_post->post_type !== 'events') {
+        if ($new_status === $old_status || !($parent_post instanceof WP_Post) || $parent_post->post_type !== 'mind_events') {
             return;
         }
 
         $children = get_posts(array(
-            'post_type'      => 'sub_event',
+            'post_type'      => 'mind_sub_event',
             'post_status'    => array('publish', 'pending', 'draft', 'future', 'private', 'inherit', 'trash'),
             'post_parent'    => $parent_post->ID,
             'posts_per_page' => -1,
@@ -313,7 +313,7 @@ if (!function_exists('mindevents_delete_child_occurrences')) {
         }
 
         $children = get_posts(array(
-            'post_type'      => 'sub_event',
+            'post_type'      => 'mind_sub_event',
             'post_status'    => array('publish', 'pending', 'draft', 'future', 'private', 'inherit', 'trash'),
             'post_parent'    => $event_id,
             'posts_per_page' => -1,

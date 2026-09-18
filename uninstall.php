@@ -23,7 +23,7 @@ if (!defined('MINDEVENTS_REMOVE_ALL_DATA') || !MINDEVENTS_REMOVE_ALL_DATA) {
 }
 
 // The plugin is not loaded here, so nothing cascades: delete each type.
-foreach (array('sub_event', 'events') as $post_type) {
+foreach (array('mind_sub_event', 'mind_events') as $post_type) {
     $post_ids = get_posts(array(
         'post_type'        => $post_type,
         'post_status'      => array_keys(get_post_stati()),

@@ -13,7 +13,7 @@ class NavLinkTest extends Mindshare_Events_TestCase {
         update_option('home', 'http://example.test/site');
         update_option('siteurl', 'http://example.test/site');
 
-        $GLOBALS['wp_query']     = new WP_Query(array('post_type' => 'events'));
+        $GLOBALS['wp_query']     = new WP_Query(array('post_type' => 'mind_events'));
         $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
         $_SERVER['REQUEST_URI']  = '/site/events/?event_view=month';
         $_GET                    = array('event_view' => 'month');
@@ -23,7 +23,7 @@ class NavLinkTest extends Mindshare_Events_TestCase {
         preg_match_all('/href="([^"]+)"/', $html, $links);
         $this->assertCount(2, $links[1]);
         foreach ($links[1] as $link) {
-            $this->assertStringStartsWith(get_post_type_archive_link('events'), html_entity_decode($link));
+            $this->assertStringStartsWith(get_post_type_archive_link('mind_events'), html_entity_decode($link));
             $this->assertStringNotContainsString('/site/site/', $link);
         }
     }
@@ -35,7 +35,7 @@ class NavLinkTest extends Mindshare_Events_TestCase {
         update_option('siteurl', 'http://example.test/site');
 
         $event_id = $this->createEvent(array('post_name' => 'open-studio'));
-        $GLOBALS['wp_query']     = new WP_Query(array('post_type' => 'events', 'p' => $event_id));
+        $GLOBALS['wp_query']     = new WP_Query(array('post_type' => 'mind_events', 'p' => $event_id));
         $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
         $_SERVER['REQUEST_URI']  = '/site/events/open-studio/';
 

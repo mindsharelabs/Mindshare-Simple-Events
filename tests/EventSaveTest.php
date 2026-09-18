@@ -8,7 +8,7 @@ class EventSaveTest extends Mindshare_Events_TestCase {
         }
 
         $occurrence_saves = 0;
-        add_action('save_post_sub_event', function () use (&$occurrence_saves) {
+        add_action('save_post_mind_sub_event', function () use (&$occurrence_saves) {
             $occurrence_saves++;
         });
 

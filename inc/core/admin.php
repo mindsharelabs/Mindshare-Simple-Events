@@ -15,7 +15,7 @@ class mindeventsAdmin {
         $this->default_end_time   = $this->options[MINDEVENTS_PREPEND . 'end_time'] ?? '21:00';
 
         add_action('add_meta_boxes', array($this, 'add_events_metaboxes'));
-        add_action('save_post_events', array($this, 'save_meta_info'), 10, 2);
+        add_action('save_post_mind_events', array($this, 'save_meta_info'), 10, 2);
     }
 
     public function add_events_metaboxes() {
@@ -23,7 +23,7 @@ class mindeventsAdmin {
             MINDEVENTS_PREPEND . 'calendar',
             __('Occurrences', 'simple-events'),
             array($this, 'display_calendar_metabox'),
-            'events',
+            'mind_events',
             'normal',
             'default'
         );
@@ -32,7 +32,7 @@ class mindeventsAdmin {
             MINDEVENTS_PREPEND . 'event_options',
             __('Event Settings', 'simple-events'),
             array($this, 'display_event_options_metabox'),
-            'events',
+            'mind_events',
             'side',
             'default'
         );
@@ -96,7 +96,7 @@ class mindeventsAdmin {
     }
 
     public function save_meta_info($post_id, $post) {
-        if (!($post instanceof WP_Post) || $post->post_type !== 'events') {
+        if (!($post instanceof WP_Post) || $post->post_type !== 'mind_events') {
             return;
         }
 

@@ -69,7 +69,7 @@ function mindevents_rest_find_parent_ids($search_term) {
     }
 
     return get_posts(array(
-        'post_type'      => 'events',
+        'post_type'      => 'mind_events',
         'post_status'    => 'publish',
         'posts_per_page' => -1,
         'fields'         => 'ids',
@@ -182,7 +182,7 @@ function mindevents_rest_events(WP_REST_Request $request) {
     }
 
     $query_args = array(
-        'post_type'        => 'sub_event',
+        'post_type'        => 'mind_sub_event',
         'post_status'      => 'publish',
         'posts_per_page'   => $per_page,
         'paged'            => $page,

@@ -28,11 +28,11 @@ class PrivateEventTest extends Mindshare_Events_TestCase {
     }
 
     public function test_hidden_from_anonymous_visitors_everywhere(): void {
-        $single = new WP_Query(array('post_type' => 'events', 'p' => $this->event_id));
+        $single = new WP_Query(array('post_type' => 'mind_events', 'p' => $this->event_id));
         $search = new WP_Query(array('s' => 'Zebra Staff Retreat', 'post_type' => 'any'));
-        $rest   = rest_do_request(new WP_REST_Request('GET', '/wp/v2/events'));
+        $rest   = rest_do_request(new WP_REST_Request('GET', '/wp/v2/mind_events'));
         $plugin = rest_do_request(new WP_REST_Request('GET', '/simple-events/v1/events'));
-        $map    = (new WP_Sitemaps_Posts())->get_url_list(1, 'events');
+        $map    = (new WP_Sitemaps_Posts())->get_url_list(1, 'mind_events');
 
         $this->assertSame(0, $single->post_count, 'single page');
         $this->assertNotContains($this->event_id, wp_list_pluck($search->posts, 'ID'), 'site search');
@@ -46,7 +46,7 @@ class PrivateEventTest extends Mindshare_Events_TestCase {
     public function test_people_who_manage_events_can_still_see_it(): void {
         $this->actAs('mindevents_manager');
 
-        $single = new WP_Query(array('post_type' => 'events', 'p' => $this->event_id));
+        $single = new WP_Query(array('post_type' => 'mind_events', 'p' => $this->event_id));
 
         $this->assertSame(1, $single->post_count);
         $this->assertTrue(current_user_can('read_post', $this->event_id));
