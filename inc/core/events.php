@@ -743,7 +743,6 @@ class mindEventCalendar {
 
         $html  = '<article class="mindevents-event-meta">';
         $html .= $this->get_event_color_bar($event);
-        $html .= '<button type="button" class="event-meta-close" aria-label="' . esc_attr__('Close event details', 'simple-events') . '">&times;</button>';
 
         if ($image) {
             $html .= '<div class="mindevents-event-meta__media">';
@@ -756,6 +755,8 @@ class mindEventCalendar {
         }
 
         $html .= '<div class="mindevents-event-meta__content">';
+        $html .= '<div class="mindevents-event-meta__header">';
+        $html .= '<div class="mindevents-event-meta__heading">';
 
         if ($parent_link) {
             $html .= '<a class="mindevents-event-meta__title-link" href="' . esc_url($parent_link) . '">';
@@ -770,6 +771,10 @@ class mindEventCalendar {
         if ($location !== '') {
             $html .= '<p class="mindevents-event-meta__location">' . esc_html($location) . '</p>';
         }
+
+        $html .= '</div>';
+        $html .= '<button type="button" class="event-meta-close" aria-label="' . esc_attr__('Close event details', 'simple-events') . '">&times;</button>';
+        $html .= '</div>';
 
         if ($excerpt !== '') {
             $html .= '<div class="mindevents-event-meta__excerpt">' . wp_kses_post(wpautop($excerpt)) . '</div>';

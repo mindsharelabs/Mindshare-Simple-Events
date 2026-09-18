@@ -17,12 +17,29 @@ body.mindevents-admin-modal-open {
     --mindevents-admin-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
 }
 
+.mindevents-admin-panel,
+.mindevents-admin-modal,
+#eventsCalendar {
+    --mindevents-admin-accent: #2271b1;
+    --mindevents-admin-accent-dark: #135e96;
+    --mindevents-admin-border: #c3c4c7;
+    --mindevents-admin-shadow: none;
+}
+
+.mindevents-admin-panel,
+.mindevents-admin-panel *,
+.mindevents-admin-modal,
+.mindevents-admin-modal *,
+#eventsCalendar,
+#eventsCalendar * {
+    border-radius: 0 !important;
+}
+
 .mindevents-button {
     align-items: center;
     appearance: none;
     background: var(--mindevents-admin-accent);
     border: 1px solid var(--mindevents-admin-accent);
-    border-radius: 999px;
     color: #fff;
     cursor: pointer;
     display: inline-flex;
@@ -70,11 +87,10 @@ body.mindevents-admin-modal-open {
 }
 
 .mindevents-admin-panel {
-    background: linear-gradient(180deg, #fff 0%, #faf8f3 100%);
-    border: 1px solid var(--mindevents-admin-border);
-    border-radius: 22px;
-    box-shadow: var(--mindevents-admin-shadow);
-    padding: 20px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
 }
 
 .mindevents-admin-heading {
@@ -111,7 +127,6 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-field textarea,
 .term-mindevents-category-color-wrap input[type="color"] {
     border: 1px solid var(--mindevents-admin-border);
-    border-radius: 14px;
     box-shadow: none;
     color: var(--mindevents-admin-ink);
     font-size: 14px;
@@ -126,8 +141,11 @@ body.mindevents-admin-modal-open {
     resize: vertical;
 }
 
-.mindevents-admin-field input[type="color"] {
-    padding: 4px;
+.mindevents-admin-field input[type="color"],
+.term-mindevents-category-color-wrap input[type="color"] {
+    min-height: 32px;
+    padding: 2px;
+    width: 56px;
 }
 
 .mindevents-admin-field input:focus,
@@ -155,7 +173,7 @@ body.mindevents-admin-modal-open {
 
 #eventsCalendar .mindevents-calendar-wrap {
     display: grid;
-    gap: 12px;
+    gap: 0;
 }
 
 #eventsCalendar .mindevents-calendar-title {
@@ -166,13 +184,13 @@ body.mindevents-admin-modal-open {
 
 #eventsCalendar .mindevents-calendar {
     display: grid;
-    gap: 12px;
+    gap: 0;
 }
 
 #eventsCalendar .mindevents-calendar-weekday-row,
 #eventsCalendar .mindevents-calendar-week {
     display: grid;
-    gap: 12px;
+    gap: 0;
     grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
@@ -229,9 +247,8 @@ body.mindevents-admin-modal-open {
 
 .mindevents-admin-occurrence {
     background: #fff;
-    border: 1px solid rgba(204, 91, 47, 0.18);
-    border-radius: 16px;
-    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+    border: 1px solid var(--mindevents-admin-border);
+    box-shadow: none;
     cursor: move;
     overflow: hidden;
 }
@@ -290,9 +307,8 @@ body.mindevents-admin-modal-open {
 }
 
 #errorBox p {
-    background: rgba(185, 54, 54, 0.08);
+    background: transparent;
     border: 1px solid rgba(185, 54, 54, 0.22);
-    border-radius: 14px;
     color: var(--mindevents-admin-danger);
     font-weight: 700;
     margin: 0;
@@ -330,8 +346,7 @@ body.mindevents-admin-modal-open {
 
 .mindevents-admin-modal__content {
     background: #fff;
-    border-radius: 24px;
-    box-shadow: 0 26px 52px rgba(15, 23, 42, 0.24);
+    box-shadow: none;
     max-height: calc(100vh - 48px);
     max-width: 760px;
     overflow: auto;
