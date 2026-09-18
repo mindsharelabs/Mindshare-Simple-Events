@@ -102,7 +102,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         $errorBox.empty().addClass('is-visible');
 
         items.forEach(function (message) {
-            $errorBox.append(`<p>${message}</p>`);
+            $errorBox.append($('<p>').text(message));
         });
     }
 

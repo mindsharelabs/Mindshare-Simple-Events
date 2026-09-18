@@ -132,4 +132,23 @@ class OccurrenceOwnershipTest extends Mindshare_Events_TestCase {
         $this->assertSame('2030-05-03 22:00:00', get_post_meta($own_occurrence, 'event_start_time_stamp', true));
         $this->assertSame('2030-05-03 23:30:00', get_post_meta($own_occurrence, 'event_end_time_stamp', true));
     }
+
+    public function test_invalid_input_is_not_echoed_back_in_errors(): void {
+        $own_occurrence = $this->createOccurrence($this->own_event, '2030-05-01');
+        $payload        = '<img src=x onerror=alert(1)>';
+
+        $update = $this->request('mindevents_updatesubevent', array(
+            'eventid' => $own_occurrence,
+            'meta'    => array('event_date' => $payload, 'starttime' => '10:00', 'endtime' => '11:00'),
+        ));
+        $add = $this->request('mindevents_selectday', array(
+            'eventid' => $this->own_event,
+            'date'    => $payload,
+            'meta'    => array('event' => array('starttime' => '10:00', 'endtime' => '11:00')),
+        ));
+
+        $this->assertFalse($update['success'] ?? true);
+        $this->assertStringNotContainsString('<img', wp_json_encode($update, JSON_UNESCAPED_SLASHES));
+        $this->assertStringNotContainsString('<img', wp_json_encode($add, JSON_UNESCAPED_SLASHES));
+    }
 }

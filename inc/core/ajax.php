@@ -72,7 +72,7 @@ class mindEventsAjax {
             wp_send_json(array(
                 'html'   => '',
                 'events' => array(),
-                'errors' => array($exception->getMessage()),
+                'errors' => array(__('That occurrence date or time is not valid.', 'simple-events')),
             ));
         }
 
@@ -133,7 +133,7 @@ class mindEventsAjax {
             $calendar = new mindEventCalendar($parent_id, $meta['event_date'] ?? '');
             $calendar->update_sub_event($id, $meta, $parent_id);
         } catch (Throwable $exception) {
-            wp_send_json_error($exception->getMessage());
+            wp_send_json_error(__('That occurrence date or time is not valid.', 'simple-events'));
         }
 
         wp_send_json_success(array(
