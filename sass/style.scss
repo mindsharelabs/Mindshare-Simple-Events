@@ -382,6 +382,10 @@
     min-width: 0;
 }
 
+.mindevents-calendar--week {
+    overflow-x: auto;
+}
+
 .mindevents-calendar-title,
 .mindevents-list-month {
     color: var(--mindevents-ink);
@@ -663,7 +667,130 @@
     position: absolute;
     right: 0;
     top: 100%;
-    z-index: 15;
+    z-index: 30;
+}
+
+.mindevents-weekly-grid {
+    --mindevents-week-slot-height: 3.25rem;
+    align-items: start;
+    display: grid;
+    grid-template-columns: 4.75rem repeat(7, minmax(9rem, 1fr));
+    min-width: 70rem;
+}
+
+.mindevents-weekly-corner,
+.mindevents-weekly-header {
+    background: transparent;
+    border-bottom: 1px solid var(--mindevents-border);
+    border-right: 1px solid var(--mindevents-border);
+    min-height: 3.75rem;
+    padding: 0.75rem;
+}
+
+.mindevents-weekly-header {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.mindevents-weekly-header.is-today,
+.mindevents-weekly-day.is-today {
+    background: rgba(34, 113, 177, 0.05);
+}
+
+.mindevents-weekly-header-day {
+    color: var(--mindevents-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.mindevents-weekly-header-date {
+    color: var(--mindevents-ink);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.mindevents-weekly-axis,
+.mindevents-weekly-day {
+    min-height: calc(var(--mindevents-week-slot-height) * 24);
+    position: relative;
+}
+
+.mindevents-weekly-axis {
+    border-right: 1px solid var(--mindevents-border);
+}
+
+.mindevents-weekly-day {
+    border-right: 1px solid var(--mindevents-border);
+}
+
+.mindevents-weekly-axis-label,
+.mindevents-weekly-hour-line {
+    left: 0;
+    position: absolute;
+    right: 0;
+}
+
+.mindevents-weekly-axis-label {
+    color: var(--mindevents-muted);
+    font-size: 0.78rem;
+    line-height: 1;
+    padding-right: 0.6rem;
+    text-align: right;
+    transform: translateY(-50%);
+}
+
+.mindevents-weekly-axis-label--end {
+    bottom: 0;
+    top: auto;
+    transform: translateY(50%);
+}
+
+.mindevents-weekly-hour-line {
+    border-top: 1px solid var(--mindevents-border);
+    pointer-events: none;
+}
+
+.mindevents-weekly-hour-line--end {
+    bottom: 0;
+    top: auto !important;
+}
+
+.mindevents-weekly-event {
+    align-content: start;
+    background: #fff;
+    border: 1px solid var(--mindevents-border);
+    border-left: 3px solid var(--mindevents-event-accent, var(--mindevents-accent));
+    box-sizing: border-box;
+    display: grid;
+    gap: 0.2rem;
+    left: 0.35rem;
+    margin: 0;
+    min-height: 1.9rem;
+    overflow: hidden;
+    padding: 0.45rem 0.55rem;
+    position: absolute;
+    right: 0.35rem;
+    z-index: 2;
+}
+
+.mindevents-weekly-event:hover,
+.mindevents-weekly-event:focus {
+    background: #f6f7f7;
+}
+
+.mindevents-weekly-event-time {
+    color: var(--mindevents-muted);
+    font-size: 0.75rem;
+    line-height: 1.2;
+}
+
+.mindevents-weekly-event-title {
+    color: var(--mindevents-ink);
+    font-size: 0.86rem;
+    font-weight: 700;
+    line-height: 1.25;
 }
 
 .add-to-calendar-dropdown.is-open .add-to-calendar-menu {
@@ -803,6 +930,10 @@ body.mindevents-has-modal {
         grid-template-columns: 1fr;
     }
 
+    .mindevents-weekly-grid {
+        min-width: 56rem;
+    }
+
     .mindevents-calendar-day {
         min-height: 0;
     }
@@ -865,5 +996,9 @@ body.mindevents-has-modal {
 
     .mindevents-modal__dialog {
         padding: 1rem;
+    }
+
+    .mindevents-weekly-grid {
+        min-width: 48rem;
     }
 }

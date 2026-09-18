@@ -266,14 +266,16 @@ class mindEventCalendar {
         return $out;
     }
 
-    public function renderWeek() {
-        $this->dailyHtml = apply_filters('mindevents_calendar_daily_html', $this->dailyHtml, $this);
+    public function renderWeek($events = array()) {
         $this->setStartOfWeek($this->calendar_start_day);
 
         $period    = $this->get_visible_period('week');
         $weekStart = $period['start'];
         $weekEnd   = $period['end'];
         $daysOfWeek = $this->weekdays();
+        $weekDates  = array();
+        $eventsByDay = $this->build_week_events_by_day($events, $weekStart, $weekEnd);
+
         $this->rotate($daysOfWeek, $this->offset);
 
         $out = '';
@@ -284,19 +286,35 @@ class mindEventCalendar {
         $out .= '<div class="mindevents-calendar-wrap">';
         $out .= '<h2 class="mindevents-calendar-title">' . esc_html($this->get_week_display_label($weekStart, $weekEnd)) . '</h2>';
         $out .= '<div id="mindEventCalendar" class="' . esc_attr($this->classes['calendar']) . ' mindevents-calendar--week" data-month="' . esc_attr($weekStart->format('n')) . '" data-year="' . esc_attr($weekStart->format('Y')) . '" data-view="week">';
-        $out .= '<div class="mindevents-calendar-weekday-row">';
-        foreach ($daysOfWeek as $dayName) {
-            $out .= '<div class="mindevents-calendar-weekday">' . esc_html($dayName) . '</div>';
-        }
-        $out .= '</div>';
-        $out .= '<div class="mindevents-calendar-week">';
+        $out .= '<div class="mindevents-weekly-grid">';
+        $out .= '<div class="mindevents-weekly-corner" aria-hidden="true"></div>';
 
         for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
-            $date    = $weekStart->modify('+' . $dayOffset . ' days');
-            $year    = (int) $date->format('Y');
-            $month   = (int) $date->format('n');
-            $day     = (int) $date->format('j');
-            $classes = array('mindevents-calendar-day', 'mindevents-calendar-day--week');
+            $date = $weekStart->modify('+' . $dayOffset . ' days');
+            $weekDates[] = $date;
+            $headerClasses = array('mindevents-weekly-header');
+
+            if ($this->is_today($date)) {
+                $headerClasses[] = $this->classes['today'];
+            }
+
+            $out .= '<div class="' . esc_attr(implode(' ', $headerClasses)) . '">';
+            $out .= '<span class="mindevents-weekly-header-day">' . esc_html($daysOfWeek[$dayOffset]) . '</span>';
+            $out .= '<span class="mindevents-weekly-header-date">' . esc_html($date->format('M j')) . '</span>';
+            $out .= '</div>';
+        }
+
+        $out .= '<div class="mindevents-weekly-axis">';
+        for ($hour = 0; $hour < 24; $hour++) {
+            $top = ($hour / 24) * 100;
+            $out .= '<span class="mindevents-weekly-axis-label" style="top:' . esc_attr(number_format((float) $top, 4, '.', '')) . '%">' . esc_html($this->format_hour_label($hour)) . '</span>';
+        }
+        $out .= '<span class="mindevents-weekly-axis-label mindevents-weekly-axis-label--end">' . esc_html($this->format_hour_label(24)) . '</span>';
+        $out .= '</div>';
+
+        foreach ($weekDates as $date) {
+            $dateKey = $date->format('Y-m-d');
+            $classes = array('mindevents-weekly-day');
 
             if ($this->is_today($date)) {
                 $classes[] = $this->classes['today'];
@@ -306,15 +324,28 @@ class mindEventCalendar {
                 $classes[] = $this->classes['past'];
             }
 
-            $out .= '<div class="' . esc_attr(implode(' ', $classes)) . '" data-date="' . esc_attr($date->format('Y-m-d')) . '">';
-            $out .= '<button type="button" class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">' . esc_html($date->format('M j')) . '</button>';
+            $out .= '<div class="' . esc_attr(implode(' ', $classes)) . '" data-date="' . esc_attr($dateKey) . '">';
 
-            if (isset($this->dailyHtml[$year][$month][$day])) {
-                $out .= '<div class="' . esc_attr($this->classes['events']) . '">';
-                foreach ($this->dailyHtml[$year][$month][$day] as $dHtml) {
-                    $out .= $dHtml;
+            for ($hour = 0; $hour <= 24; $hour++) {
+                $modifier = ($hour === 24) ? ' mindevents-weekly-hour-line--end' : '';
+                $top      = ($hour / 24) * 100;
+                $out     .= '<span class="mindevents-weekly-hour-line' . esc_attr($modifier) . '" aria-hidden="true" style="top:' . esc_attr(number_format((float) $top, 4, '.', '')) . '%"></span>';
+            }
+
+            if (!empty($eventsByDay[$dateKey])) {
+                foreach ($eventsByDay[$dateKey] as $eventData) {
+                    $style = sprintf(
+                        'top:%1$s%%;height:%2$s%%;--mindevents-event-accent:%3$s;',
+                        number_format((float) $eventData['top'], 4, '.', ''),
+                        number_format((float) $eventData['height'], 4, '.', ''),
+                        esc_attr($eventData['color'])
+                    );
+
+                    $out .= '<button type="button" class="mindevents-calendar-event-toggle mindevents-weekly-event" data-eventid="' . esc_attr($eventData['id']) . '" style="' . esc_attr($style) . '">';
+                    $out .= '<span class="mindevents-weekly-event-time">' . esc_html($eventData['time']) . '</span>';
+                    $out .= '<span class="mindevents-weekly-event-title">' . esc_html($eventData['title']) . '</span>';
+                    $out .= '</button>';
                 }
-                $out .= '</div>';
             }
 
             $out .= '</div>';
@@ -457,7 +488,7 @@ class mindEventCalendar {
         $eventDates = $this->get_sub_events($args);
         $view       = $this->get_frontend_view();
 
-        if ($eventDates) {
+        if ($eventDates && $view !== 'week') {
             foreach ($eventDates as $event) {
                 $event_start = get_post_meta($event->ID, 'event_start_time_stamp', true);
                 $event_end   = get_post_meta($event->ID, 'event_end_time_stamp', true);
@@ -476,7 +507,7 @@ class mindEventCalendar {
             }
         }
 
-        $html = ($view === 'week') ? $this->renderWeek() : $this->render();
+        $html = ($view === 'week') ? $this->renderWeek($eventDates) : $this->render();
 
         if (empty($eventDates)) {
             $html = '<p class="mindevents-notice">' . esc_html__('No events matched the current filters.', 'simple-events') . '</p>' . $html;
@@ -1154,6 +1185,12 @@ class mindEventCalendar {
         return $colors;
     }
 
+    private function get_primary_event_color($eventID) {
+        $colors = $this->get_event_colors($eventID);
+
+        return !empty($colors[0]) ? $colors[0] : '#2d7ff9';
+    }
+
     private function get_organizer_block($event_id) {
         $organizer = mindevents_get_organizer_data($event_id);
 
@@ -1190,6 +1227,94 @@ class mindEventCalendar {
         $end_dt = new DateTimeImmutable($end, mindevents_wp_timezone());
 
         return $start_dt->format($this->time_format) . ' - ' . $end_dt->format($this->time_format);
+    }
+
+    private function format_hour_label($hour) {
+        $normalized = ((int) $hour) % 24;
+        $date       = new DateTimeImmutable(sprintf('2000-01-01 %02d:00:00', $normalized), mindevents_wp_timezone());
+
+        return $date->format('g a');
+    }
+
+    private function build_week_events_by_day($events, DateTimeImmutable $weekStart, DateTimeImmutable $weekEnd) {
+        $eventsByDay = array();
+
+        for ($dayOffset = 0; $dayOffset < 7; $dayOffset++) {
+            $date = $weekStart->modify('+' . $dayOffset . ' days');
+            $eventsByDay[$date->format('Y-m-d')] = array();
+        }
+
+        foreach ((array) $events as $event) {
+            $event_id  = (int) ($event->ID ?? 0);
+            $start_raw = get_post_meta($event_id, 'event_start_time_stamp', true);
+            $end_raw   = get_post_meta($event_id, 'event_end_time_stamp', true);
+
+            if (!$event_id || !$start_raw || !$end_raw) {
+                continue;
+            }
+
+            try {
+                $start = new DateTimeImmutable($start_raw, mindevents_wp_timezone());
+                $end   = new DateTimeImmutable($end_raw, mindevents_wp_timezone());
+            } catch (Throwable $exception) {
+                continue;
+            }
+
+            if ($end <= $weekStart || $start >= $weekEnd->modify('+1 second')) {
+                continue;
+            }
+
+            $segmentStart = ($start < $weekStart) ? $weekStart : $start;
+            $segmentEnd   = ($end > $weekEnd) ? $weekEnd : $end;
+            $cursor       = $segmentStart->setTime(0, 0, 0);
+
+            while ($cursor <= $segmentEnd) {
+                $dayKey   = $cursor->format('Y-m-d');
+                $dayStart = $cursor->setTime(0, 0, 0);
+                $dayEnd   = $cursor->setTime(23, 59, 59);
+
+                $daySegmentStart = ($start > $dayStart) ? $start : $dayStart;
+                $daySegmentEnd   = ($end < $dayEnd) ? $end : $dayEnd;
+
+                if ($daySegmentEnd > $daySegmentStart && isset($eventsByDay[$dayKey])) {
+                    $startMinutes = ((int) $daySegmentStart->format('G') * 60) + (int) $daySegmentStart->format('i');
+                    $endMinutes   = ((int) $daySegmentEnd->format('G') * 60) + (int) $daySegmentEnd->format('i');
+
+                    if ($daySegmentEnd->format('Y-m-d') !== $daySegmentStart->format('Y-m-d')) {
+                        $endMinutes = 1440;
+                    }
+
+                    if ($endMinutes <= $startMinutes) {
+                        $endMinutes = min(1440, $startMinutes + 30);
+                    }
+
+                    $eventsByDay[$dayKey][] = array(
+                        'id'     => $event_id,
+                        'title'  => $this->get_occurrence_title($event_id),
+                        'time'   => $this->format_time_range($daySegmentStart->format('Y-m-d H:i:s'), $daySegmentEnd->format('Y-m-d H:i:s')),
+                        'color'  => $this->get_primary_event_color($event_id),
+                        'top'    => ($startMinutes / 1440) * 100,
+                        'height' => max((($endMinutes - $startMinutes) / 1440) * 100, (30 / 1440) * 100),
+                    );
+                }
+
+                $cursor = $cursor->modify('+1 day');
+            }
+        }
+
+        foreach ($eventsByDay as $dayKey => $dayEvents) {
+            usort($dayEvents, function($left, $right) {
+                if ($left['top'] === $right['top']) {
+                    return $right['height'] <=> $left['height'];
+                }
+
+                return $left['top'] <=> $right['top'];
+            });
+
+            $eventsByDay[$dayKey] = $dayEvents;
+        }
+
+        return $eventsByDay;
     }
 
     private function format_date_range($start, $end) {
