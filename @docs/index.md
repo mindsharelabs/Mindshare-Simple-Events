@@ -2,6 +2,9 @@
 
 This folder now tracks the public-release v1 plugin, which focuses on the portable core events engine only.
 
+- [Roadmap](roadmap.md): the phased plan for upcoming work
+- [Foundation review](foundation-review.md): findings and decisions from the pre-work review
+
 ## Included In v1
 
 - event and occurrence post types
