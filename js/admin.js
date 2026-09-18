@@ -179,10 +179,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 const $dragged = $(ui.draggable);
                 const targetDate = $target.data('date');
                 const eventId = $dragged.find('.mindevents-admin-occurrence__edit').data('subid');
-                const startDate = $dragged.data('startdate');
-                const endDate = $dragged.data('enddate');
 
-                if (!targetDate || !eventId || !startDate || !endDate) {
+                if (!targetDate || !eventId) {
                     return;
                 }
 
@@ -199,10 +197,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                         action: MINDEVENTS_PREPEND + 'moveevent',
                         nonce: settings.nonce,
                         eventid: eventId,
-                        parentid: settings.post_id,
-                        new_date: targetDate,
-                        start_date: startDate,
-                        end_date: endDate
+                        new_date: targetDate
                     }
                 }).done(function (response) {
                     if (response && response.success) {
@@ -291,8 +286,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             data: {
                 action: MINDEVENTS_PREPEND + 'editevent',
                 nonce: settings.nonce,
-                eventid: eventId,
-                parentid: settings.post_id
+                eventid: eventId
             }
         }).done(function (response) {
             if (response && response.success && response.data && response.data.html) {
@@ -322,7 +316,6 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 action: MINDEVENTS_PREPEND + 'updatesubevent',
                 nonce: settings.nonce,
                 eventid: eventId,
-                parentid: settings.post_id,
                 meta: meta
             }
         }).done(function (response) {

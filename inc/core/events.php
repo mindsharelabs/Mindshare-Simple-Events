@@ -835,7 +835,7 @@ class mindEventCalendar {
             foreach ($eventDates as $event) {
                 $start = get_post_meta($event->ID, 'event_start_time_stamp', true);
                 $end   = get_post_meta($event->ID, 'event_end_time_stamp', true);
-                $html  = '<div class="mindevents-admin-occurrence" data-startdate="' . esc_attr($start) . '" data-enddate="' . esc_attr($end) . '">';
+                $html  = '<div class="mindevents-admin-occurrence">';
                 $html .= $this->get_event_color_bar($event->ID);
                 $html .= '<div class="mindevents-admin-occurrence__actions">';
                 $html .= '<button type="button" class="mindevents-admin-occurrence__edit" data-subid="' . esc_attr($event->ID) . '">' . esc_html($this->format_time_range($start, $end)) . '</button>';

@@ -36,16 +36,14 @@ class mindEventsAjax {
     public function deleteevent() {
         $this->verify_nonce();
 
-        $event_id = absint($_POST['eventid'] ?? 0);
-        if (!$event_id || !current_user_can('delete_post', $event_id)) {
+        $event_id  = absint($_POST['eventid'] ?? 0);
+        $parent_id = $this->get_occurrence_event_id($event_id);
+        if (!$parent_id || !current_user_can('edit_post', $parent_id)) {
             wp_send_json_error(__('You cannot delete this occurrence.', 'simple-events'));
         }
 
-        $parent_id = (int) wp_get_post_parent_id($event_id);
         wp_delete_post($event_id, true);
-        if ($parent_id) {
-            mindevents_sync_event_date_range($parent_id);
-        }
+        mindevents_sync_event_date_range($parent_id);
 
         wp_send_json_success(array(
             'parent_id' => $parent_id,
@@ -59,7 +57,7 @@ class mindEventsAjax {
         $event_id = absint($_POST['eventid'] ?? 0);
         $meta    = isset($_POST['meta']['event']) ? wp_unslash($_POST['meta']['event']) : array();
 
-        if (!$event_id || !current_user_can('edit_post', $event_id)) {
+        if (!$this->is_event($event_id) || !current_user_can('edit_post', $event_id)) {
             wp_send_json_error(__('You cannot edit this event.', 'simple-events'));
         }
 
@@ -107,7 +105,7 @@ class mindEventsAjax {
         $this->verify_nonce();
 
         $event_id = absint($_POST['eventid'] ?? 0);
-        if (!$event_id || !current_user_can('edit_post', $event_id)) {
+        if (!$this->is_event($event_id) || !current_user_can('edit_post', $event_id)) {
             wp_send_json_error(__('You cannot edit this event.', 'simple-events'));
         }
 
@@ -123,11 +121,11 @@ class mindEventsAjax {
     public function updatesubevent() {
         $this->verify_nonce();
 
-        $id       = absint($_POST['eventid'] ?? 0);
-        $parent_id = absint($_POST['parentid'] ?? 0);
-        $meta     = isset($_POST['meta']) ? wp_unslash($_POST['meta']) : array();
+        $id        = absint($_POST['eventid'] ?? 0);
+        $parent_id = $this->get_occurrence_event_id($id);
+        $meta      = isset($_POST['meta']) ? wp_unslash($_POST['meta']) : array();
 
-        if (!$id || !$parent_id || !current_user_can('edit_post', $parent_id)) {
+        if (!$parent_id || !current_user_can('edit_post', $parent_id)) {
             wp_send_json_error(__('You cannot edit this occurrence.', 'simple-events'));
         }
 
@@ -147,28 +145,28 @@ class mindEventsAjax {
         $this->verify_nonce();
 
         $event_id  = absint($_POST['eventid'] ?? 0);
-        $parent_id = absint($_POST['parentid'] ?? 0);
+        $parent_id = $this->get_occurrence_event_id($event_id);
         $new_date  = sanitize_text_field(wp_unslash($_POST['new_date'] ?? ''));
-        $start_raw = sanitize_text_field(wp_unslash($_POST['start_date'] ?? ''));
-        $end_raw   = sanitize_text_field(wp_unslash($_POST['end_date'] ?? ''));
 
-        if (!$event_id || !$parent_id || !current_user_can('edit_post', $parent_id)) {
+        if (!$parent_id || !current_user_can('edit_post', $parent_id)) {
             wp_send_json_error(__('You cannot move this occurrence.', 'simple-events'));
         }
 
+        // Keep the stored time of day and duration; only the date changes.
         try {
             $timezone  = mindevents_wp_timezone();
-            $start_dt  = new DateTimeImmutable($start_raw, $timezone);
-            $end_dt    = new DateTimeImmutable($end_raw, $timezone);
-            $new_start = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $new_date . ' ' . $start_dt->format('H:i:s'), $timezone);
-            $new_end   = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $new_date . ' ' . $end_dt->format('H:i:s'), $timezone);
+            $start_dt  = new DateTimeImmutable(get_post_meta($event_id, 'event_start_time_stamp', true), $timezone);
+            $end_dt    = new DateTimeImmutable(get_post_meta($event_id, 'event_end_time_stamp', true), $timezone);
+            $new_start = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $new_date . ' ' . $start_dt->format('H:i:s'), $timezone);
         } catch (Throwable $exception) {
+            $new_start = false;
+        }
+
+        if (!($new_start instanceof DateTimeImmutable) || $new_start->format('Y-m-d') !== $new_date) {
             wp_send_json_error(__('The new occurrence date is invalid.', 'simple-events'));
         }
 
-        if (!($new_start instanceof DateTimeImmutable) || !($new_end instanceof DateTimeImmutable)) {
-            wp_send_json_error(__('The new occurrence date is invalid.', 'simple-events'));
-        }
+        $new_end = $new_start->add($start_dt->diff($end_dt));
 
         update_post_meta($event_id, 'event_date', $new_date);
         update_post_meta($event_id, 'starttime', $new_start->format('H:i'));
@@ -194,7 +192,7 @@ class mindEventsAjax {
         $year      = absint($_POST['year'] ?? 0);
         $event_id  = absint($_POST['eventid'] ?? 0);
 
-        if (!$event_id || !current_user_can('edit_post', $event_id)) {
+        if (!$this->is_event($event_id) || !current_user_can('edit_post', $event_id)) {
             wp_send_json_error(__('You cannot edit this event.', 'simple-events'));
         }
 
@@ -218,18 +216,18 @@ class mindEventsAjax {
         $this->verify_nonce();
 
         $event_id  = absint($_POST['eventid'] ?? 0);
-        $parent_id = absint($_POST['parentid'] ?? 0);
+        $parent_id = $this->get_occurrence_event_id($event_id);
 
-        if (!$event_id || !$parent_id || !current_user_can('edit_post', $parent_id)) {
+        if (!$parent_id || !current_user_can('edit_post', $parent_id)) {
             wp_send_json_error(__('You cannot edit this occurrence.', 'simple-events'));
         }
 
         wp_send_json_success(array(
-            'html' => $this->get_meta_form($event_id, $parent_id),
+            'html' => $this->get_meta_form($event_id),
         ));
     }
 
-    private function get_meta_form($sub_event_id, $parentID) {
+    private function get_meta_form($sub_event_id) {
         $values     = get_post_meta($sub_event_id);
         $timezone   = mindevents_wp_timezone();
         $start_ts   = $values['event_start_time_stamp'][0] ?? '';
@@ -252,7 +250,6 @@ class mindEventsAjax {
         $html .= $this->render_modal_field('mindevents_organizer_name', __('Organizer Name', 'simple-events'), $values['mindevents_organizer_name'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_title', __('Organizer Title', 'simple-events'), $values['mindevents_organizer_title'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $values['mindevents_organizer_image_id'][0] ?? '', 'number');
-        $html .= '<input type="hidden" name="parentID" value="' . esc_attr($parentID) . '">';
         $html .= '<div class="mindevents-admin-modal-actions">';
         $html .= '<button type="button" class="mindevents-button edit-button update-event" data-subid="' . esc_attr($sub_event_id) . '">' . esc_html__('Update Occurrence', 'simple-events') . '</button>';
         $html .= '<button type="button" class="mindevents-button mindevents-button--secondary edit-button cancel">' . esc_html__('Cancel', 'simple-events') . '</button>';
@@ -294,6 +291,26 @@ class mindEventsAjax {
 
     private function verify_nonce() {
         check_ajax_referer('mindevents_ajax', 'nonce');
+    }
+
+    private function is_event($post_id) {
+        return $post_id && get_post_type($post_id) === 'events';
+    }
+
+    /**
+     * The event an occurrence belongs to, or 0 if the ID is not an occurrence.
+     *
+     * Permission checks use this rather than a parent ID sent with the
+     * request, which the client controls.
+     */
+    private function get_occurrence_event_id($occurrence_id) {
+        if (!$occurrence_id || get_post_type($occurrence_id) !== 'sub_event') {
+            return 0;
+        }
+
+        $parent_id = (int) wp_get_post_parent_id($occurrence_id);
+
+        return $this->is_event($parent_id) ? $parent_id : 0;
     }
 
     private function format_admin_time_range($start, $end) {

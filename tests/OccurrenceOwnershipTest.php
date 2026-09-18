@@ -110,4 +110,26 @@ class OccurrenceOwnershipTest extends Mindshare_Events_TestCase {
         $children = get_posts(array('post_type' => 'sub_event', 'post_parent' => $page_id, 'post_status' => 'any'));
         $this->assertEmpty($children);
     }
+
+    public function test_delete_endpoint_only_deletes_occurrences(): void {
+        $this->actAs('administrator');
+        $page_id = wp_insert_post(array('post_type' => 'page', 'post_title' => 'About Us', 'post_status' => 'publish'));
+
+        $this->request('mindevents_deleteevent', array('eventid' => $page_id));
+
+        $this->assertNotNull(get_post($page_id), 'A page was permanently deleted through the occurrence endpoint.');
+    }
+
+    public function test_moving_keeps_the_stored_time_of_day_and_duration(): void {
+        $own_occurrence = $this->createOccurrence($this->own_event, '2030-05-01', '22:00', '23:30');
+
+        $this->request('mindevents_moveevent', array(
+            'eventid'  => $own_occurrence,
+            'new_date' => '2030-05-03',
+        ));
+
+        wp_cache_flush();
+        $this->assertSame('2030-05-03 22:00:00', get_post_meta($own_occurrence, 'event_start_time_stamp', true));
+        $this->assertSame('2030-05-03 23:30:00', get_post_meta($own_occurrence, 'event_end_time_stamp', true));
+    }
 }
