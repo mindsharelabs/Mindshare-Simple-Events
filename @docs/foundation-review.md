@@ -5,10 +5,11 @@ It covers security, the data model, capabilities, correctness and the
 constraints the roadmap will run into.
 
 Each finding has an ID, which the commits that fix it reference. The
-**Status** column is updated as work lands.
+**Status** column gives the commit that resolved it.
 
-Security findings marked *verified* have a test in `tests/` that failed
-against the code as reviewed.
+Every finding marked *verified* has a test in `tests/` that failed against
+the code as reviewed and passes now. Findings marked *new* were found while
+the fixes were being made, after the first version of this review.
 
 ## Summary
 
@@ -17,14 +18,18 @@ SQL, occurrence meta is sanitized through an allowlist, the REST endpoint
 filters by status and visibility correctly, and calendar queries are
 bounded by the visible period.
 
-The serious problems are concentrated in two places:
+The serious problems were concentrated in two places:
 
-- **Public read paths that skip the visibility rules the rest of the
+- **Public read paths that skipped the visibility rules the rest of the
   plugin follows.** The event detail endpoint, the single-occurrence ICS
-  download and the list view each serve data that should be hidden.
-- **Time handling.** Times are stored as site-local strings with no
-  offset, in five redundant forms. That is the root of several display
-  bugs, and it would undermine RSVP reminders and ticket validity.
+  download and the list view each served data that should be hidden. New
+  occurrences of unpublished events were also published immediately.
+- **Time handling.** Times were stored as site-local strings with no
+  offset, in five redundant forms. That was the root of several display
+  bugs, and it would have undermined RSVP reminders and ticket validity.
+
+All findings are resolved except **S8**, which needs a product decision
+(see [Open decisions](#open-decisions)).
 
 ## What is solid
 
@@ -37,65 +42,71 @@ The serious problems are concentrated in two places:
   run, so the `posts_per_page => -1` calls are not unbounded in practice.
 - `get_posts()` primes the meta cache, so per-occurrence `get_post_meta()`
   calls in loops are cache hits, not extra queries.
-- Settings are gated on `manage_options` with a sanitize callback.
+- Settings are gated on a capability with a sanitize callback.
 
 Checked and ruled out: `capability_type => 'page'` without `map_meta_cap`
-does not break permission checks, because WordPress turns `map_meta_cap`
+did not break permission checks, because WordPress turns `map_meta_cap`
 on automatically for the `post` and `page` capability types.
 
 ## Findings
 
-Severity: **High** means exploitable now by an anonymous visitor.
+Severity: **High** means exploitable by an anonymous visitor.
 **Medium** means exploitable by a logged-in user beyond their role.
-**Latent** means safe today but would become exploitable under planned
-work. **Bug** covers incorrect behavior with no security impact.
+**Latent** means safe at the time but would have become exploitable under
+planned work. **Bug** covers incorrect behavior with no security impact.
 
 ### Security
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| S1 | High | The event detail AJAX endpoint (`nopriv`) returns the title, excerpt, location, organizer and image for **any post ID**. That includes drafts, private posts, internal occurrences and other post types. *Verified.* | Open |
-| S2 | High | `/event-ics/{id}/` serves occurrences of draft events, and trashed occurrences. *Verified.* | Open |
-| S3 | Medium | List views (archive list and single event list) do not apply the visibility filter, so internal occurrences are listed publicly. *Verified.* | Open |
-| S4 | Medium | `moveevent`, `updatesubevent` and `editevent` check permission on a client-supplied parent ID, then act on a client-supplied occurrence ID without checking the two are related. Not exploitable with default roles, since anyone who can edit one event can edit all of them. It becomes exploitable once a role can edit only its own events. *Verified with such a role.* | Open |
-| S5 | Medium | `selectday`, `clearevents` and `movecalendar` accept any post the user can edit as the parent event, so occurrences can be attached to pages or posts. *Verified.* | Open |
-| S6 | Latent | JSON-LD is encoded with `JSON_UNESCAPED_SLASHES` and printed unescaped, so a `</script>` in any schema string breaks out of the block. Today every schema string is either sanitized or comes from roles that already hold `unfiltered_html`. RSVP and ticketing will add user-supplied strings. | Open |
-| S7 | Low | The admin script inserts server error messages as HTML. Some of those messages are PHP exception text that echoes request input, so this is self-XSS. | Open |
-| S8 | Decision | Internal events are hidden from every public listing, feed and API, but their single page is still reachable by URL. | Open |
+| S1 | High | The event detail AJAX endpoint (`nopriv`) returned the title, excerpt, location, organizer and image for **any post ID**. That included drafts, private posts, internal occurrences and other post types. *Verified.* | Fixed `3703eb8` |
+| S2 | High | `/event-ics/{id}/` served occurrences of draft events, and trashed occurrences. *Verified.* | Fixed `3703eb8` |
+| S3 | Medium | List views did not apply the visibility filter, so internal occurrences were listed publicly. The "next occurrence" subtitle could show an internal date. *Verified.* | Fixed `3703eb8` |
+| S4 | Medium | `moveevent`, `updatesubevent` and `editevent` checked permission on a client-supplied parent ID, then acted on a client-supplied occurrence ID without checking the two were related. This became exploitable once a role could edit only its own events. *Verified with such a role.* | Fixed `9223c9b` |
+| S5 | Medium | Handlers that take an event ID accepted any post the user could edit, so occurrences could be attached to pages or posts. The delete handler permanently deleted, past the trash, **any** post the user could delete. *Verified.* | Fixed `9223c9b` |
+| S6 | Latent | JSON-LD was encoded with `JSON_UNESCAPED_SLASHES` and printed unescaped, so a `</script>` in any schema string would break out of the block. *Verified.* | Fixed `d613218` |
+| S7 | Low | The admin script inserted server error messages as HTML, and some messages were PHP exception text echoing request input: self-XSS. *Verified.* | Fixed `e38dbde` |
+| S8 | Decision | Internal events are hidden from the plugin's own listings, feeds and API, but still reachable by URL, and still appear in **site search, the core REST API (`/wp/v2/events`) and the XML sitemap**. Confirmed with a probe; the test will come with the fix, since its shape depends on the decision. | Open, see below |
+| S9 | Medium | *New.* Occurrences were always created as published, whatever their event's status, so a draft event's title and dates appeared in public calendars, the REST API and the ICS feed. Scheduling an event published its occurrences immediately. *Verified.* | Fixed `74fde00` |
 
 ### Capabilities
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| C1 | Design | `capability_type => 'page'` makes "can manage events" the same thing as "can edit pages". An event manager role that sees attendees or payments cannot exist without full page editing. | Open |
+| C1 | Design | `capability_type => 'page'` made "can manage events" the same thing as "can edit pages". | Fixed `3d6769c` |
 
 ### Data model and time
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| D1 | Design | Times are stored as site-local `Y-m-d H:i:s` strings with no offset, five ways over: `event_date`, `starttime`, `endtime`, `event_start_time_stamp` and `event_end_time_stamp`. Nothing declares which is authoritative. Local wall-clock values are ambiguous across DST and shift if the site timezone changes. | Open |
-| D2 | Bug | An occurrence running past midnight (22:00 to 01:00) is stored with its end before its start. | Open |
-| D3 | Bug | The visible period is queried by start time only, so a multi-day occurrence that starts before the period is dropped from it. | Open |
-| D4 | Bug | Month and list views place a multi-day occurrence only on its first day. | Open |
-| D5 | Bug | The Yahoo calendar link parses local times as UTC, so it is off by the site's UTC offset. | Open |
-| D6 | Bug | The REST API and JSON-LD emit times without a UTC offset. | Open |
-| D7 | Bug | The duplicate-occurrence key is built from the date when adding and from the timestamp when updating, so duplicate detection is inconsistent. | Open |
-| D8 | Bug | The occurrence color field is labeled as an override but is only used when an event has no category. A color input cannot be empty, so every occurrence saves `#000000`. | Open |
+| D1 | Design | Times were stored as site-local strings with no offset, five ways over. Nothing declared which was authoritative. | Fixed `1534ee6` |
+| D2 | Bug | An occurrence running past midnight was stored with its end before its start. | Fixed `1534ee6` |
+| D3 | Bug | The visible period was queried by start time only, dropping occurrences that began before it. | Fixed `1534ee6` |
+| D4 | Bug | Month and list views placed a multi-day occurrence only on its first day. | Fixed `1534ee6` |
+| D5 | Bug | The Yahoo calendar link was off by the site's UTC offset. | Fixed `1534ee6` |
+| D6 | Bug | The REST API and JSON-LD emitted times without a UTC offset. | Fixed `1534ee6` |
+| D7 | Bug | The duplicate-occurrence key was built differently on add and update. | Fixed `1534ee6` |
+| D8 | Bug | The occurrence color was used only when an event had no category, and could not be left empty, so every occurrence saved `#000000`. | Fixed `008a17e` |
+| D9 | Bug | *New.* An invalid `?calendar_date=` in the URL caused a fatal error on every events page, triggerable by any visitor. *Verified.* | Fixed `7880c1d` |
 
 ### Correctness and hygiene
 
 | ID | Severity | Finding | Status |
 |----|----------|---------|--------|
-| H1 | Bug | Internationalization is inert. The text domain is never loaded, dates are formatted with `DateTime::format()` (always English), and admin and front-end script strings are hardcoded. | Open |
-| H2 | Bug | There is no uninstall routine, so options, meta, roles and capabilities are left behind. | Open |
-| H3 | Bug | `sub_event` is `public => false` but `publicly_queryable => true`, so occurrences are URL-addressable with no template. | Open |
-| H4 | Bug | Registered meta has no `sanitize_callback`, so REST writes are stored unsanitized. | Open |
-| H5 | Bug | The plugin header has no `Requires at least`, `Requires PHP`, `License` or `Domain Path`. | Open |
-| H6 | Bug | Dead code: six calendar methods with no callers, an unused AJAX helper, and an **Event Type** setting that is saved but never read. | Open |
-| H7 | Cleanup | Legacy compatibility reads (`_members_only`, ACF fields, `instructorID`/`instructorEmail`, `event_location`, duplicate `defaults` meta). The plugin is unshipped and needs none of them. | Open |
-| H8 | Bug | `transition_post_status` fires on every save, not only on status changes, so every save of an event re-saves every one of its occurrences. | Open |
-| H9 | Bug | ICS output is not escaped or line-folded per RFC 5545, so commas, semicolons and long descriptions produce malformed calendars. | Open |
-| H10 | Bug | The public event detail endpoint requires a nonce. Nonces expire, so pages served from a full-page cache stop opening event details after a day. A read-only public endpoint gains nothing from a nonce. | Open |
+| H1 | Bug | Internationalization was inert: the text domain was never loaded, dates were always English, and script strings were hardcoded. | Fixed `ddaff59` |
+| H2 | Bug | There was no uninstall routine. | Fixed `c32df47` |
+| H3 | Bug | `sub_event` was publicly queryable, so occurrences were URL-addressable with no template. | Fixed `882f3a9` |
+| H4 | Bug | Registered meta had no `sanitize_callback`. **Correction:** the review said REST writes were stored unsanitized. That was true for the category color, which REST exposes. Event and occurrence meta are not in REST at all, because events do not support `custom-fields`. They got sanitizers anyway, since those run on every write. | Fixed `5b90023` |
+| H5 | Bug | The plugin header had no `Requires at least`, `Requires PHP`, `License` or `Domain Path`. | Fixed `ddaff59`, except License (see below) |
+| H6 | Bug | Dead code: six calendar methods, an unused AJAX helper, and an **Event Type** setting that was saved but never read. | Fixed `0bf9395` |
+| H7 | Cleanup | Legacy compatibility reads for data the unshipped plugin never had. | Fixed `1441fec` |
+| H8 | Bug | Every save of an event re-saved every one of its occurrences. | Fixed `2afb8d6` |
+| H9 | Bug | ICS output was not escaped or line-folded per RFC 5545. | Fixed `bbaa0cf` |
+| H10 | Bug | The public event detail endpoint required a nonce, which broke on pages served from a full-page cache. | Fixed `a6c8a1d` |
+| H11 | Bug | *New.* JSON-LD, ICS, the REST API and calendar links carried HTML entities (`Clay &#038; Glass`). Calendar links also cut titles at the first `&`. *Verified.* | Fixed `93f13cd` |
+| H12 | Bug | *New.* Calendar navigation links doubled the path on sites installed in a subdirectory. *Verified.* | Fixed `4a872e0` |
+| H13 | Bug | *New.* Backslashes were stripped from saved event and occurrence text. *Verified.* | Fixed `a284351` |
+| H14 | Bug | *New.* Weekday headings sat one column off from their dates in the month, week and admin calendars. Found by looking at the rendered calendar. *Verified.* | Fixed `6853aac` |
 
 ## Decisions
 
@@ -119,8 +130,8 @@ events held somewhere other than where the site is.
 
 Consequence: if the site timezone is changed, existing occurrences keep
 their absolute instant and show at the new local time. A manual UTC offset
-(such as `UTC+0`) does not observe daylight saving, so the settings page
-recommends a city-based timezone.
+does not observe daylight saving, so the settings page now warns when one
+is in use (`b800588`).
 
 ### Capabilities are namespaced and occurrences inherit from their event (C1)
 
@@ -132,34 +143,79 @@ recommends a city-based timezone.
   occurrence is answered by checking the same capability on its parent
   event.
 - Administrators and Editors receive the event capabilities, which keeps
-  today's access unchanged. A new **Event Manager** role can manage events
-  and nothing else.
+  their access unchanged. A new **Event Manager** role can manage events,
+  event categories and plugin settings, and nothing else.
 - Capabilities are installed on activation and again whenever the
   plugin's schema version changes, since activation hooks do not run on
   updates. Uninstall removes them.
 
-### Internal means not public, everywhere (S8)
-
-"Internal" is treated as "not visible to anyone who cannot edit the
-event". That applies to listings, feeds and the API as before, and now
-also to the single event page, which returns a 404. This matches every
-other surface. Unlisted-but-shareable would be a different, separate
-option.
-
 ### The public event detail endpoint takes no nonce (H10)
 
 Nonces protect state-changing requests from forgery. This endpoint only
-reads data that is already public, and its nonce is printed into every
+reads data that is already public, and its nonce was printed into every
 page for anonymous visitors, so the check protected nothing and broke
 cached pages. Every endpoint that changes data keeps its nonce and
-capability check.
+capability check, which a test confirms.
+
+### Uninstall keeps content unless told otherwise (H2)
+
+Settings, roles and capabilities are always removed. Events, occurrences
+and categories are deleted only when `MINDEVENTS_REMOVE_ALL_DATA` is
+defined, the usual WordPress practice.
+
+## Open decisions
+
+### S8: what "Internal" means
+
+Internal events are excluded from every surface the plugin controls, but
+WordPress still exposes them through site search, `/wp/v2/events` and the
+XML sitemap, and their single page is reachable by URL. Two ways to close
+it:
+
+- **A. Keep "Internal" as plugin visibility and hide it everywhere.** This
+  needs hooks on the single page, search, core REST and sitemaps, and a
+  hook for every new surface later.
+- **B. Replace "Internal" with WordPress's own Private status.** Core
+  already hides private posts from everyone without permission, on every
+  surface including ones added later, and removes the visibility meta and
+  its query code from the plugin. The cost is that visibility becomes
+  per event: individual occurrences would no longer have their own
+  internal setting.
+
+B is simpler and more robust. It is a product decision because it drops
+per-occurrence visibility.
+
+### License
+
+`package.json` declares GPL-3.0, while the plugin this one replaced used
+GPL-2.0-or-later. `composer.json` now matches `package.json`, and the
+plugin header's `License` line is left out until this is decided.
+
+### P2: post type names
+
+The post types are named `events` and `sub_event`. Generic names can
+collide with other plugins and themes, and renaming them after launch
+means migrating data and URLs. If they are going to change, now is the
+cheapest time.
 
 ## Constraints for the roadmap
-
-These are not bugs and are not changed by this review. They need deciding
-before the phase that depends on them.
 
 | ID | Affects | Constraint |
 |----|---------|------------|
 | P1 | Phase 2 | The plugin registers no shortcode or block, and front-end assets load only on event archives, single events and category pages. A mini calendar placed anywhere else needs both. |
-| P2 | All | The post types are named `events` and `sub_event`. Generic names can collide with other plugins and themes, and renaming them after launch means migrating data and URLs. If they are going to change, now is the cheapest time. |
+| P2 | All | See [Open decisions](#p2-post-type-names). |
+
+## Carried into Phase 1
+
+Found during this work, and left for the production-readiness phase since
+they are UI behavior rather than defects in scope here:
+
+- A single event's calendar opens on the month of its **first** date. With
+  "Show upcoming only" set, and that first date in the past, visitors land
+  on an empty month. It should open on the next upcoming occurrence.
+- Occurrences are listed under Events > Occurrences in the admin, but
+  their edit screen is empty, since the post type supports no fields.
+  They are managed from the event's calendar, so the list and its edit
+  links are either worth hiding or worth making useful.
+- The organizer image is entered as a raw attachment ID rather than
+  picked from the media library.
