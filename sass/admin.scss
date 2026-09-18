@@ -15,6 +15,7 @@ body.mindevents-admin-modal-open {
     --mindevents-admin-soft: #f6f8fb;
     --mindevents-admin-highlight: #1d6d69;
     --mindevents-admin-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+    --mindevents-admin-radius: 0;
 }
 
 .mindevents-admin-panel,
@@ -32,7 +33,7 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-modal *,
 #eventsCalendar,
 #eventsCalendar * {
-    border-radius: 0 !important;
+    border-radius: var(--mindevents-admin-radius);
 }
 
 .mindevents-button {
