@@ -99,33 +99,32 @@ class mindEventsCPTS {
             ),
         ));
 
-        $shared_string_meta = array(
-            'mindevents_location',
-            'mindevents_visibility',
-            'mindevents_organizer_name',
-            'mindevents_organizer_title',
+        // The sanitizer runs on every write, from the REST API as well as the
+        // admin forms, so meta is clean however it arrives.
+        $details = array(
+            'mindevents_location'           => array('string', 'sanitize_text_field'),
+            'mindevents_visibility'         => array('string', 'mindevents_sanitize_visibility'),
+            'mindevents_organizer_name'     => array('string', 'sanitize_text_field'),
+            'mindevents_organizer_title'    => array('string', 'sanitize_text_field'),
+            'mindevents_organizer_image_id' => array('integer', 'absint'),
         );
 
         foreach (array('events', 'sub_event') as $post_type) {
-            foreach ($shared_string_meta as $meta_key) {
+            foreach ($details as $meta_key => $schema) {
                 register_post_meta($post_type, $meta_key, array(
-                    'show_in_rest' => true,
-                    'single'       => true,
-                    'type'         => 'string',
+                    'show_in_rest'      => true,
+                    'single'            => true,
+                    'type'              => $schema[0],
+                    'sanitize_callback' => $schema[1],
                 ));
             }
-
-            register_post_meta($post_type, 'mindevents_organizer_image_id', array(
-                'show_in_rest' => true,
-                'single'       => true,
-                'type'         => 'integer',
-            ));
         }
 
         register_term_meta('event_category', 'mindevents_category_color', array(
-            'show_in_rest' => true,
-            'single'       => true,
-            'type'         => 'string',
+            'show_in_rest'      => true,
+            'single'            => true,
+            'type'              => 'string',
+            'sanitize_callback' => 'mindevents_sanitize_color',
         ));
     }
 

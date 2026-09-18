@@ -160,6 +160,16 @@ if (!function_exists('mindevents_sanitize_visibility')) {
     }
 }
 
+if (!function_exists('mindevents_sanitize_color')) {
+    /**
+     * A hex color, or '' for anything else. sanitize_hex_color() returns
+     * null, which meta cannot store.
+     */
+    function mindevents_sanitize_color($value) {
+        return (string) sanitize_hex_color((string) $value);
+    }
+}
+
 if (!function_exists('mindevents_apply_visibility_meta')) {
     function mindevents_apply_visibility_meta($post_id, $visibility) {
         $visibility = mindevents_sanitize_visibility($visibility);
