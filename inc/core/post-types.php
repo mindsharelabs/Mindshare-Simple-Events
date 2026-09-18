@@ -65,7 +65,10 @@ class mindEventsCPTS {
             'show_in_rest'        => false,
             'has_archive'         => false,
             'exclude_from_search' => true,
-            'publicly_queryable'  => true,
+            // Occurrences are shown through their event, never at a URL of their own.
+            'publicly_queryable'  => false,
+            'rewrite'             => false,
+            'query_var'           => false,
             'can_export'          => true,
             'capability_type'     => array('mindevents_event', 'mindevents_events'),
             'map_meta_cap'        => true,
