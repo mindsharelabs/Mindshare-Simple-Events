@@ -8,13 +8,18 @@ class mindEventsOptions {
     public function __construct() {
         add_action('admin_menu', array($this, 'register_settings_page'));
         add_action('admin_init', array($this, 'register_settings'));
+
+        // options.php requires manage_options unless told otherwise.
+        add_filter('option_page_capability_mindeventsPlugin', function() {
+            return 'manage_mindevents_settings';
+        });
     }
 
     public function register_settings_page() {
         add_options_page(
             __('Simple Events Settings', 'simple-events'),
             __('Simple Events', 'simple-events'),
-            'manage_options',
+            'manage_mindevents_settings',
             'mindevents-settings',
             array($this, 'render_settings_page')
         );

@@ -51,6 +51,7 @@ final class mindEvents {
 
     private function includes() {
         require_once MINDEVENTS_ABSPATH . 'inc/core/helpers.php';
+        require_once MINDEVENTS_ABSPATH . 'inc/core/installer.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/post-types.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/options.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/admin.php';
@@ -61,6 +62,8 @@ final class mindEvents {
     }
 
     private function bootstrap() {
+        add_action('init', array('mindEventsInstaller', 'maybe_install'));
+
         $this->components['options'] = new mindEventsOptions();
         $this->components['post_types'] = new mindEventsCPTS();
         $this->components['admin'] = new mindeventsAdmin();
@@ -209,6 +212,7 @@ final class mindEvents {
 
 function mindevents_activate() {
     mindEvents::get_instance();
+    mindEventsInstaller::install();
     flush_rewrite_rules();
 }
 

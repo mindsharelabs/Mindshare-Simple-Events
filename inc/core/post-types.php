@@ -7,6 +7,7 @@ if (!defined('ABSPATH')) {
 class mindEventsCPTS {
     public function __construct() {
         add_action('init', array($this, 'create_post_types'));
+        add_filter('map_meta_cap', array($this, 'map_occurrence_capabilities'), 10, 4);
         add_action('event_category_add_form_fields', array($this, 'render_add_category_fields'));
         add_action('event_category_edit_form_fields', array($this, 'render_edit_category_fields'));
         add_action('created_event_category', array($this, 'save_category_fields'));
@@ -39,7 +40,8 @@ class mindEventsCPTS {
             'publicly_queryable'  => true,
             'exclude_from_search' => false,
             'can_export'          => true,
-            'capability_type'     => 'page',
+            'capability_type'     => array('mindevents_event', 'mindevents_events'),
+            'map_meta_cap'        => true,
         ));
 
         register_post_type('sub_event', array(
@@ -65,7 +67,8 @@ class mindEventsCPTS {
             'exclude_from_search' => true,
             'publicly_queryable'  => true,
             'can_export'          => true,
-            'capability_type'     => 'page',
+            'capability_type'     => array('mindevents_event', 'mindevents_events'),
+            'map_meta_cap'        => true,
         ));
 
         register_taxonomy('event_category', array('events', 'sub_event'), array(
@@ -85,6 +88,12 @@ class mindEventsCPTS {
             'show_in_rest'      => true,
             'show_in_nav_menus' => true,
             'show_tagcloud'     => true,
+            'capabilities'      => array(
+                'manage_terms' => 'manage_mindevents_categories',
+                'edit_terms'   => 'manage_mindevents_categories',
+                'delete_terms' => 'manage_mindevents_categories',
+                'assign_terms' => 'edit_mindevents_events',
+            ),
         ));
 
         $shared_string_meta = array(
@@ -117,6 +126,27 @@ class mindEventsCPTS {
         ));
     }
 
+    /**
+     * Occurrences have no permissions of their own. Any check against an
+     * occurrence is answered by checking its event, so whoever can edit an
+     * event can manage its dates, however each occurrence was created.
+     */
+    public function map_occurrence_capabilities($caps, $cap, $user_id, $args) {
+        if (!in_array($cap, array('edit_post', 'delete_post', 'read_post'), true) || empty($args[0])) {
+            return $caps;
+        }
+
+        $occurrence = get_post($args[0]);
+        if (!$occurrence || $occurrence->post_type !== 'sub_event' || !$occurrence->post_parent) {
+            return $caps;
+        }
+
+        // Removing a date is an edit to the event, not a deletion of it.
+        $event_cap = ($cap === 'read_post') ? 'read_post' : 'edit_post';
+
+        return map_meta_cap($event_cap, $user_id, $occurrence->post_parent);
+    }
+
     public function render_add_category_fields() {
         ?>
         <div class="form-field term-mindevents-category-color-wrap">
@@ -146,7 +176,7 @@ class mindEventsCPTS {
     }
 
     public function save_category_fields($term_id) {
-        if (!current_user_can('manage_categories')) {
+        if (!current_user_can(get_taxonomy('event_category')->cap->edit_terms)) {
             return;
         }
 
