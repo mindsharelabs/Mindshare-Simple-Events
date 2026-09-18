@@ -15,7 +15,7 @@ gulp.task('plugin-styles', () => {
       .pipe(sass({
         outputStyle: 'compressed'//nested, expanded, compact, compressed
       }).on('error', sass.logError))
-      .pipe(sourcemaps.write('./css/'))
+      .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('./css/'))
 });
 
@@ -25,7 +25,7 @@ gulp.task('admin-styles', () => {
       .pipe(sass({
         outputStyle: 'compressed'//nested, expanded, compact, compressed
       }).on('error', sass.logError))
-      .pipe(sourcemaps.write('./css/'))
+      .pipe(sourcemaps.write('.'))
       .pipe(gulp.dest('./css/'))
 });
 
@@ -33,8 +33,9 @@ gulp.task('admin-styles', () => {
 
 gulp.task('clean', () => {
     return deleteAsync([
-        'sass/style.css',
-
+        'css/*.css',
+        'css/*.map',
+        'css/css',
     ]);
 });
 
