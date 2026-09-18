@@ -203,7 +203,12 @@ class mindeventsAdmin {
     private function render_text_control($name, $id, $label, $value = '', $description = '', $type = 'text') {
         echo '<div class="mindevents-admin-field">';
         echo '<label for="' . esc_attr($id) . '">' . esc_html($label) . '</label>';
-        echo '<input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" value="' . esc_attr((string) $value) . '">';
+        if ($type === 'color') {
+            // A text field for wp-color-picker: a native color input cannot be left empty.
+            echo '<input type="text" class="mindevents-color-field" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" value="' . esc_attr((string) $value) . '">';
+        } else {
+            echo '<input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" value="' . esc_attr((string) $value) . '">';
+        }
         if ($description) {
             echo '<p class="description">' . esc_html($description) . '</p>';
         }

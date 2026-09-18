@@ -240,10 +240,14 @@ class mindEventsAjax {
         return $html;
     }
 
-    private function render_modal_field($name, $label, $value, $type = 'text', $disabled = false) {
+    private function render_modal_field($name, $label, $value, $type = 'text') {
+        // A text field for wp-color-picker: a native color input cannot be left empty.
+        $class = ($type === 'color') ? ' class="mindevents-color-field"' : '';
+        $type  = ($type === 'color') ? 'text' : $type;
+
         $html  = '<div class="mindevents-admin-field">';
         $html .= '<label for="' . esc_attr($name) . '">' . esc_html($label) . '</label>';
-        $html .= '<input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" id="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '"' . ($disabled ? ' disabled' : '') . '>';
+        $html .= '<input type="' . esc_attr($type) . '"' . $class . ' name="' . esc_attr($name) . '" id="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
         $html .= '</div>';
 
         return $html;

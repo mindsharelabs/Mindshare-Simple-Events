@@ -69,9 +69,16 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         return $modal;
     }
 
+    function initColorPickers($scope) {
+        if ($.fn.wpColorPicker) {
+            $scope.find('.mindevents-color-field').wpColorPicker();
+        }
+    }
+
     function openModal(html) {
         const $modal = getModal();
         $modal.find('.mindevents-admin-modal__content').html(html);
+        initColorPickers($modal);
         $modal.addClass('is-open').attr('aria-hidden', 'false');
         $('body').addClass('mindevents-admin-modal-open');
     }
@@ -215,6 +222,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
     $(function () {
         initDragDrop();
+        initColorPickers($('#defaultEventMeta'));
     });
 
     $(document).on('click', '.mindevents-admin-nav', function (event) {

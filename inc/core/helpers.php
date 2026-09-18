@@ -418,32 +418,32 @@ if (!function_exists('mindevents_get_category_color')) {
     }
 }
 
-if (!function_exists('mindevents_get_post_category_colors')) {
-    function mindevents_get_post_category_colors($post_id) {
+if (!function_exists('mindevents_get_occurrence_colors')) {
+    /**
+     * The colors an occurrence is drawn in: its own color if one was set,
+     * otherwise the colors of its categories, or its event's.
+     */
+    function mindevents_get_occurrence_colors($post_id) {
         $post_id = absint($post_id);
         if (!$post_id) {
             return array();
         }
 
-        $colors = array();
-        $terms  = get_the_terms($post_id, 'event_category');
+        $own_color = sanitize_hex_color((string) get_post_meta($post_id, 'eventColor', true));
+        if ($own_color) {
+            return array($own_color);
+        }
 
+        $terms = get_the_terms($post_id, 'event_category');
         if ((!$terms || is_wp_error($terms)) && wp_get_post_parent_id($post_id)) {
             $terms = get_the_terms(wp_get_post_parent_id($post_id), 'event_category');
         }
 
+        $colors = array();
         if ($terms && !is_wp_error($terms)) {
             foreach ($terms as $term) {
-                $color = mindevents_get_category_color($term);
-                if ($color) {
-                    $colors[] = $color;
-                }
+                $colors[] = mindevents_get_category_color($term);
             }
-        }
-
-        $event_color = get_post_meta($post_id, 'eventColor', true);
-        if (!$colors && $event_color) {
-            $colors[] = sanitize_hex_color($event_color);
         }
 
         return array_values(array_filter(array_unique($colors)));

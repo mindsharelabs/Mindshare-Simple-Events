@@ -131,10 +131,11 @@ final class mindEvents {
         );
 
         if ($is_event_editor) {
+            wp_enqueue_style('wp-color-picker');
             wp_enqueue_script(
                 'mindevents-admin',
                 plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE),
-                array('jquery', 'jquery-ui-draggable', 'jquery-ui-droppable'),
+                array('jquery', 'jquery-ui-draggable', 'jquery-ui-droppable', 'wp-color-picker'),
                 MINDEVENTS_PLUGIN_VERSION,
                 true
             );

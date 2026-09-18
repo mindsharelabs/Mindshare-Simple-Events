@@ -1104,7 +1104,7 @@ class mindEventCalendar {
     }
 
     private function get_event_colors($eventID) {
-        $colors = mindevents_get_post_category_colors($eventID);
+        $colors = mindevents_get_occurrence_colors($eventID);
 
         if (!$colors) {
             $colors[] = '#2d7ff9';
