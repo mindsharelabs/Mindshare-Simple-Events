@@ -230,11 +230,8 @@ body.mindevents-admin-modal-open {
 }
 
 #eventsCalendar .mindevents-calendar-day-number {
-    appearance: none;
-    background: transparent;
-    border: 0;
     color: var(--mindevents-admin-ink);
-    cursor: pointer;
+    display: block;
     font-size: 15px;
     font-weight: 800;
     margin: 0 0 10px;

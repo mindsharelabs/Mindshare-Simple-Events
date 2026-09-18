@@ -216,7 +216,7 @@ class mindEventCalendar {
             }
 
             $out .= '<div class="' . esc_attr(implode(' ', $classes)) . '" data-date="' . esc_attr($date->format('Y-m-d')) . '">';
-            $out .= '<button type="button" class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">' . esc_html((string) $day) . '</button>';
+            $out .= '<time class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">' . esc_html((string) $day) . '</time>';
 
             if (isset($this->dailyHtml[$year][$month][$day])) {
                 $out .= '<div class="' . esc_attr($this->classes['events']) . '">';

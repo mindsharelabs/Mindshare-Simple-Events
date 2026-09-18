@@ -114,6 +114,7 @@ final class mindEvents {
     public static function front_script_strings() {
         return array(
             'loadingDetails'  => __('Loading event details...', 'simple-events'),
+            'eventDetails'    => __('Event details', 'simple-events'),
             'cannotLoad'      => __('Unable to load event details right now.', 'simple-events'),
             'categories'      => __('Categories', 'simple-events'),
             /* translators: %d: number of selected categories, always more than one */

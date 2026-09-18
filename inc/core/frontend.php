@@ -408,7 +408,8 @@ function mindevents_get_frontend_filter_form($filters = null) {
         ));
     }
 
-    $panel_id = function_exists('wp_unique_id') ? wp_unique_id('mindevents-filter-panel-') : uniqid('mindevents-filter-panel-');
+    $panel_id = wp_unique_id('mindevents-filter-panel-');
+    $menu_id  = wp_unique_id('mindevents-category-menu-');
     $classes  = array('mindevents-event-filters');
 
     if (!empty($filters['has_user_filters'])) {
@@ -447,11 +448,11 @@ function mindevents_get_frontend_filter_form($filters = null) {
             <div class="mindevents-filter-row">
                 <?php if ($is_events_archive && !empty($categories) && !is_wp_error($categories)) : ?>
                     <div class="mindevents-multiselect" data-default-label="<?php echo esc_attr__('Categories', 'simple-events'); ?>">
-                        <button type="button" class="mindevents-multiselect-toggle" aria-expanded="false">
+                        <button type="button" class="mindevents-multiselect-toggle" aria-expanded="false" aria-controls="<?php echo esc_attr($menu_id); ?>">
                             <span class="mindevents-multiselect-label"><?php echo esc_html(mindevents_get_category_filter_summary($categories, $filters['selected_category_ids'])); ?></span>
                             <span class="mindevents-chevron" aria-hidden="true">▾</span>
                         </button>
-                        <div class="mindevents-multiselect-menu">
+                        <div class="mindevents-multiselect-menu" id="<?php echo esc_attr($menu_id); ?>">
                             <?php foreach ($categories as $category) : ?>
                                 <label class="mindevents-filter-checkbox">
                                     <input type="checkbox" name="event_category_filter[]" value="<?php echo esc_attr($category->term_id); ?>"<?php checked(in_array((int) $category->term_id, $filters['selected_category_ids'], true)); ?>>
@@ -788,14 +789,16 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
         'in_loc' => $location,
     )), 'https://calendar.yahoo.com/');
 
+    $menu_id = wp_unique_id('mindevents-calendar-links-' . $event_id . '-');
+
     ob_start();
     ?>
     <div class="add-to-calendar-dropdown">
-        <button type="button" class="add-to-calendar-button mindevents-button mindevents-button--ghost" aria-expanded="false">
+        <button type="button" class="add-to-calendar-button mindevents-button mindevents-button--ghost" aria-expanded="false" aria-controls="<?php echo esc_attr($menu_id); ?>">
             <span><?php esc_html_e('Add to Calendar', 'simple-events'); ?></span>
             <span aria-hidden="true">▾</span>
         </button>
-        <ul class="add-to-calendar-menu">
+        <ul class="add-to-calendar-menu" id="<?php echo esc_attr($menu_id); ?>">
             <li><a href="<?php echo esc_url($gcal_url); ?>" target="_blank" rel="noopener"><?php esc_html_e('Google Calendar', 'simple-events'); ?></a></li>
             <li><a href="<?php echo esc_url($ics_url); ?>"><?php esc_html_e('Apple / Outlook (.ics)', 'simple-events'); ?></a></li>
             <li><a href="<?php echo esc_url($yahoo_url); ?>" target="_blank" rel="noopener"><?php esc_html_e('Yahoo Calendar', 'simple-events'); ?></a></li>

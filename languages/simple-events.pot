@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 23:58-0600\n"
+"POT-Creation-Date: 2026-09-18 10:34-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: inc/core/admin.php:24 inc/core/post-types.php:48 inc/core/post-types.php:53
+#: inc/core/admin.php:24 inc/core/post-types.php:50 inc/core/post-types.php:55
 #: templates/single-events.php:44
 msgid "Occurrences"
 msgstr ""
@@ -31,7 +31,7 @@ msgstr ""
 msgid "Display Type"
 msgstr ""
 
-#: inc/core/admin.php:58 inc/core/frontend.php:426
+#: inc/core/admin.php:58 inc/core/frontend.php:427
 msgid "List"
 msgstr ""
 
@@ -127,7 +127,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:747
+#: inc/core/ajax.php:85 inc/core/events.php:781
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -139,7 +139,7 @@ msgstr ""
 msgid "You cannot move this occurrence."
 msgstr ""
 
-#: inc/core/ajax.php:220 inc/core/post-types.php:55
+#: inc/core/ajax.php:220 inc/core/post-types.php:57
 msgid "Edit Occurrence"
 msgstr ""
 
@@ -155,56 +155,56 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: inc/core/events.php:316
+#: inc/core/events.php:350
 msgid "Previous Week"
 msgstr ""
 
-#: inc/core/events.php:317
+#: inc/core/events.php:351
 msgid "Next Week"
 msgstr ""
 
-#: inc/core/events.php:430
+#: inc/core/events.php:464
 msgid "No events matched the current filters."
 msgstr ""
 
-#: inc/core/events.php:503
+#: inc/core/events.php:537
 msgid "No events matched the current view."
 msgstr ""
 
-#: inc/core/events.php:506
+#: inc/core/events.php:540
 msgid "There are no upcoming events."
 msgstr ""
 
-#: inc/core/events.php:592 inc/core/post-types.php:28
+#: inc/core/events.php:626 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:648
+#: inc/core/events.php:682
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:659
+#: inc/core/events.php:693
 msgid "Open Event Page"
 msgstr ""
 
-#: inc/core/events.php:693
+#: inc/core/events.php:727
 msgid "Remove occurrence"
 msgstr ""
 
-#: inc/core/events.php:710
+#: inc/core/events.php:744
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:729
+#: inc/core/events.php:763
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1130
+#: inc/core/events.php:1164
 msgid "Organizer"
 msgstr ""
 
 #: inc/core/frontend.php:367 inc/core/frontend.php:378
-#: inc/core/frontend.php:449 mindshare-events.php:118
+#: inc/core/frontend.php:450 mindshare-events.php:119
 msgid "Categories"
 msgstr ""
 
@@ -216,73 +216,73 @@ msgid_plural "%d Categories"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/core/frontend.php:425
+#: inc/core/frontend.php:426
 msgid "Event views"
 msgstr ""
 
-#: inc/core/frontend.php:426
+#: inc/core/frontend.php:427
 msgid "Month"
 msgstr ""
 
-#: inc/core/frontend.php:426
+#: inc/core/frontend.php:427
 msgid "Week"
 msgstr ""
 
-#: inc/core/frontend.php:441
+#: inc/core/frontend.php:442
 msgid "Filters"
 msgstr ""
 
-#: inc/core/frontend.php:466
+#: inc/core/frontend.php:467
 msgid "Search events"
 msgstr ""
 
-#: inc/core/frontend.php:467
+#: inc/core/frontend.php:468
 msgid "Search event title"
 msgstr ""
 
-#: inc/core/frontend.php:471
+#: inc/core/frontend.php:472
 msgid "Apply"
 msgstr ""
 
-#: inc/core/frontend.php:472
+#: inc/core/frontend.php:473
 msgid "Reset"
 msgstr ""
 
-#: inc/core/frontend.php:514
+#: inc/core/frontend.php:515
 msgid "Previous"
 msgstr ""
 
-#: inc/core/frontend.php:515
+#: inc/core/frontend.php:516
 msgid "Next"
 msgstr ""
 
-#: inc/core/frontend.php:522
+#: inc/core/frontend.php:523
 msgid "Event list pagination"
 msgstr ""
 
 #. translators: %s: date of the event's next occurrence
-#: inc/core/frontend.php:562
+#: inc/core/frontend.php:563
 #, php-format
 msgid "Next occurrence: %s"
 msgstr ""
 
-#: inc/core/frontend.php:599
+#: inc/core/frontend.php:600
 msgid "Subscribe to Calendar Feed"
 msgstr ""
 
-#: inc/core/frontend.php:795
+#: inc/core/frontend.php:798
 msgid "Add to Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:799
+#: inc/core/frontend.php:802
 msgid "Google Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:800
+#: inc/core/frontend.php:803
 msgid "Apple / Outlook (.ics)"
 msgstr ""
 
-#: inc/core/frontend.php:801
+#: inc/core/frontend.php:804
 msgid "Yahoo Calendar"
 msgstr ""
 
@@ -294,7 +294,7 @@ msgstr ""
 msgid "Simple Events Settings"
 msgstr ""
 
-#: inc/core/options.php:21 templates/archive-events.php:23
+#: inc/core/options.php:21
 msgid "Simple Events"
 msgstr ""
 
@@ -378,75 +378,75 @@ msgstr ""
 msgid "All Events"
 msgstr ""
 
-#: inc/core/post-types.php:49
+#: inc/core/post-types.php:51
 msgid "Event occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:51
+#: inc/core/post-types.php:53
 msgctxt "Post Type General Name"
 msgid "Occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:52
+#: inc/core/post-types.php:54
 msgctxt "Post Type Singular Name"
 msgid "Occurrence"
 msgstr ""
 
-#: inc/core/post-types.php:54
+#: inc/core/post-types.php:56
 msgid "Add New Occurrence"
 msgstr ""
 
-#: inc/core/post-types.php:56
+#: inc/core/post-types.php:58
 msgid "New Occurrence"
 msgstr ""
 
-#: inc/core/post-types.php:57
+#: inc/core/post-types.php:59
 msgid "View Occurrence"
 msgstr ""
 
-#: inc/core/post-types.php:58
+#: inc/core/post-types.php:60
 msgid "Search Occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:59
+#: inc/core/post-types.php:61
 msgid "All Occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:79
+#: inc/core/post-types.php:81
 msgctxt "Taxonomy General Name"
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:80
+#: inc/core/post-types.php:82
 msgctxt "Taxonomy Singular Name"
 msgid "Event Category"
 msgstr ""
 
-#: inc/core/post-types.php:81
+#: inc/core/post-types.php:83
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:82
+#: inc/core/post-types.php:84
 msgid "All Categories"
 msgstr ""
 
-#: inc/core/post-types.php:83
+#: inc/core/post-types.php:85
 msgid "Add New Category"
 msgstr ""
 
-#: inc/core/post-types.php:84
+#: inc/core/post-types.php:86
 msgid "Edit Category"
 msgstr ""
 
-#: inc/core/post-types.php:85
+#: inc/core/post-types.php:87
 msgid "View Category"
 msgstr ""
 
-#: inc/core/post-types.php:154 inc/core/post-types.php:169
+#: inc/core/post-types.php:159 inc/core/post-types.php:174
 msgid "Category Color"
 msgstr ""
 
-#: inc/core/post-types.php:156 inc/core/post-types.php:173
+#: inc/core/post-types.php:161 inc/core/post-types.php:179
 msgid "Used for calendar and list color accents."
 msgstr ""
 
@@ -491,11 +491,15 @@ msgid "Loading event details..."
 msgstr ""
 
 #: mindshare-events.php:117
+msgid "Event details"
+msgstr ""
+
+#: mindshare-events.php:118
 msgid "Unable to load event details right now."
 msgstr ""
 
 #. translators: %d: number of selected categories, always more than one
-#: mindshare-events.php:120
+#: mindshare-events.php:121
 #, php-format
 msgid "%d Categories"
 msgstr ""
@@ -505,13 +509,7 @@ msgstr ""
 msgid "Content"
 msgstr ""
 
-#: templates/archive-events.php:25
-msgid ""
-"Browse upcoming events in calendar, week, or list view. Use the filters to "
-"narrow the schedule by title or category."
-msgstr ""
-
-#: templates/archive-events.php:34 templates/single-events.php:51
+#: templates/archive-events.php:32 templates/single-events.php:51
 msgid "Event Schedule"
 msgstr ""
 

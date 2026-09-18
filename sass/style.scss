@@ -450,11 +450,8 @@
 }
 
 .mindevents-calendar-day-number {
-    appearance: none;
-    background: transparent;
-    border: 0;
     color: var(--mindevents-ink);
-    cursor: default;
+    display: block;
     font-size: 1rem;
     font-weight: 800;
     margin: 0 0 0.75rem;

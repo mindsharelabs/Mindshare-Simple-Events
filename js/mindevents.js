@@ -6,6 +6,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     const settings = window.mindeventsSettings || {};
     const i18n = settings.i18n || {};
 
+    // Where focus goes back to when the dialog closes.
+    let returnFocusTo = null;
+
     function syncFilterPanel($form) {
         const isOpen = $form.hasClass('is-open');
         $form.find('.mindevents-filter-toggle').attr('aria-expanded', isOpen ? 'true' : 'false');
@@ -54,7 +57,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         $modal = $(`
             <div class="mindevents-modal" aria-hidden="true">
                 <div class="mindevents-modal__backdrop"></div>
-                <div class="mindevents-modal__dialog" role="dialog" aria-modal="true">
+                <div class="mindevents-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
                     <div class="mindevents-modal__content"></div>
                 </div>
             </div>
@@ -65,21 +68,91 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         return $modal;
     }
 
-    function openModal(html) {
+    /**
+     * Show content in the dialog. The first call moves focus into it and
+     * remembers `trigger`, so focus can go back there on close.
+     */
+    function openModal(content, trigger) {
         const $modal = getModal();
-        $modal.find('.mindevents-modal__content').html(html);
+        const $dialog = $modal.find('.mindevents-modal__dialog');
+        const wasOpen = $modal.hasClass('is-open');
+
+        if (!wasOpen) {
+            returnFocusTo = trigger || document.activeElement;
+        }
+
+        $modal.find('.mindevents-modal__content').html(content);
+        labelDialog($dialog);
         $modal.addClass('is-open').attr('aria-hidden', 'false');
         $('body').addClass('mindevents-has-modal');
+
+        if (!wasOpen) {
+            $dialog.trigger('focus');
+        }
+    }
+
+    // Name the dialog after the event it shows, or generically while loading.
+    function labelDialog($dialog) {
+        const $title = $dialog.find('.mindevents-event-meta__title').first();
+
+        if ($title.length) {
+            $title.attr('id', 'mindevents-modal-title');
+            $dialog.attr('aria-labelledby', 'mindevents-modal-title').removeAttr('aria-label');
+        } else {
+            $dialog.removeAttr('aria-labelledby').attr('aria-label', i18n.eventDetails);
+        }
     }
 
     function closeModal() {
         const $modal = $('.mindevents-modal');
+
+        if (!$modal.hasClass('is-open')) {
+            return;
+        }
+
         $modal.removeClass('is-open').attr('aria-hidden', 'true');
         $('body').removeClass('mindevents-has-modal');
+
+        if (returnFocusTo && document.body.contains(returnFocusTo)) {
+            returnFocusTo.focus();
+        }
+        returnFocusTo = null;
     }
 
-    function setModalLoading() {
-        openModal($('<div class="mindevents-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingDetails)));
+    // Keep Tab and Shift+Tab cycling inside the open dialog.
+    function trapFocus(event) {
+        const $dialog = $('.mindevents-modal.is-open .mindevents-modal__dialog');
+        if (!$dialog.length) {
+            return;
+        }
+
+        const dialog = $dialog.get(0);
+        const focusable = $dialog.find('a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])').filter(':visible').get();
+
+        if (!focusable.length) {
+            event.preventDefault();
+            dialog.focus();
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+
+        if (active !== dialog && !dialog.contains(active)) {
+            event.preventDefault();
+            first.focus();
+        } else if (event.shiftKey && (active === first || active === dialog)) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function setModalLoading(trigger) {
+        openModal($('<div class="mindevents-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingDetails)), trigger);
     }
 
     function closeDropdownMenus() {
@@ -87,12 +160,12 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         $('.add-to-calendar-button').attr('aria-expanded', 'false');
     }
 
-    function requestEventMeta(eventId) {
+    function requestEventMeta(eventId, trigger) {
         if (!eventId || !settings.ajax_url) {
             return;
         }
 
-        setModalLoading();
+        setModalLoading(trigger);
 
         $.ajax({
             url: settings.ajax_url,
@@ -165,7 +238,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
     $(document).on('click', '.mindevents-calendar-event-toggle', function (event) {
         event.preventDefault();
-        requestEventMeta($(this).data('eventid'));
+        requestEventMeta($(this).data('eventid'), this);
     });
 
     $(document).on('click', '.mindevents-modal__backdrop, .event-meta-close', function (event) {
@@ -186,12 +259,31 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     });
 
     $(document).on('keydown', function (event) {
-        if (event.key === 'Escape') {
-            closeModal();
-            closeDropdownMenus();
-            $('.mindevents-multiselect.is-open').removeClass('is-open').each(function () {
-                syncMultiSelect($(this));
-            });
+        if (event.key === 'Tab') {
+            trapFocus(event);
+            return;
         }
+
+        if (event.key !== 'Escape') {
+            return;
+        }
+
+        // Close the innermost open thing, returning focus to what opened it.
+        const $dropdown = $('.add-to-calendar-dropdown.is-open').first();
+        if ($dropdown.length) {
+            closeDropdownMenus();
+            $dropdown.find('.add-to-calendar-button').trigger('focus');
+            return;
+        }
+
+        const $multiselect = $('.mindevents-multiselect.is-open').first();
+        if ($multiselect.length) {
+            $multiselect.removeClass('is-open');
+            syncMultiSelect($multiselect);
+            $multiselect.find('.mindevents-multiselect-toggle').trigger('focus');
+            return;
+        }
+
+        closeModal();
     });
 })(jQuery);
