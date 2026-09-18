@@ -6,11 +6,11 @@ class OccurrenceColorTest extends Mindshare_Events_TestCase {
     protected function setUp(): void {
         parent::setUp();
 
-        $term = wp_insert_term('Ceramics', 'event_category');
+        $term = wp_insert_term('Ceramics', 'mind_event_category');
         update_term_meta($term['term_id'], 'mindevents_category_color', '#aa0000');
 
         $this->event_id = $this->createEvent();
-        wp_set_post_terms($this->event_id, array($term['term_id']), 'event_category');
+        wp_set_post_terms($this->event_id, array($term['term_id']), 'mind_event_category');
     }
 
     public function test_an_occurrence_without_its_own_color_uses_the_category_color(): void {

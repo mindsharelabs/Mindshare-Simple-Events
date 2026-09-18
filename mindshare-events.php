@@ -122,7 +122,7 @@ final class mindEvents {
     }
 
     public function enqueue_front_assets() {
-        if (!is_post_type_archive('mind_events') && !is_singular('mind_events') && !is_tax('event_category')) {
+        if (!is_post_type_archive('mind_events') && !is_singular('mind_events') && !is_tax('mind_event_category')) {
             return;
         }
 
@@ -158,7 +158,7 @@ final class mindEvents {
         }
 
         $is_event_editor = ($screen->post_type === 'mind_events' && in_array($screen->base, array('post', 'post-new'), true));
-        $is_event_terms = ($screen->taxonomy ?? '') === 'event_category';
+        $is_event_terms = ($screen->taxonomy ?? '') === 'mind_event_category';
         $is_settings = $screen->id === 'settings_page_mindevents-settings';
 
         if (!$is_event_editor && !$is_event_terms && !$is_settings) {

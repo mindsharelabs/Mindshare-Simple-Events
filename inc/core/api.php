@@ -216,7 +216,7 @@ function mindevents_rest_events(WP_REST_Request $request) {
         if ($cat_slugs) {
             $query_args['tax_query'] = array(
                 array(
-                    'taxonomy'         => 'event_category',
+                    'taxonomy'         => 'mind_event_category',
                     'field'            => 'slug',
                     'terms'            => $cat_slugs,
                     'include_children' => true,

@@ -12,6 +12,16 @@ class PostTypeNameTest extends Mindshare_Events_TestCase {
         $this->assertFalse(post_type_exists('sub_event'));
     }
 
+    public function test_the_category_taxonomy_is_prefixed_and_keeps_its_urls(): void {
+        $this->assertTrue(taxonomy_exists('mind_event_category'));
+        $this->assertFalse(taxonomy_exists('event_category'));
+
+        if (get_option('permalink_structure')) {
+            $term = wp_insert_term('Ceramics', 'mind_event_category');
+            $this->assertStringEndsWith('/event_category/ceramics/', get_term_link($term['term_id']));
+        }
+    }
+
     public function test_event_urls_still_use_the_events_slug(): void {
         global $wp_rewrite;
         $structure = get_option('permalink_structure');

@@ -8,10 +8,10 @@ class mindEventsCPTS {
     public function __construct() {
         add_action('init', array($this, 'create_post_types'));
         add_filter('map_meta_cap', array($this, 'map_occurrence_capabilities'), 10, 4);
-        add_action('event_category_add_form_fields', array($this, 'render_add_category_fields'));
-        add_action('event_category_edit_form_fields', array($this, 'render_edit_category_fields'));
-        add_action('created_event_category', array($this, 'save_category_fields'));
-        add_action('edited_event_category', array($this, 'save_category_fields'));
+        add_action('mind_event_category_add_form_fields', array($this, 'render_add_category_fields'));
+        add_action('mind_event_category_edit_form_fields', array($this, 'render_edit_category_fields'));
+        add_action('created_mind_event_category', array($this, 'save_category_fields'));
+        add_action('edited_mind_event_category', array($this, 'save_category_fields'));
     }
 
     public function create_post_types() {
@@ -76,7 +76,7 @@ class mindEventsCPTS {
             'map_meta_cap'        => true,
         ));
 
-        register_taxonomy('event_category', array('mind_events', 'mind_sub_event'), array(
+        register_taxonomy('mind_event_category', array('mind_events', 'mind_sub_event'), array(
             'labels'            => array(
                 'name'          => _x('Event Categories', 'Taxonomy General Name', 'simple-events'),
                 'singular_name' => _x('Event Category', 'Taxonomy Singular Name', 'simple-events'),
@@ -93,6 +93,8 @@ class mindEventsCPTS {
             'show_in_rest'      => true,
             'show_in_nav_menus' => true,
             'show_tagcloud'     => true,
+            // Prefixed like the post types; the URLs stay /event_category/.
+            'rewrite'           => array('slug' => 'event_category'),
             'capabilities'      => array(
                 'manage_terms' => 'manage_mindevents_categories',
                 'edit_terms'   => 'manage_mindevents_categories',
@@ -121,7 +123,7 @@ class mindEventsCPTS {
             }
         }
 
-        register_term_meta('event_category', 'mindevents_category_color', array(
+        register_term_meta('mind_event_category', 'mindevents_category_color', array(
             'show_in_rest'      => true,
             'single'            => true,
             'type'              => 'string',
@@ -179,7 +181,7 @@ class mindEventsCPTS {
     }
 
     public function save_category_fields($term_id) {
-        if (!current_user_can(get_taxonomy('event_category')->cap->edit_terms)) {
+        if (!current_user_can(get_taxonomy('mind_event_category')->cap->edit_terms)) {
             return;
         }
 

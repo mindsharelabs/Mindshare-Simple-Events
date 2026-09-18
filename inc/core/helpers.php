@@ -251,7 +251,7 @@ if (!function_exists('mindevents_sync_event_taxonomies_to_children')) {
             return;
         }
 
-        $term_ids = wp_get_post_terms($event_id, 'event_category', array('fields' => 'ids'));
+        $term_ids = wp_get_post_terms($event_id, 'mind_event_category', array('fields' => 'ids'));
         $children = get_posts(array(
             'post_type'      => 'mind_sub_event',
             'post_status'    => array('publish', 'pending', 'draft', 'future', 'private', 'inherit', 'trash'),
@@ -261,7 +261,7 @@ if (!function_exists('mindevents_sync_event_taxonomies_to_children')) {
         ));
 
         foreach ($children as $child_id) {
-            wp_set_post_terms($child_id, $term_ids, 'event_category');
+            wp_set_post_terms($child_id, $term_ids, 'mind_event_category');
         }
     }
 }
@@ -333,7 +333,7 @@ if (!function_exists('mindevents_get_category_color')) {
         if ($term instanceof WP_Term) {
             $term_object = $term;
         } elseif (is_numeric($term)) {
-            $term_object = get_term((int) $term, 'event_category');
+            $term_object = get_term((int) $term, 'mind_event_category');
         }
 
         if (!($term_object instanceof WP_Term)) {
@@ -362,9 +362,9 @@ if (!function_exists('mindevents_get_occurrence_colors')) {
             return array($own_color);
         }
 
-        $terms = get_the_terms($post_id, 'event_category');
+        $terms = get_the_terms($post_id, 'mind_event_category');
         if ((!$terms || is_wp_error($terms)) && wp_get_post_parent_id($post_id)) {
-            $terms = get_the_terms(wp_get_post_parent_id($post_id), 'event_category');
+            $terms = get_the_terms(wp_get_post_parent_id($post_id), 'mind_event_category');
         }
 
         $colors = array();
@@ -465,9 +465,9 @@ if (!function_exists('mindevents_get_occurrence_terms_payload')) {
             return array();
         }
 
-        $terms = get_the_terms($post_id, 'event_category');
+        $terms = get_the_terms($post_id, 'mind_event_category');
         if ((!$terms || is_wp_error($terms)) && wp_get_post_parent_id($post_id)) {
-            $terms = get_the_terms(wp_get_post_parent_id($post_id), 'event_category');
+            $terms = get_the_terms(wp_get_post_parent_id($post_id), 'mind_event_category');
         }
 
         if (!$terms || is_wp_error($terms)) {

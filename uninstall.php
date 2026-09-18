@@ -38,18 +38,18 @@ foreach (array('mind_sub_event', 'mind_events') as $post_type) {
 }
 
 // Terms can only be read and deleted through a registered taxonomy.
-if (!taxonomy_exists('event_category')) {
-    register_taxonomy('event_category', array());
+if (!taxonomy_exists('mind_event_category')) {
+    register_taxonomy('mind_event_category', array());
 }
 
 $term_ids = get_terms(array(
-    'taxonomy'   => 'event_category',
+    'taxonomy'   => 'mind_event_category',
     'hide_empty' => false,
     'fields'     => 'ids',
 ));
 
 if (!is_wp_error($term_ids)) {
     foreach ($term_ids as $term_id) {
-        wp_delete_term($term_id, 'event_category');
+        wp_delete_term($term_id, 'mind_event_category');
     }
 }

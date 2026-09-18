@@ -455,7 +455,7 @@ class mindEventCalendar {
         if (!$use_frontend_period && $calDate === 'archive') {
             // Whatever is on now or starts in the next 30 days.
             $default['meta_query'][] = mindevents_overlapping_meta_query(new DateTimeImmutable('now'), new DateTimeImmutable('+30 days'));
-        } elseif (!$use_frontend_period && is_tax('event_category')) {
+        } elseif (!$use_frontend_period && is_tax('mind_event_category')) {
             $default['meta_query'][] = array(
                 'key'     => 'mindevents_end_utc',
                 'value'   => $now,
@@ -794,7 +794,7 @@ class mindEventCalendar {
 
         // Set directly: tax_input is skipped when the current user cannot
         // assign terms, and permission was already checked by the caller.
-        wp_set_post_terms($post_id, wp_get_post_terms($eventID, 'event_category', array('fields' => 'ids')), 'event_category');
+        wp_set_post_terms($post_id, wp_get_post_terms($eventID, 'mind_event_category', array('fields' => 'ids')), 'mind_event_category');
         mindevents_sync_event_date_range($eventID);
 
         return $post_id;

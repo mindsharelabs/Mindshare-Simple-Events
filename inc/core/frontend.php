@@ -19,7 +19,7 @@ add_filter('template_include', function($template) {
         return ($exists !== '') ? $exists : MINDEVENTS_ABSPATH . 'templates/single-events.php';
     }
 
-    if (is_tax('event_category')) {
+    if (is_tax('mind_event_category')) {
         $theme_files = array('taxonomy-event-category.php', 'templates/taxonomy-event-category.php');
         $exists = locate_template($theme_files, false);
 
@@ -39,7 +39,7 @@ function mindevents_get_frontend_filter_context($context = null) {
         return 'events_archive';
     }
 
-    if (is_tax('event_category')) {
+    if (is_tax('mind_event_category')) {
         return 'event_category_archive';
     }
 
@@ -53,7 +53,7 @@ function mindevents_get_frontend_filter_context($context = null) {
  * already contains any subdirectory WordPress is installed in.
  */
 function mindevents_current_view_url() {
-    if (is_tax('event_category')) {
+    if (is_tax('mind_event_category')) {
         $link = get_term_link(get_queried_object());
         return is_wp_error($link) ? '' : $link;
     }
@@ -95,7 +95,7 @@ function mindevents_expand_event_category_ids($term_ids) {
         }
 
         $expanded_ids[] = $term_id;
-        $children = get_term_children($term_id, 'event_category');
+        $children = get_term_children($term_id, 'mind_event_category');
         if (is_wp_error($children) || empty($children)) {
             continue;
         }
@@ -187,7 +187,7 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
         $filters['query_category_ids']    = mindevents_expand_event_category_ids($filters['selected_category_ids']);
     } elseif ($context === 'event_category_archive') {
         $queried_term = get_queried_object();
-        if ($queried_term instanceof WP_Term && $queried_term->taxonomy === 'event_category') {
+        if ($queried_term instanceof WP_Term && $queried_term->taxonomy === 'mind_event_category') {
             $filters['scoped_term_id']     = (int) $queried_term->term_id;
             $filters['query_category_ids'] = mindevents_expand_event_category_ids(array($queried_term->term_id));
         }
@@ -226,7 +226,7 @@ function mindevents_apply_frontend_filters_to_sub_event_query_args($args, $filte
 
     if (!empty($filters['query_category_ids'])) {
         $category_query = array(
-            'taxonomy'         => 'event_category',
+            'taxonomy'         => 'mind_event_category',
             'field'            => 'term_id',
             'terms'            => array_map('absint', $filters['query_category_ids']),
             'include_children' => false,
@@ -402,7 +402,7 @@ function mindevents_get_frontend_filter_form($filters = null) {
     $categories = array();
     if ($is_events_archive) {
         $categories = get_terms(array(
-            'taxonomy'   => 'event_category',
+            'taxonomy'   => 'mind_event_category',
             'hide_empty' => false,
             'parent'     => 0,
         ));
@@ -496,7 +496,7 @@ function mindevents_get_frontend_list_pagination($calendar, $filters = null) {
 
     $filters    = is_array($filters) ? $filters : mindevents_get_frontend_filters();
     $current    = max(1, absint($filters['paged'] ?? 1));
-    $base_url   = is_tax('event_category') ? get_term_link(get_queried_object()) : get_post_type_archive_link('mind_events');
+    $base_url   = is_tax('mind_event_category') ? get_term_link(get_queried_object()) : get_post_type_archive_link('mind_events');
 
     if (is_wp_error($base_url) || !$base_url) {
         return '';

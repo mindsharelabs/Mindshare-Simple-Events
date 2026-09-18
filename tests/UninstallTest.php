@@ -46,7 +46,7 @@ class UninstallTest extends Mindshare_Events_TestCase {
     public function test_uninstall_removes_all_data_when_asked(): void {
         $event_id      = $this->createEvent();
         $occurrence_id = $this->createOccurrence($event_id, '2030-05-01');
-        $term          = wp_insert_term('Ceramics', 'event_category');
+        $term          = wp_insert_term('Ceramics', 'mind_event_category');
         update_term_meta($term['term_id'], 'mindevents_category_color', '#aa0000');
 
         define('MINDEVENTS_REMOVE_ALL_DATA', true);

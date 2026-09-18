@@ -23,9 +23,9 @@ class MetaSanitizationTest extends Mindshare_Events_TestCase {
 
     public function test_category_color_written_through_the_rest_api_is_sanitized(): void {
         $this->actAs('administrator');
-        $term = wp_insert_term('Glass', 'event_category');
+        $term = wp_insert_term('Glass', 'mind_event_category');
 
-        $request = new WP_REST_Request('POST', '/wp/v2/event_category/' . $term['term_id']);
+        $request = new WP_REST_Request('POST', '/wp/v2/mind_event_category/' . $term['term_id']);
         $request->set_body_params(array('meta' => array('mindevents_category_color' => 'red;background:url(x)')));
         rest_do_request($request);
 

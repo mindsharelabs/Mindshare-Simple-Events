@@ -4,7 +4,7 @@ Mindshare Simple Events is a self-contained WordPress events plugin for sites th
 
 ## v1 Scope
 
-- `mind_events` and `mind_sub_event` post types with the `event_category` taxonomy, served under `/events/`
+- `mind_events` and `mind_sub_event` post types with the `mind_event_category` taxonomy, served under `/events/` and `/event_category/`
 - admin occurrence calendar for adding, editing, moving, and deleting dates
 - month, week, and list views for archives and single events
 - category filtering and title search on the public archive
