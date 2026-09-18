@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 10:34-0600\n"
+"POT-Creation-Date: 2026-09-18 10:53-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "Show past and upcoming"
 msgstr ""
 
-#: inc/core/admin.php:73 inc/core/admin.php:171 inc/core/ajax.php:226
+#: inc/core/admin.php:73 inc/core/ajax.php:226
 msgid "Location"
 msgstr ""
 
@@ -59,24 +59,26 @@ msgstr ""
 msgid "Optional venue or room name."
 msgstr ""
 
-#: inc/core/admin.php:74 inc/core/admin.php:172 inc/core/ajax.php:227
+#: inc/core/admin.php:74 inc/core/ajax.php:227
 msgid "Organizer Name"
 msgstr ""
 
-#: inc/core/admin.php:75 inc/core/admin.php:173 inc/core/ajax.php:228
+#: inc/core/admin.php:75 inc/core/ajax.php:228
 msgid "Organizer Title"
 msgstr ""
 
-#: inc/core/admin.php:76 inc/core/admin.php:174
+#: inc/core/admin.php:76
 msgid "Media Library attachment ID for the organizer photo."
 msgstr ""
 
-#: inc/core/admin.php:76 inc/core/admin.php:174 inc/core/ajax.php:229
+#: inc/core/admin.php:76 inc/core/ajax.php:229
 msgid "Organizer Image ID"
 msgstr ""
 
-#: inc/core/admin.php:84
-msgid "Default Occurrence Fields"
+#: inc/core/admin.php:85
+msgid ""
+"Click a day to add a date. Click a date to edit it, or drag it to another "
+"day."
 msgstr ""
 
 #: inc/core/admin.php:87
@@ -91,24 +93,16 @@ msgstr ""
 msgid "Clear All Occurrences"
 msgstr ""
 
-#: inc/core/admin.php:167 inc/core/ajax.php:222
-msgid "Occurrence Start"
+#: inc/core/admin.php:165
+msgid "New dates"
 msgstr ""
 
-#: inc/core/admin.php:168 inc/core/ajax.php:223
-msgid "Occurrence End"
+#: inc/core/admin.php:166
+msgid "Start"
 msgstr ""
 
-#: inc/core/admin.php:169 inc/core/ajax.php:224
-msgid "Occurrence Color"
-msgstr ""
-
-#: inc/core/admin.php:169
-msgid "Optional override for the category color."
-msgstr ""
-
-#: inc/core/admin.php:170 inc/core/ajax.php:225
-msgid "Short Description"
+#: inc/core/admin.php:167
+msgid "End"
 msgstr ""
 
 #: inc/core/ajax.php:44
@@ -127,7 +121,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:781
+#: inc/core/ajax.php:85 inc/core/events.php:793
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -147,6 +141,22 @@ msgstr ""
 msgid "Occurrence Date"
 msgstr ""
 
+#: inc/core/ajax.php:222
+msgid "Occurrence Start"
+msgstr ""
+
+#: inc/core/ajax.php:223
+msgid "Occurrence End"
+msgstr ""
+
+#: inc/core/ajax.php:224
+msgid "Occurrence Color"
+msgstr ""
+
+#: inc/core/ajax.php:225
+msgid "Short Description"
+msgstr ""
+
 #: inc/core/ajax.php:231
 msgid "Update Occurrence"
 msgstr ""
@@ -155,51 +165,51 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: inc/core/events.php:350
+#: inc/core/events.php:359
 msgid "Previous Week"
 msgstr ""
 
-#: inc/core/events.php:351
+#: inc/core/events.php:360
 msgid "Next Week"
 msgstr ""
 
-#: inc/core/events.php:464
+#: inc/core/events.php:473
 msgid "No events matched the current filters."
 msgstr ""
 
-#: inc/core/events.php:537
+#: inc/core/events.php:546
 msgid "No events matched the current view."
 msgstr ""
 
-#: inc/core/events.php:540
+#: inc/core/events.php:549
 msgid "There are no upcoming events."
 msgstr ""
 
-#: inc/core/events.php:626 inc/core/post-types.php:28
+#: inc/core/events.php:635 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:682
+#: inc/core/events.php:691
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:693
+#: inc/core/events.php:702
 msgid "Open Event Page"
 msgstr ""
 
-#: inc/core/events.php:727
+#: inc/core/events.php:739
 msgid "Remove occurrence"
 msgstr ""
 
-#: inc/core/events.php:744
+#: inc/core/events.php:756
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:763
+#: inc/core/events.php:775
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1164
+#: inc/core/events.php:1177
 msgid "Organizer"
 msgstr ""
 
@@ -412,41 +422,41 @@ msgstr ""
 msgid "All Occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:81
+#: inc/core/post-types.php:82
 msgctxt "Taxonomy General Name"
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:82
+#: inc/core/post-types.php:83
 msgctxt "Taxonomy Singular Name"
 msgid "Event Category"
 msgstr ""
 
-#: inc/core/post-types.php:83
+#: inc/core/post-types.php:84
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:84
+#: inc/core/post-types.php:85
 msgid "All Categories"
 msgstr ""
 
-#: inc/core/post-types.php:85
+#: inc/core/post-types.php:86
 msgid "Add New Category"
 msgstr ""
 
-#: inc/core/post-types.php:86
+#: inc/core/post-types.php:87
 msgid "Edit Category"
 msgstr ""
 
-#: inc/core/post-types.php:87
+#: inc/core/post-types.php:88
 msgid "View Category"
 msgstr ""
 
-#: inc/core/post-types.php:159 inc/core/post-types.php:174
+#: inc/core/post-types.php:160 inc/core/post-types.php:175
 msgid "Category Color"
 msgstr ""
 
-#: inc/core/post-types.php:161 inc/core/post-types.php:179
+#: inc/core/post-types.php:162 inc/core/post-types.php:180
 msgid "Used for calendar and list color accents."
 msgstr ""
 

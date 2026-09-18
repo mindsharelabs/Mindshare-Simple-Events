@@ -28,16 +28,15 @@ class OccurrenceColorTest extends Mindshare_Events_TestCase {
     public function test_the_color_field_can_be_left_empty(): void {
         $this->actAs('administrator');
 
-        $calendar_metabox = $this->captureMetabox();
+        $occurrence_id = $this->createOccurrence($this->event_id, '2030-05-01');
 
-        $this->assertStringNotContainsString('type="color"', $calendar_metabox, 'A native color input cannot submit an empty value.');
-        $this->assertStringContainsString('mindevents-color-field', $calendar_metabox);
+        $form = $this->ajax('mindevents_editevent', array(
+            'nonce'   => wp_create_nonce('mindevents_ajax'),
+            'eventid' => $occurrence_id,
+        ))['data']['html'];
+
+        $this->assertStringNotContainsString('type="color"', $form, 'A native color input cannot submit an empty value.');
+        $this->assertStringContainsString('mindevents-color-field', $form);
     }
 
-    private function captureMetabox(): string {
-        $GLOBALS['post'] = get_post($this->event_id);
-        ob_start();
-        (new mindeventsAdmin())->display_calendar_metabox(get_post($this->event_id));
-        return ob_get_clean();
-    }
 }

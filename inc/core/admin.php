@@ -81,8 +81,8 @@ class mindeventsAdmin {
         $calendar = new mindEventCalendar($post->ID, time(), true);
 
         echo '<div class="mindevents-admin-panel">';
-        echo '<h3 class="mindevents-admin-heading">' . esc_html__('Default Occurrence Fields', 'simple-events') . '</h3>';
         $this->get_time_form();
+        echo '<p class="description">' . esc_html__('Click a day to add a date. Click a date to edit it, or drag it to another day.', 'simple-events') . '</p>';
         echo '<div class="mindevents-admin-calendar-nav">';
         echo '<button type="button" data-dir="prev" class="mindevents-button mindevents-button--secondary mindevents-admin-nav">' . esc_html__('Previous Month', 'simple-events') . '</button>';
         echo '<button type="button" data-dir="next" class="mindevents-button mindevents-button--secondary mindevents-admin-nav">' . esc_html__('Next Month', 'simple-events') . '</button>';
@@ -142,20 +142,18 @@ class mindeventsAdmin {
         );
     }
 
+    /**
+     * Defaults hold only the times new dates start with. Location,
+     * organizer and the rest fall back to the event at display time, so
+     * changing the event later reaches every date; copying them into each
+     * new date froze them there.
+     */
     private function sanitize_occurrence_defaults($defaults) {
         $defaults = is_array($defaults) ? $defaults : array();
 
-        $event_color = sanitize_hex_color($defaults['eventColor'] ?? '');
-
         return array(
-            'starttime'                    => mindevents_normalize_time_value($defaults['starttime'] ?? '', $this->default_start_time),
-            'endtime'                      => mindevents_normalize_time_value($defaults['endtime'] ?? '', $this->default_end_time),
-            'eventColor'                   => $event_color ? $event_color : '',
-            'eventDescription'             => wp_kses_post($defaults['eventDescription'] ?? ''),
-            'mindevents_location'          => sanitize_text_field((string) ($defaults['mindevents_location'] ?? '')),
-            'mindevents_organizer_name'    => sanitize_text_field((string) ($defaults['mindevents_organizer_name'] ?? '')),
-            'mindevents_organizer_title'   => sanitize_text_field((string) ($defaults['mindevents_organizer_title'] ?? '')),
-            'mindevents_organizer_image_id'=> absint($defaults['mindevents_organizer_image_id'] ?? 0),
+            'starttime' => mindevents_normalize_time_value($defaults['starttime'] ?? '', $this->default_start_time),
+            'endtime'   => mindevents_normalize_time_value($defaults['endtime'] ?? '', $this->default_end_time),
         );
     }
 
@@ -163,15 +161,10 @@ class mindeventsAdmin {
         $defaults = get_post_meta(get_the_ID(), 'event_defaults', true);
         $defaults = is_array($defaults) ? $defaults : array();
 
-        echo '<fieldset id="defaultEventMeta" class="mindevents-admin-form-grid">';
-        $this->render_text_control('event[starttime]', 'starttime', __('Occurrence Start', 'simple-events'), mindevents_normalize_time_value($defaults['starttime'] ?? '', $this->default_start_time), '', 'time');
-        $this->render_text_control('event[endtime]', 'endtime', __('Occurrence End', 'simple-events'), mindevents_normalize_time_value($defaults['endtime'] ?? '', $this->default_end_time), '', 'time');
-        $this->render_text_control('event[eventColor]', 'eventColor', __('Occurrence Color', 'simple-events'), $defaults['eventColor'] ?? '', __('Optional override for the category color.', 'simple-events'), 'color');
-        $this->render_textarea_control('event[eventDescription]', 'eventDescription', __('Short Description', 'simple-events'), $defaults['eventDescription'] ?? '');
-        $this->render_text_control('event[mindevents_location]', 'mindevents_location', __('Location', 'simple-events'), $defaults['mindevents_location'] ?? '');
-        $this->render_text_control('event[mindevents_organizer_name]', 'mindevents_organizer_name', __('Organizer Name', 'simple-events'), $defaults['mindevents_organizer_name'] ?? '');
-        $this->render_text_control('event[mindevents_organizer_title]', 'mindevents_organizer_title', __('Organizer Title', 'simple-events'), $defaults['mindevents_organizer_title'] ?? '');
-        $this->render_text_control('event[mindevents_organizer_image_id]', 'mindevents_organizer_image_id', __('Organizer Image ID', 'simple-events'), $defaults['mindevents_organizer_image_id'] ?? '', __('Media Library attachment ID for the organizer photo.', 'simple-events'), 'number');
+        echo '<fieldset id="defaultEventMeta" class="mindevents-admin-new-dates">';
+        echo '<legend>' . esc_html__('New dates', 'simple-events') . '</legend>';
+        $this->render_text_control('event[starttime]', 'starttime', __('Start', 'simple-events'), mindevents_normalize_time_value($defaults['starttime'] ?? '', $this->default_start_time), '', 'time');
+        $this->render_text_control('event[endtime]', 'endtime', __('End', 'simple-events'), mindevents_normalize_time_value($defaults['endtime'] ?? '', $this->default_end_time), '', 'time');
         echo '</fieldset>';
     }
 
@@ -184,16 +177,6 @@ class mindeventsAdmin {
         } else {
             echo '<input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" value="' . esc_attr((string) $value) . '">';
         }
-        if ($description) {
-            echo '<p class="description">' . esc_html($description) . '</p>';
-        }
-        echo '</div>';
-    }
-
-    private function render_textarea_control($name, $id, $label, $value = '', $description = '') {
-        echo '<div class="mindevents-admin-field mindevents-admin-field--full">';
-        echo '<label for="' . esc_attr($id) . '">' . esc_html($label) . '</label>';
-        echo '<textarea name="' . esc_attr($name) . '" id="' . esc_attr($id) . '" rows="4">' . esc_textarea((string) $value) . '</textarea>';
         if ($description) {
             echo '<p class="description">' . esc_html($description) . '</p>';
         }

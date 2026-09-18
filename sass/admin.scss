@@ -422,3 +422,29 @@ body.mindevents-admin-modal-open {
         width: 100%;
     }
 }
+
+/* "New dates run from [start] to [end]", on one line above the calendar. */
+.mindevents-admin-new-dates {
+    align-items: end;
+    border: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 0 0 8px;
+    padding: 0;
+}
+
+.mindevents-admin-new-dates legend {
+    font-weight: 700;
+    margin-bottom: 6px;
+    padding: 0;
+}
+
+.mindevents-admin-new-dates .mindevents-admin-field {
+    margin: 0;
+}
+
+/* Fields in a row keep their own height when a neighbour has help text. */
+.mindevents-admin-form-grid {
+    align-items: start;
+}
