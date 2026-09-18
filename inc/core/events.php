@@ -387,6 +387,8 @@ class mindEventCalendar {
             unset($args['meta_query']);
         }
 
+        $has_parent_context = (is_numeric($this->eventID) && (int) $this->eventID > 0);
+
         $defaults = array(
             'meta_query'       => array(
                 array(
@@ -399,10 +401,13 @@ class mindEventCalendar {
             'meta_type'        => 'DATETIME',
             'order'            => 'ASC',
             'post_type'        => 'sub_event',
-            'post_parent'      => is_numeric($this->eventID) ? (int) $this->eventID : 0,
             'suppress_filters' => true,
             'posts_per_page'   => -1,
         );
+
+        if ($has_parent_context) {
+            $defaults['post_parent'] = (int) $this->eventID;
+        }
 
         if (!is_admin()) {
             $defaults['meta_query'][] = mindevents_public_visibility_meta_query();
@@ -427,7 +432,7 @@ class mindEventCalendar {
             );
         }
 
-        if (is_admin() && empty($args['post_parent'])) {
+        if (!$has_parent_context && empty($args['post_parent']) && empty($args['post_parent__in'])) {
             unset($defaults['post_parent']);
         }
 
