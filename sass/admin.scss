@@ -229,6 +229,16 @@ body.mindevents-admin-modal-open {
     border-color: var(--mindevents-admin-accent);
 }
 
+/* Read aloud, but not shown: the grid's column heading already names the day. */
+.mindevents-calendar-day-name {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
 #eventsCalendar .mindevents-calendar-day-number {
     color: var(--mindevents-admin-ink);
     display: block;

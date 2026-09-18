@@ -35,4 +35,19 @@ class AccessibleMarkupTest extends Mindshare_Events_TestCase {
 
         $this->assertSame('Glaze Night', trim($xpath->query("//*[contains(@class,'mindevents-event-meta__title')]")->item(0)->textContent));
     }
+
+    public function test_each_day_carries_its_weekday_name_and_whether_it_has_events(): void {
+        $event_id = $this->createEvent();
+        $this->createOccurrence($event_id, '2030-07-04');
+
+        $html  = (new mindEventCalendar($event_id, '2030-07-01'))->get_calendar();
+        $xpath = $this->dom($html);
+
+        $fourth = $xpath->query("//*[@data-date='2030-07-04']")->item(0);
+        $fifth  = $xpath->query("//*[@data-date='2030-07-05']")->item(0);
+
+        $this->assertStringContainsString('has-events', $fourth->getAttribute('class'));
+        $this->assertStringNotContainsString('has-events', $fifth->getAttribute('class'));
+        $this->assertSame(wp_date('l', strtotime('2030-07-04')), trim($xpath->query(".//*[contains(@class,'mindevents-calendar-day-name')]", $fourth)->item(0)->textContent));
+    }
 }

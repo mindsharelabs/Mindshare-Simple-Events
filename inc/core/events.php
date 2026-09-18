@@ -215,8 +215,16 @@ class mindEventCalendar {
                 $classes[] = $this->classes['past'];
             }
 
+            if (isset($this->dailyHtml[$year][$month][$day])) {
+                $classes[] = 'has-events';
+            }
+
+            // The weekday name is read aloud in the grid, where a column
+            // heading names the day, and shown once the grid collapses.
             $out .= '<div class="' . esc_attr(implode(' ', $classes)) . '" data-date="' . esc_attr($date->format('Y-m-d')) . '">';
-            $out .= '<time class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">' . esc_html((string) $day) . '</time>';
+            $out .= '<time class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">';
+            $out .= '<span class="mindevents-calendar-day-name">' . esc_html($GLOBALS['wp_locale']->get_weekday((int) $date->format('w'))) . ' </span>';
+            $out .= esc_html((string) $day) . '</time>';
 
             if (isset($this->dailyHtml[$year][$month][$day])) {
                 $out .= '<div class="' . esc_attr($this->classes['events']) . '">';

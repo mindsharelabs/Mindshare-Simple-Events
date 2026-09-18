@@ -449,6 +449,16 @@
     opacity: 0.72;
 }
 
+/* Read aloud, but not shown: the grid's column heading already names the day. */
+.mindevents-calendar-day-name {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
 .mindevents-calendar-day-number {
     color: var(--mindevents-ink);
     display: block;
@@ -740,6 +750,15 @@
     border-right: 1px solid var(--mindevents-border);
 }
 
+/* Keep the hours in view while a narrow screen scrolls across the days. */
+.mindevents-weekly-corner,
+.mindevents-weekly-axis {
+    background: var(--mindevents-surface-strong);
+    left: 0;
+    position: sticky;
+    z-index: 3;
+}
+
 .mindevents-weekly-day {
     border-right: 1px solid var(--mindevents-border);
 }
@@ -952,6 +971,20 @@ body.mindevents-has-modal {
 
     .mindevents-calendar-day {
         min-height: 0;
+    }
+
+    /* One column reads as an agenda: only the days with something on. */
+    .mindevents-calendar-day--empty,
+    .mindevents-calendar-day:not(.has-events) {
+        display: none;
+    }
+
+    .mindevents-calendar-day-name {
+        clip-path: none;
+        height: auto;
+        overflow: visible;
+        position: static;
+        width: auto;
     }
 
     .mindevents-filter-toolbar,
