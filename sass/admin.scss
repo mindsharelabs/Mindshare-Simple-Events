@@ -339,18 +339,26 @@ body.mindevents-admin-modal-open {
     padding: 10px 12px;
 }
 
+/*
+ * Closed, the dialog is hidden with visibility as well as opacity:
+ * opacity alone left its buttons in the tab order, invisible. Visibility
+ * waits for the fade before switching off.
+ */
 .mindevents-admin-modal {
     inset: 0;
     opacity: 0;
     pointer-events: none;
     position: fixed;
-    transition: opacity 140ms ease;
+    transition: opacity 140ms ease, visibility 0s linear 140ms;
+    visibility: hidden;
     z-index: 100000;
 }
 
 .mindevents-admin-modal.is-open {
     opacity: 1;
     pointer-events: auto;
+    transition: opacity 140ms ease, visibility 0s;
+    visibility: visible;
 }
 
 .mindevents-admin-modal__backdrop {
