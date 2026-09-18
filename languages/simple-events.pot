@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 22:56-0600\n"
+"POT-Creation-Date: 2026-09-17 23:09-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "Display Type"
 msgstr ""
 
-#: inc/core/admin.php:59 inc/core/frontend.php:408
+#: inc/core/admin.php:59 inc/core/frontend.php:427
 msgid "List"
 msgstr ""
 
@@ -215,86 +215,86 @@ msgstr ""
 msgid "Organizer"
 msgstr ""
 
-#: inc/core/frontend.php:349 inc/core/frontend.php:360
-#: inc/core/frontend.php:431 mindshare-events.php:116
+#: inc/core/frontend.php:368 inc/core/frontend.php:379
+#: inc/core/frontend.php:450 mindshare-events.php:116
 msgid "Categories"
 msgstr ""
 
 #. translators: %d: number of selected categories
-#: inc/core/frontend.php:368
+#: inc/core/frontend.php:387
 #, php-format
 msgid "%d Category"
 msgid_plural "%d Categories"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/core/frontend.php:407
+#: inc/core/frontend.php:426
 msgid "Event views"
 msgstr ""
 
-#: inc/core/frontend.php:408
+#: inc/core/frontend.php:427
 msgid "Month"
 msgstr ""
 
-#: inc/core/frontend.php:408
+#: inc/core/frontend.php:427
 msgid "Week"
 msgstr ""
 
-#: inc/core/frontend.php:423
+#: inc/core/frontend.php:442
 msgid "Filters"
 msgstr ""
 
-#: inc/core/frontend.php:448
+#: inc/core/frontend.php:467
 msgid "Search events"
 msgstr ""
 
-#: inc/core/frontend.php:449
+#: inc/core/frontend.php:468
 msgid "Search event title"
 msgstr ""
 
-#: inc/core/frontend.php:453
+#: inc/core/frontend.php:472
 msgid "Apply"
 msgstr ""
 
-#: inc/core/frontend.php:454
+#: inc/core/frontend.php:473
 msgid "Reset"
 msgstr ""
 
-#: inc/core/frontend.php:496
+#: inc/core/frontend.php:515
 msgid "Previous"
 msgstr ""
 
-#: inc/core/frontend.php:497
+#: inc/core/frontend.php:516
 msgid "Next"
 msgstr ""
 
-#: inc/core/frontend.php:504
+#: inc/core/frontend.php:523
 msgid "Event list pagination"
 msgstr ""
 
 #. translators: %s: date of the event's next occurrence
-#: inc/core/frontend.php:545
+#: inc/core/frontend.php:564
 #, php-format
 msgid "Next occurrence: %s"
 msgstr ""
 
-#: inc/core/frontend.php:582
+#: inc/core/frontend.php:601
 msgid "Subscribe to Calendar Feed"
 msgstr ""
 
-#: inc/core/frontend.php:779
+#: inc/core/frontend.php:798
 msgid "Add to Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:783
+#: inc/core/frontend.php:802
 msgid "Google Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:784
+#: inc/core/frontend.php:803
 msgid "Apple / Outlook (.ics)"
 msgstr ""
 
-#: inc/core/frontend.php:785
+#: inc/core/frontend.php:804
 msgid "Yahoo Calendar"
 msgstr ""
 
@@ -340,6 +340,19 @@ msgstr ""
 
 #: inc/core/options.php:74
 msgid "Default End Time"
+msgstr ""
+
+#. translators: %s: link to the General Settings screen
+#: inc/core/options.php:109
+#, php-format
+msgid ""
+"Your site uses a fixed UTC offset, which does not change for daylight saving "
+"time, so event times will be an hour off for part of the year. Choose a city "
+"in %s instead."
+msgstr ""
+
+#: inc/core/options.php:110
+msgid "General Settings"
 msgstr ""
 
 #: inc/core/post-types.php:19 inc/core/post-types.php:20
@@ -411,41 +424,41 @@ msgstr ""
 msgid "All Occurrences"
 msgstr ""
 
-#: inc/core/post-types.php:76
+#: inc/core/post-types.php:79
 msgctxt "Taxonomy General Name"
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:77
+#: inc/core/post-types.php:80
 msgctxt "Taxonomy Singular Name"
 msgid "Event Category"
 msgstr ""
 
-#: inc/core/post-types.php:78
+#: inc/core/post-types.php:81
 msgid "Event Categories"
 msgstr ""
 
-#: inc/core/post-types.php:79
+#: inc/core/post-types.php:82
 msgid "All Categories"
 msgstr ""
 
-#: inc/core/post-types.php:80
+#: inc/core/post-types.php:83
 msgid "Add New Category"
 msgstr ""
 
-#: inc/core/post-types.php:81
+#: inc/core/post-types.php:84
 msgid "Edit Category"
 msgstr ""
 
-#: inc/core/post-types.php:82
+#: inc/core/post-types.php:85
 msgid "View Category"
 msgstr ""
 
-#: inc/core/post-types.php:153 inc/core/post-types.php:168
+#: inc/core/post-types.php:155 inc/core/post-types.php:170
 msgid "Category Color"
 msgstr ""
 
-#: inc/core/post-types.php:155 inc/core/post-types.php:172
+#: inc/core/post-types.php:157 inc/core/post-types.php:174
 msgid "Used for calendar and list color accents."
 msgstr ""
 

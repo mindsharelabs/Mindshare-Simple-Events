@@ -97,6 +97,22 @@ class mindEventsOptions {
         ?>
         <div class="wrap">
             <h1><?php esc_html_e('Simple Events Settings', 'simple-events'); ?></h1>
+            <?php
+            // A manual offset leaves timezone_string empty. UTC itself is a real zone.
+            if (get_option('timezone_string') === '') :
+                ?>
+                <div class="notice notice-warning inline mindevents-timezone-notice">
+                    <p>
+                        <?php
+                        printf(
+                            /* translators: %s: link to the General Settings screen */
+                            esc_html__('Your site uses a fixed UTC offset, which does not change for daylight saving time, so event times will be an hour off for part of the year. Choose a city in %s instead.', 'simple-events'),
+                            '<a href="' . esc_url(admin_url('options-general.php#timezone_string')) . '">' . esc_html__('General Settings', 'simple-events') . '</a>'
+                        );
+                        ?>
+                    </p>
+                </div>
+            <?php endif; ?>
             <form action="options.php" method="post">
                 <?php
                 settings_fields('mindeventsPlugin');
