@@ -8,7 +8,6 @@ next begins. Each finished item is its own commit.
 - [x] Week view: overlapping occurrences, extension hook, radius token,
       build config
 - [x] Foundation review and fixes. See [foundation-review.md](foundation-review.md).
-      Open: the S8 visibility decision, the license, and post type names.
 
 ## Phase 1: Production readiness
 

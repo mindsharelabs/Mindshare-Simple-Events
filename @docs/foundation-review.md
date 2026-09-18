@@ -28,8 +28,7 @@ The serious problems were concentrated in two places:
   offset, in five redundant forms. That was the root of several display
   bugs, and it would have undermined RSVP reminders and ticket validity.
 
-All findings are resolved except **S8**, which needs a product decision
-(see [Open decisions](#open-decisions)).
+All findings are resolved.
 
 ## What is solid
 
@@ -66,7 +65,7 @@ planned work. **Bug** covers incorrect behavior with no security impact.
 | S5 | Medium | Handlers that take an event ID accepted any post the user could edit, so occurrences could be attached to pages or posts. The delete handler permanently deleted, past the trash, **any** post the user could delete. *Verified.* | Fixed `9223c9b` |
 | S6 | Latent | JSON-LD was encoded with `JSON_UNESCAPED_SLASHES` and printed unescaped, so a `</script>` in any schema string would break out of the block. *Verified.* | Fixed `d613218` |
 | S7 | Low | The admin script inserted server error messages as HTML, and some messages were PHP exception text echoing request input: self-XSS. *Verified.* | Fixed `e38dbde` |
-| S8 | Decision | Internal events are hidden from the plugin's own listings, feeds and API, but still reachable by URL, and still appear in **site search, the core REST API (`/wp/v2/events`) and the XML sitemap**. Confirmed with a probe; the test will come with the fix, since its shape depends on the decision. | Open, see below |
+| S8 | Medium | Internal events were hidden from the plugin's own listings, feeds and API, but still reachable by URL, and still appeared in **site search, the core REST API (`/wp/v2/events`) and the XML sitemap**. | Fixed `7a862f7` |
 | S9 | Medium | *New.* Occurrences were always created as published, whatever their event's status, so a draft event's title and dates appeared in public calendars, the REST API and the ICS feed. Scheduling an event published its occurrences immediately. *Verified.* | Fixed `74fde00` |
 
 ### Capabilities
@@ -97,7 +96,7 @@ planned work. **Bug** covers incorrect behavior with no security impact.
 | H2 | Bug | There was no uninstall routine. | Fixed `c32df47` |
 | H3 | Bug | `sub_event` was publicly queryable, so occurrences were URL-addressable with no template. | Fixed `882f3a9` |
 | H4 | Bug | Registered meta had no `sanitize_callback`. **Correction:** the review said REST writes were stored unsanitized. That was true for the category color, which REST exposes. Event and occurrence meta are not in REST at all, because events do not support `custom-fields`. They got sanitizers anyway, since those run on every write. | Fixed `5b90023` |
-| H5 | Bug | The plugin header had no `Requires at least`, `Requires PHP`, `License` or `Domain Path`. | Fixed `ddaff59`, except License (see below) |
+| H5 | Bug | The plugin header had no `Requires at least`, `Requires PHP`, `License` or `Domain Path`, and the repository's license declarations disagreed. | Fixed `ddaff59`, `d887b1c` |
 | H6 | Bug | Dead code: six calendar methods, an unused AJAX helper, and an **Event Type** setting that was saved but never read. | Fixed `0bf9395` |
 | H7 | Cleanup | Legacy compatibility reads for data the unshipped plugin never had. | Fixed `1441fec` |
 | H8 | Bug | Every save of an event re-saved every one of its occurrences. | Fixed `2afb8d6` |
@@ -163,47 +162,35 @@ Settings, roles and capabilities are always removed. Events, occurrences
 and categories are deleted only when `MINDEVENTS_REMOVE_ALL_DATA` is
 defined, the usual WordPress practice.
 
-## Open decisions
+### Private events use WordPress's Private status (S8)
 
-### S8: what "Internal" means
+"Internal" was plugin meta, which WordPress knew nothing about, so core
+surfaces kept exposing internal events. It is replaced by WordPress's own
+Private status, which core hides from everyone without permission on every
+surface, including ones added later. Occurrences take their event's
+status, and Event Managers, Editors and Administrators still see private
+events. Visibility is now per event; an individual date can no longer be
+hidden on its own.
 
-Internal events are excluded from every surface the plugin controls, but
-WordPress still exposes them through site search, `/wp/v2/events` and the
-XML sitemap, and their single page is reachable by URL. Two ways to close
-it:
+### License: GPL-3.0-or-later
 
-- **A. Keep "Internal" as plugin visibility and hide it everywhere.** This
-  needs hooks on the single page, search, core REST and sitemaps, and a
-  hook for every new surface later.
-- **B. Replace "Internal" with WordPress's own Private status.** Core
-  already hides private posts from everyone without permission, on every
-  surface including ones added later, and removes the visibility meta and
-  its query code from the plugin. The cost is that visibility becomes
-  per event: individual occurrences would no longer have their own
-  internal setting.
+The header, `package.json` and `composer.json` all declare
+GPL-3.0-or-later, with the full text in `LICENSE.txt`. "Or later" follows
+the practice of the plugin this one replaced (`d887b1c`).
 
-B is simpler and more robust. It is a product decision because it drops
-per-occurrence visibility.
+### Prefixed names (P2)
 
-### License
-
-`package.json` declares GPL-3.0, while the plugin this one replaced used
-GPL-2.0-or-later. `composer.json` now matches `package.json`, and the
-plugin header's `License` line is left out until this is decided.
-
-### P2: post type names
-
-The post types are named `events` and `sub_event`. Generic names can
-collide with other plugins and themes, and renaming them after launch
-means migrating data and URLs. If they are going to change, now is the
-cheapest time.
+The post types are `mind_events` and `mind_sub_event` (`7671563`), and the
+category taxonomy is `mind_event_category` (`f7adda7`), so they cannot
+collide with another plugin's or theme's. Public URLs are unchanged:
+`/events/`, `/events/{slug}/` and `/event_category/{slug}/`.
 
 ## Constraints for the roadmap
 
 | ID | Affects | Constraint |
 |----|---------|------------|
 | P1 | Phase 2 | The plugin registers no shortcode or block, and front-end assets load only on event archives, single events and category pages. A mini calendar placed anywhere else needs both. |
-| P2 | All | See [Open decisions](#p2-post-type-names). |
+| P2 | All | Resolved: the post types and taxonomy are prefixed. |
 
 ## Carried into Phase 1
 
