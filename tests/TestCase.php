@@ -58,11 +58,12 @@ abstract class Mindshare_Events_TestCase extends TestCase {
     }
 
     protected function createEvent(array $args = array()): int {
-        $event_id = wp_insert_post(array_merge(array(
+        // wp_insert_post() expects slashed input, as it would get from a form.
+        $event_id = wp_insert_post(wp_slash(array_merge(array(
             'post_type'   => 'events',
             'post_title'  => 'Test Event',
             'post_status' => 'publish',
-        ), $args), true);
+        ), $args)), true);
 
         $this->assertIsInt($event_id);
 

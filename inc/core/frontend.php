@@ -624,6 +624,44 @@ function mindevents_get_ics_uid_domain() {
     return $host ? $host : 'example.com';
 }
 
+/**
+ * Escape a value for an iCalendar TEXT property (RFC 5545, 3.3.11).
+ */
+function mindevents_ics_text($value) {
+    return strtr((string) $value, array(
+        '\\'   => '\\\\',
+        ';'    => '\;',
+        ','    => '\,',
+        "\r\n" => '\n',
+        "\r"   => '\n',
+        "\n"   => '\n',
+    ));
+}
+
+/**
+ * One iCalendar content line, folded so no line exceeds 75 octets
+ * (RFC 5545, 3.1). Continuation lines begin with a space, and a fold never
+ * splits a multibyte character.
+ */
+function mindevents_ics_line($name, $value) {
+    $line   = $name . ':' . $value;
+    $output = '';
+    $limit  = 75;
+
+    while (strlen($line) > $limit) {
+        $cut = $limit;
+        while ($cut > 0 && (ord($line[$cut]) & 0xC0) === 0x80) {
+            $cut--;
+        }
+
+        $output .= substr($line, 0, $cut) . "\r\n ";
+        $line    = substr($line, $cut);
+        $limit   = 74;
+    }
+
+    return $output . $line . "\r\n";
+}
+
 function mindevents_build_ics_event_block($occurrence_id) {
     $occurrence_id = absint($occurrence_id);
     if (!mindevents_is_public_occurrence($occurrence_id)) {
@@ -635,37 +673,46 @@ function mindevents_build_ics_event_block($occurrence_id) {
         return '';
     }
 
-    $title    = mindevents_get_plain_title(wp_get_post_parent_id($occurrence_id));
-    $summary  = mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id));
     $location = mindevents_get_occurrence_location($occurrence_id);
-    $domain   = mindevents_get_ics_uid_domain();
 
-    $block  = "BEGIN:VEVENT\r\n";
-    $block .= 'UID:event-' . $occurrence_id . '@' . $domain . "\r\n";
-    $block .= 'DTSTAMP:' . gmdate('Ymd\THis\Z') . "\r\n";
-    $block .= 'DTSTART:' . gmdate('Ymd\THis\Z', $times['start']->getTimestamp()) . "\r\n";
-    $block .= 'DTEND:' . gmdate('Ymd\THis\Z', $times['end']->getTimestamp()) . "\r\n";
-    $block .= 'SUMMARY:' . str_replace(array("\r", "\n"), ' ', $title) . "\r\n";
-    $block .= 'DESCRIPTION:' . str_replace(array("\r", "\n"), ' ', $summary) . "\r\n";
+    $block  = mindevents_ics_line('BEGIN', 'VEVENT');
+    $block .= mindevents_ics_line('UID', 'event-' . $occurrence_id . '@' . mindevents_get_ics_uid_domain());
+    $block .= mindevents_ics_line('DTSTAMP', gmdate('Ymd\THis\Z'));
+    $block .= mindevents_ics_line('DTSTART', gmdate('Ymd\THis\Z', $times['start']->getTimestamp()));
+    $block .= mindevents_ics_line('DTEND', gmdate('Ymd\THis\Z', $times['end']->getTimestamp()));
+    $block .= mindevents_ics_line('SUMMARY', mindevents_ics_text(mindevents_get_plain_title(wp_get_post_parent_id($occurrence_id))));
+    $block .= mindevents_ics_line('DESCRIPTION', mindevents_ics_text(mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id))));
     if ($location !== '') {
-        $block .= 'LOCATION:' . str_replace(array("\r", "\n"), ' ', $location) . "\r\n";
+        $block .= mindevents_ics_line('LOCATION', mindevents_ics_text($location));
     }
-    $block .= "END:VEVENT\r\n";
+    $block .= mindevents_ics_line('END', 'VEVENT');
 
     return $block;
 }
 
+/**
+ * Wrap event blocks in a VCALENDAR.
+ */
+function mindevents_ics_calendar($blocks) {
+    return mindevents_ics_line('BEGIN', 'VCALENDAR')
+        . mindevents_ics_line('VERSION', '2.0')
+        . mindevents_ics_line('PRODID', mindevents_ics_text(mindevents_get_site_prod_id()))
+        . $blocks
+        . mindevents_ics_line('END', 'VCALENDAR');
+}
+
 function mindevents_generate_ics_feed() {
     $events = get_posts(array(
-        'post_type'      => 'sub_event',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'orderby'        => 'meta_value',
-        'meta_key'       => 'mindevents_start_utc',
-        'meta_type'      => 'DATETIME',
-        'order'          => 'ASC',
+        'post_type'        => 'sub_event',
+        'post_status'      => 'publish',
+        'posts_per_page'   => -1,
+        'fields'           => 'ids',
+        'orderby'          => 'meta_value',
+        'meta_key'         => 'mindevents_start_utc',
+        'meta_type'        => 'DATETIME',
+        'order'            => 'ASC',
         'suppress_filters' => true,
-        'meta_query'     => array(
+        'meta_query'       => array(
             array(
                 'key'     => 'mindevents_start_utc',
                 'value'   => mindevents_now_utc(),
@@ -676,27 +723,11 @@ function mindevents_generate_ics_feed() {
         ),
     ));
 
-    $output  = "BEGIN:VCALENDAR\r\n";
-    $output .= "VERSION:2.0\r\n";
-    $output .= 'PRODID:' . mindevents_get_site_prod_id() . "\r\n";
-
-    foreach ($events as $event) {
-        $output .= mindevents_build_ics_event_block($event->ID);
-    }
-
-    $output .= "END:VCALENDAR\r\n";
-
-    return $output;
+    return mindevents_ics_calendar(implode('', array_map('mindevents_build_ics_event_block', $events)));
 }
 
 function mindevents_generate_single_event_ics($event_id) {
-    $output  = "BEGIN:VCALENDAR\r\n";
-    $output .= "VERSION:2.0\r\n";
-    $output .= 'PRODID:' . mindevents_get_site_prod_id() . "\r\n";
-    $output .= mindevents_build_ics_event_block($event_id);
-    $output .= "END:VCALENDAR\r\n";
-
-    return $output;
+    return mindevents_ics_calendar(mindevents_build_ics_event_block($event_id));
 }
 
 function mindevents_get_event_add_to_calendar_links($event_id) {
