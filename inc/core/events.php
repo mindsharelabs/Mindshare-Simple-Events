@@ -1487,9 +1487,6 @@ class mindEventCalendar {
 
     private function default_time_from_parent($parentID, $key) {
         $defaults = get_post_meta($parentID, 'event_defaults', true);
-        if (!is_array($defaults) || empty($defaults)) {
-            $defaults = get_post_meta($parentID, 'defaults', true);
-        }
         $defaults = is_array($defaults) ? $defaults : array();
 
         if (!empty($defaults[$key])) {

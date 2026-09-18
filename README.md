@@ -37,8 +37,6 @@ Category color is stored in:
 
 - `mindevents_category_color`
 
-For migration safety, legacy `_members_only` and ACF-backed organizer/category-color data are still read as compatibility fallbacks when the new fields are empty.
-
 ## Installation
 
 1. Copy the plugin into `wp-content/plugins/Mindshare-Simple-Events`.

@@ -29,4 +29,3 @@ This folder now tracks the public-release v1 plugin, which focuses on the portab
 
 - Styling is self-contained and no longer depends on Bootstrap, Font Awesome, or CDN-hosted admin assets.
 - The old Make Santa Fe specific API namespace has been replaced with `simple-events/v1`.
-- Legacy ACF and `_members_only` data are read only as compatibility fallbacks during migration.

@@ -51,12 +51,6 @@ if (!function_exists('mindevents_apply_visibility_meta')) {
         $visibility = mindevents_sanitize_visibility($visibility);
 
         update_post_meta($post_id, 'mindevents_visibility', $visibility);
-
-        if ($visibility === 'internal') {
-            update_post_meta($post_id, '_members_only', '1');
-        } else {
-            delete_post_meta($post_id, '_members_only');
-        }
     }
 }
 
@@ -70,11 +64,6 @@ if (!function_exists('mindevents_get_post_visibility')) {
         $value = get_post_meta($post_id, 'mindevents_visibility', true);
         if ($value === 'public' || $value === 'internal') {
             return $value;
-        }
-
-        $legacy_value = get_post_meta($post_id, '_members_only', true);
-        if ($legacy_value === '1') {
-            return 'internal';
         }
 
         $parent_id = (int) wp_get_post_parent_id($post_id);
@@ -137,30 +126,15 @@ if (!function_exists('mindevents_is_public_occurrence')) {
 if (!function_exists('mindevents_public_visibility_meta_query')) {
     function mindevents_public_visibility_meta_query() {
         return array(
-            'relation' => 'AND',
+            'relation' => 'OR',
             array(
-                'relation' => 'OR',
-                array(
-                    'key'     => 'mindevents_visibility',
-                    'value'   => 'public',
-                    'compare' => '=',
-                ),
-                array(
-                    'key'     => 'mindevents_visibility',
-                    'compare' => 'NOT EXISTS',
-                ),
+                'key'     => 'mindevents_visibility',
+                'value'   => 'public',
+                'compare' => '=',
             ),
             array(
-                'relation' => 'OR',
-                array(
-                    'key'     => '_members_only',
-                    'value'   => '1',
-                    'compare' => '!=',
-                ),
-                array(
-                    'key'     => '_members_only',
-                    'compare' => 'NOT EXISTS',
-                ),
+                'key'     => 'mindevents_visibility',
+                'compare' => 'NOT EXISTS',
             ),
         );
     }
@@ -314,18 +288,8 @@ if (!function_exists('mindevents_get_category_color')) {
         }
 
         $color = get_term_meta($term_object->term_id, 'mindevents_category_color', true);
-        if ($color) {
-            return sanitize_hex_color($color);
-        }
 
-        if (function_exists('get_field')) {
-            $legacy_color = get_field('event_color', $term_object->taxonomy . '_' . $term_object->term_id);
-            if ($legacy_color) {
-                return sanitize_hex_color($legacy_color);
-            }
-        }
-
-        return '';
+        return $color ? (string) sanitize_hex_color($color) : '';
     }
 }
 
@@ -373,11 +337,6 @@ if (!function_exists('mindevents_get_occurrence_location')) {
             return sanitize_text_field($location);
         }
 
-        $legacy_location = get_post_meta($post_id, 'event_location', true);
-        if ($legacy_location !== '') {
-            return sanitize_text_field($legacy_location);
-        }
-
         $parent_id = (int) wp_get_post_parent_id($post_id);
         if ($parent_id > 0) {
             return mindevents_get_occurrence_location($parent_id);
@@ -387,138 +346,38 @@ if (!function_exists('mindevents_get_occurrence_location')) {
     }
 }
 
-if (!function_exists('mindevents_get_legacy_user_from_occurrence')) {
-    function mindevents_get_legacy_user_from_occurrence($post_id) {
-        $user = null;
-
-        $legacy_user_id = absint(get_post_meta($post_id, 'instructorID', true));
-        if ($legacy_user_id) {
-            $user = get_user_by('id', $legacy_user_id);
-        }
-
-        if (!$user) {
-            $legacy_email = sanitize_email(get_post_meta($post_id, 'instructorEmail', true));
-            if ($legacy_email) {
-                $user = get_user_by('email', $legacy_email);
-            }
-        }
-
-        return $user instanceof WP_User ? $user : null;
-    }
-}
-
-if (!function_exists('mindevents_get_legacy_acf_organizer')) {
-    function mindevents_get_legacy_acf_organizer($post_id) {
-        if (!function_exists('get_field')) {
-            return array();
-        }
-
-        $instructors = get_field('instructors', $post_id);
-        if (!is_array($instructors) || empty($instructors)) {
-            return array();
-        }
-
-        $item = reset($instructors);
-        if ($item instanceof WP_User) {
-            $user = $item;
-        } elseif (is_array($item) && !empty($item['ID'])) {
-            $user = get_user_by('id', (int) $item['ID']);
-        } elseif (is_numeric($item)) {
-            $user = get_user_by('id', (int) $item);
-        } else {
-            $user = null;
-        }
-
-        if (!($user instanceof WP_User)) {
-            return array();
-        }
-
-        $title = '';
-        $image = '';
-
-        if (function_exists('get_field')) {
-            $title = (string) get_field('title', 'user_' . $user->ID);
-            $photo = get_field('photo', 'user_' . $user->ID);
-            if (is_array($photo)) {
-                if (!empty($photo['ID'])) {
-                    $image = wp_get_attachment_image_url((int) $photo['ID'], 'medium');
-                } elseif (!empty($photo['sizes']['medium'])) {
-                    $image = $photo['sizes']['medium'];
-                } elseif (!empty($photo['url'])) {
-                    $image = $photo['url'];
-                }
-            }
-        }
-
-        if (!$image) {
-            $image = get_avatar_url($user->ID, array('size' => 128));
-        }
-
-        return array(
-            'name'      => $user->display_name,
-            'title'     => $title,
-            'image_id'  => 0,
-            'image_url' => $image,
-        );
-    }
-}
-
 if (!function_exists('mindevents_get_organizer_data')) {
+    /**
+     * The occurrence's organizer, or its event's when it has none.
+     */
     function mindevents_get_organizer_data($post_id) {
         $post_id = absint($post_id);
-        if (!$post_id) {
-            return array(
-                'name'      => '',
-                'title'     => '',
-                'image_id'  => 0,
-                'image_url' => '',
-            );
-        }
-
-        $data = array(
-            'name'      => sanitize_text_field((string) get_post_meta($post_id, 'mindevents_organizer_name', true)),
-            'title'     => sanitize_text_field((string) get_post_meta($post_id, 'mindevents_organizer_title', true)),
-            'image_id'  => absint(get_post_meta($post_id, 'mindevents_organizer_image_id', true)),
+        $data    = array(
+            'name'      => '',
+            'title'     => '',
+            'image_id'  => 0,
             'image_url' => '',
         );
 
+        if (!$post_id) {
+            return $data;
+        }
+
+        $source_id = $post_id;
+        if (get_post_meta($post_id, 'mindevents_organizer_name', true) === '') {
+            $source_id = (int) wp_get_post_parent_id($post_id);
+        }
+
+        if (!$source_id) {
+            return $data;
+        }
+
+        $data['name']     = sanitize_text_field((string) get_post_meta($source_id, 'mindevents_organizer_name', true));
+        $data['title']    = sanitize_text_field((string) get_post_meta($source_id, 'mindevents_organizer_title', true));
+        $data['image_id'] = absint(get_post_meta($source_id, 'mindevents_organizer_image_id', true));
+
         if ($data['image_id']) {
             $data['image_url'] = (string) wp_get_attachment_image_url($data['image_id'], 'medium');
-        }
-
-        if ($data['name'] !== '') {
-            return $data;
-        }
-
-        $legacy_user = mindevents_get_legacy_user_from_occurrence($post_id);
-        if ($legacy_user instanceof WP_User) {
-            $data['name']      = $legacy_user->display_name;
-            $data['image_url'] = get_avatar_url($legacy_user->ID, array('size' => 128));
-
-            return $data;
-        }
-
-        $parent_id = (int) wp_get_post_parent_id($post_id);
-        if ($parent_id > 0) {
-            $parent_data = array(
-                'name'      => sanitize_text_field((string) get_post_meta($parent_id, 'mindevents_organizer_name', true)),
-                'title'     => sanitize_text_field((string) get_post_meta($parent_id, 'mindevents_organizer_title', true)),
-                'image_id'  => absint(get_post_meta($parent_id, 'mindevents_organizer_image_id', true)),
-                'image_url' => '',
-            );
-
-            if ($parent_data['image_id']) {
-                $parent_data['image_url'] = (string) wp_get_attachment_image_url($parent_data['image_id'], 'medium');
-            }
-
-            if ($parent_data['name'] !== '') {
-                return $parent_data;
-            }
-
-            $legacy_acf_data = mindevents_get_legacy_acf_organizer($parent_id);
-            if (!empty($legacy_acf_data['name'])) {
-                return wp_parse_args($legacy_acf_data, $data);
-            }
         }
 
         return $data;

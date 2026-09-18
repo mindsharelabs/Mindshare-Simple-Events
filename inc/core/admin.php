@@ -146,7 +146,6 @@ class mindeventsAdmin {
         }
 
         update_post_meta($post_id, 'event_defaults', $defaults);
-        update_post_meta($post_id, 'defaults', $defaults);
 
         mindevents_apply_visibility_meta($post_id, $event_meta['mindevents_visibility'] ?? 'public');
         mindevents_sync_event_visibility_to_children($post_id);
@@ -187,9 +186,6 @@ class mindeventsAdmin {
 
     private function get_time_form() {
         $defaults = get_post_meta(get_the_ID(), 'event_defaults', true);
-        if (!is_array($defaults) || empty($defaults)) {
-            $defaults = get_post_meta(get_the_ID(), 'defaults', true);
-        }
         $defaults = is_array($defaults) ? $defaults : array();
 
         echo '<fieldset id="defaultEventMeta" class="mindevents-admin-form-grid">';
