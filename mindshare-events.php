@@ -131,14 +131,14 @@ final class mindEvents {
             'mindevents-frontend',
             plugins_url('css/style.css', MINDEVENTS_PLUGIN_FILE),
             array(),
-            MINDEVENTS_PLUGIN_VERSION
+            mindevents_asset_version('css/style.css')
         );
 
         wp_enqueue_script(
             'mindevents-frontend',
             plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE),
             array('jquery'),
-            MINDEVENTS_PLUGIN_VERSION,
+            mindevents_asset_version('js/mindevents.js'),
             true
         );
 
@@ -170,7 +170,7 @@ final class mindEvents {
             'mindevents-admin',
             plugins_url('css/admin.css', MINDEVENTS_PLUGIN_FILE),
             array(),
-            MINDEVENTS_PLUGIN_VERSION
+            mindevents_asset_version('css/admin.css')
         );
 
         if ($is_event_editor) {
@@ -179,7 +179,7 @@ final class mindEvents {
                 'mindevents-admin',
                 plugins_url('js/admin.js', MINDEVENTS_PLUGIN_FILE),
                 array('jquery', 'jquery-ui-draggable', 'jquery-ui-droppable', 'wp-color-picker'),
-                MINDEVENTS_PLUGIN_VERSION,
+                mindevents_asset_version('js/admin.js'),
                 true
             );
 

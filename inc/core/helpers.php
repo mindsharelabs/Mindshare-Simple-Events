@@ -162,6 +162,18 @@ if (!function_exists('mindevents_sanitize_color')) {
     }
 }
 
+if (!function_exists('mindevents_asset_version')) {
+    /**
+     * The version string for a plugin asset: its modification time, so the
+     * URL changes whenever the file does and no cache serves a stale copy.
+     */
+    function mindevents_asset_version($relative_path) {
+        $file = MINDEVENTS_ABSPATH . $relative_path;
+
+        return file_exists($file) ? (string) filemtime($file) : MINDEVENTS_PLUGIN_VERSION;
+    }
+}
+
 if (!function_exists('mindevents_plain_text')) {
     /**
      * Display HTML as plain text, for output that is data rather than
