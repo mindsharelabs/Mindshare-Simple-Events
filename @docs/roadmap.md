@@ -51,11 +51,14 @@ real site.
 
 ## Phase 2: Mini monthly calendar
 
-A compact month grid that marks the days that have events. Clicking a day
-expands a list of that day's occurrences.
+A third display type for an event, beside List and Calendar.
 
-Depends on review item **P1**: a shortcode or block to place it, and
-front-end assets that load wherever it is used.
+- [x] **Mini calendar** display type: every month the event has dates in,
+      as small month grids, up to three across. Days with events are filled
+      circles; clicking one opens a dialog listing that day's dates.
+
+It lives on the event's own page, so it does not need review item **P1**
+(a shortcode or block). That is still needed to place calendars elsewhere.
 
 ## Phase 3: RSVP and accounts
 

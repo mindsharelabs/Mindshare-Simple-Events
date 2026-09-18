@@ -556,6 +556,114 @@ class mindEventCalendar {
         return '<p class="mindevents-notice">' . esc_html__('There are no upcoming events.', 'simple-events') . '</p>';
     }
 
+    /**
+     * Every month the event has dates in, as small month grids. A day with
+     * events is a button that opens a dialog listing that day's
+     * occurrences. Each day's list is printed into the page as a
+     * <template>, so opening one needs no request.
+     */
+    public function get_mini_calendar() {
+        $this->clearDailyHtml();
+        $this->setStartOfWeek($this->calendar_start_day);
+
+        foreach ($this->get_sub_events() as $event) {
+            $times = mindevents_get_occurrence_times($event->ID);
+            if ($times) {
+                // No links: the mini calendar sits on the event's own page.
+                $this->addDailyHtml($this->get_list_item_html($event->ID, false), $times['start'], $times['end']);
+            }
+        }
+
+        if (empty($this->dailyHtml)) {
+            return '<p class="mindevents-notice">' . esc_html__('There are no upcoming events.', 'simple-events') . '</p>';
+        }
+
+        ksort($this->dailyHtml);
+
+        $months    = '';
+        $templates = '';
+
+        foreach ($this->dailyHtml as $year => $year_items) {
+            ksort($year_items);
+            foreach ($year_items as $month => $month_items) {
+                $months .= $this->render_mini_month($year, $month, $month_items);
+
+                foreach ($month_items as $day => $daily_items) {
+                    $templates .= $this->render_mini_day_template($this->local_day($year, $month, $day), $daily_items);
+                }
+            }
+        }
+
+        return '<div class="mindevents-mini-calendar">' . $months . '</div>' . $templates;
+    }
+
+    private function render_mini_month($year, $month, array $month_items) {
+        global $wp_locale;
+
+        $first   = $this->local_day($year, $month, 1);
+        $leading = (((int) $first->format('w')) - $this->offset + 7) % 7;
+
+        $out  = '<section class="mindevents-mini-month">';
+        $out .= '<h3 class="mindevents-mini-month__title">' . esc_html(wp_date('F Y', $first->getTimestamp())) . '</h3>';
+        $out .= '<div class="mindevents-mini-month__grid">';
+
+        // Initials only; each day button reads out its full date instead.
+        for ($i = 0; $i < 7; $i++) {
+            $initial = $wp_locale->get_weekday_initial($wp_locale->get_weekday(($i + $this->offset) % 7));
+            $out    .= '<span class="mindevents-mini-month__weekday" aria-hidden="true">' . esc_html($initial) . '</span>';
+        }
+
+        $out .= str_repeat('<span class="mindevents-mini-day mindevents-mini-day--empty"></span>', $leading);
+
+        for ($day = 1; $day <= (int) $first->format('t'); $day++) {
+            $date    = $this->local_day($year, $month, $day);
+            $classes = array('mindevents-mini-day');
+
+            if ($this->is_today($date)) {
+                $classes[] = $this->classes['today'];
+            }
+
+            if ($this->is_past_day($date)) {
+                $classes[] = $this->classes['past'];
+            }
+
+            if (empty($month_items[$day])) {
+                $out .= '<span class="' . esc_attr(implode(' ', $classes)) . '">' . esc_html((string) $day) . '</span>';
+                continue;
+            }
+
+            $count     = count($month_items[$day]);
+            $classes[] = 'has-events';
+
+            /* translators: 1: a date, e.g. "Thursday, July 4, 2030", 2: number of events that day */
+            $label = sprintf(_n('%1$s: %2$d event', '%1$s: %2$d events', $count, 'simple-events'), wp_date('l, ' . $this->date_format, $date->getTimestamp()), $count);
+
+            $out .= '<button type="button" class="' . esc_attr(implode(' ', $classes)) . '" data-template="' . esc_attr($this->mini_template_id($date)) . '" aria-haspopup="dialog" aria-label="' . esc_attr($label) . '">' . esc_html((string) $day) . '</button>';
+        }
+
+        $out .= '</div></section>';
+
+        return $out;
+    }
+
+    private function render_mini_day_template(DateTimeImmutable $date, array $daily_items) {
+        $out  = '<template id="' . esc_attr($this->mini_template_id($date)) . '">';
+        $out .= '<div class="mindevents-mini-day-panel">';
+        $out .= '<div class="mindevents-mini-day-panel__header">';
+        $out .= '<h2 class="mindevents-mini-day-panel__title">' . esc_html(wp_date('l, ' . $this->date_format, $date->getTimestamp())) . '</h2>';
+        $out .= '<button type="button" class="event-meta-close" aria-label="' . esc_attr__('Close', 'simple-events') . '">&times;</button>';
+        $out .= '</div>';
+        $out .= '<div class="mindevents-mini-day-panel__list">' . implode('', $daily_items) . '</div>';
+        $out .= '</div>';
+        $out .= '</template>';
+
+        return $out;
+    }
+
+    private function mini_template_id(DateTimeInterface $date) {
+        return 'mindevents-mini-' . absint($this->eventID) . '-' . $date->format('Y-m-d');
+    }
+
     public function get_last_front_list_query() {
         return $this->last_front_list_query;
     }

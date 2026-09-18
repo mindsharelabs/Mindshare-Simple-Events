@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 10:59-0600\n"
+"POT-Creation-Date: 2026-09-18 14:31-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,73 +39,77 @@ msgstr ""
 msgid "Calendar"
 msgstr ""
 
-#: inc/core/admin.php:66
+#: inc/core/admin.php:60
+msgid "Mini calendar"
+msgstr ""
+
+#: inc/core/admin.php:67
 msgid "Past Events"
 msgstr ""
 
-#: inc/core/admin.php:68
+#: inc/core/admin.php:69
 msgid "Show upcoming only"
 msgstr ""
 
-#: inc/core/admin.php:69
+#: inc/core/admin.php:70
 msgid "Show past and upcoming"
 msgstr ""
 
-#: inc/core/admin.php:73 inc/core/ajax.php:226
+#: inc/core/admin.php:74 inc/core/ajax.php:226
 msgid "Location"
 msgstr ""
 
-#: inc/core/admin.php:73
+#: inc/core/admin.php:74
 msgid "Optional venue or room name."
 msgstr ""
 
-#: inc/core/admin.php:74 inc/core/ajax.php:227
+#: inc/core/admin.php:75 inc/core/ajax.php:227
 msgid "Organizer Name"
 msgstr ""
 
-#: inc/core/admin.php:75 inc/core/ajax.php:228
+#: inc/core/admin.php:76 inc/core/ajax.php:228
 msgid "Organizer Title"
 msgstr ""
 
-#: inc/core/admin.php:76 inc/core/ajax.php:229
+#: inc/core/admin.php:77 inc/core/ajax.php:229
 msgid "Organizer Image"
 msgstr ""
 
-#: inc/core/admin.php:85
+#: inc/core/admin.php:86
 msgid ""
 "Click a day to add a date. Click a date to edit it, or drag it to another "
 "day."
 msgstr ""
 
-#: inc/core/admin.php:87
+#: inc/core/admin.php:88
 msgid "Previous Month"
 msgstr ""
 
-#: inc/core/admin.php:88
+#: inc/core/admin.php:89
 msgid "Next Month"
 msgstr ""
 
-#: inc/core/admin.php:94
+#: inc/core/admin.php:95
 msgid "Clear All Occurrences"
 msgstr ""
 
-#: inc/core/admin.php:165
+#: inc/core/admin.php:166
 msgid "New dates"
 msgstr ""
 
-#: inc/core/admin.php:166
+#: inc/core/admin.php:167
 msgid "Start"
 msgstr ""
 
-#: inc/core/admin.php:167
+#: inc/core/admin.php:168
 msgid "End"
 msgstr ""
 
-#: inc/core/admin.php:211
+#: inc/core/admin.php:212
 msgid "Choose image"
 msgstr ""
 
-#: inc/core/admin.php:212
+#: inc/core/admin.php:213
 msgid "Remove"
 msgstr ""
 
@@ -125,7 +129,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:803
+#: inc/core/ajax.php:85 inc/core/events.php:911
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -191,43 +195,55 @@ msgstr ""
 msgid "No events matched the current view."
 msgstr ""
 
-#: inc/core/events.php:556
+#: inc/core/events.php:556 inc/core/events.php:578
 msgid "There are no upcoming events."
 msgstr ""
 
-#: inc/core/events.php:642 inc/core/post-types.php:28
+#. translators: 1: a date, e.g. "Thursday, July 4, 2030", 2: number of events that day
+#: inc/core/events.php:639
+#, php-format
+msgid "%1$s: %2$d event"
+msgid_plural "%1$s: %2$d events"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/core/events.php:654
+msgid "Close"
+msgstr ""
+
+#: inc/core/events.php:750 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:698
+#: inc/core/events.php:806
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:709
+#: inc/core/events.php:817
 msgid "Open Event Page"
 msgstr ""
 
 #. translators: %s: the date and time of an occurrence
-#: inc/core/events.php:747
+#: inc/core/events.php:855
 #, php-format
 msgid "Edit %s"
 msgstr ""
 
 #. translators: %s: the date and time of an occurrence
-#: inc/core/events.php:749
+#: inc/core/events.php:857
 #, php-format
 msgid "Remove %s"
 msgstr ""
 
-#: inc/core/events.php:766
+#: inc/core/events.php:874
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:785
+#: inc/core/events.php:893
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1187
+#: inc/core/events.php:1295
 msgid "Organizer"
 msgstr ""
 
@@ -550,6 +566,7 @@ msgid "Content"
 msgstr ""
 
 #: templates/archive-events.php:32 templates/single-events.php:51
+#: templates/single-events.php:58
 msgid "Event Schedule"
 msgstr ""
 

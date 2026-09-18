@@ -57,6 +57,7 @@ class mindeventsAdmin {
             array(
                 'list'     => __('List', 'simple-events'),
                 'calendar' => __('Calendar', 'simple-events'),
+                'mini'     => __('Mini calendar', 'simple-events'),
             ),
             $cal_display ?: 'calendar'
         );
@@ -133,7 +134,7 @@ class mindeventsAdmin {
         $cal_display = $event_meta['cal_display'] ?? 'calendar';
 
         return array(
-            'cal_display'                  => in_array($cal_display, array('calendar', 'list'), true) ? $cal_display : 'calendar',
+            'cal_display'                  => in_array($cal_display, array('calendar', 'list', 'mini'), true) ? $cal_display : 'calendar',
             'show_past_events'             => (($event_meta['show_past_events'] ?? '0') === '1') ? '1' : '0',
             'mindevents_location'          => sanitize_text_field((string) ($event_meta['mindevents_location'] ?? '')),
             'mindevents_organizer_name'    => sanitize_text_field((string) ($event_meta['mindevents_organizer_name'] ?? '')),

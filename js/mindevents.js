@@ -93,7 +93,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
     // Name the dialog after the event it shows, or generically while loading.
     function labelDialog($dialog) {
-        const $title = $dialog.find('.mindevents-event-meta__title').first();
+        const $title = $dialog.find('.mindevents-event-meta__title, .mindevents-mini-day-panel__title').first();
 
         if ($title.length) {
             $title.attr('id', 'mindevents-modal-title');
@@ -239,6 +239,16 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     $(document).on('click', '.mindevents-calendar-event-toggle', function (event) {
         event.preventDefault();
         requestEventMeta($(this).data('eventid'), this);
+    });
+
+    // A mini calendar day: its list is already in the page, in a <template>.
+    $(document).on('click', '.mindevents-mini-day[data-template]', function (event) {
+        event.preventDefault();
+
+        const template = document.getElementById($(this).attr('data-template'));
+        if (template) {
+            openModal(template.content.cloneNode(true), this);
+        }
     });
 
     $(document).on('click', '.mindevents-modal__backdrop, .event-meta-close', function (event) {

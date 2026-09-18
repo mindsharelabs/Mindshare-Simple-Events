@@ -189,7 +189,7 @@ collide with another plugin's or theme's. Public URLs are unchanged:
 
 | ID | Affects | Constraint |
 |----|---------|------------|
-| P1 | Phase 2 | The plugin registers no shortcode or block, and front-end assets load only on event archives, single events and category pages. A mini calendar placed anywhere else needs both. |
+| P1 | Future | The plugin registers no shortcode or block, and front-end assets load only on event archives, single events and category pages. A calendar placed anywhere else needs both. Phase 2 avoided it: the mini calendar is a display type on the event's own page. |
 | P2 | All | Resolved: the post types and taxonomy are prefixed. |
 
 ## Carried into Phase 1

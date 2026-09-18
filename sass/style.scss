@@ -953,6 +953,113 @@
     text-align: center;
 }
 
+/*
+ * Mini calendar: one small grid per month, up to three across. Columns are
+ * at least 15rem, and the width cap leaves room for no more than three.
+ */
+.mindevents-mini-calendar {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    max-width: 64rem;
+}
+
+.mindevents-mini-month__title {
+    color: var(--mindevents-ink);
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 0.75rem;
+    text-align: center;
+}
+
+.mindevents-mini-month__grid {
+    display: grid;
+    gap: 0.25rem;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.mindevents-mini-month__weekday {
+    color: var(--mindevents-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+// The day number fills its cell; a day with events is a filled circle.
+.mindevents-mini-day {
+    align-items: center;
+    aspect-ratio: 1;
+    color: var(--mindevents-muted);
+    display: flex;
+    font-size: 0.95rem;
+    justify-content: center;
+    line-height: 1;
+}
+
+.mindevents-shell .mindevents-mini-day.has-events {
+    appearance: none;
+    background: var(--mindevents-accent);
+    border: 0;
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 0;
+    width: 100%;
+}
+
+.mindevents-shell .mindevents-mini-day.has-events:hover {
+    background: var(--mindevents-accent-dark);
+}
+
+.mindevents-shell .mindevents-mini-day.has-events:focus-visible {
+    outline: 2px solid var(--mindevents-ink);
+    outline-offset: 2px;
+}
+
+.mindevents-shell .mindevents-mini-day.is-today {
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px var(--mindevents-highlight);
+    font-weight: 700;
+}
+
+.mindevents-shell .mindevents-mini-day.has-events.is-today {
+    box-shadow: inset 0 0 0 2px var(--mindevents-accent-dark), inset 0 0 0 4px #fff;
+}
+
+.mindevents-mini-day.has-events.is-past {
+    opacity: 0.55;
+}
+
+.mindevents-mini-day-panel {
+    background: var(--mindevents-surface-strong);
+    border: 1px solid var(--mindevents-border);
+    box-shadow: var(--mindevents-shadow);
+    color: var(--mindevents-ink);
+    display: grid;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.mindevents-mini-day-panel__header {
+    align-items: flex-start;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.mindevents-mini-day-panel__title {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.mindevents-mini-day-panel__list {
+    display: grid;
+    gap: 1rem;
+}
+
 body.mindevents-has-modal {
     overflow: hidden;
 }
