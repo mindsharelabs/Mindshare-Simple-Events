@@ -43,8 +43,12 @@ class mindEventCalendar {
         $this->setToday($today);
         $this->setCalendarClasses();
 
+        // Only a strict Y-m-d from the URL; anything else is ignored.
         if (isset($_GET['calendar_date'])) {
-            $calendarDate = sanitize_text_field(wp_unslash($_GET['calendar_date']));
+            $url_date = mindevents_parse_frontend_filter_date($_GET['calendar_date']);
+            if ($url_date) {
+                $calendarDate = $url_date;
+            }
         }
 
         if ($calendarDate) {
@@ -1024,7 +1028,11 @@ class mindEventCalendar {
         }
 
         if (is_string($date) && $date !== '') {
-            return new DateTimeImmutable($date, mindevents_wp_timezone());
+            try {
+                return new DateTimeImmutable($date, mindevents_wp_timezone());
+            } catch (Exception $exception) {
+                return null;
+            }
         }
 
         return null;
