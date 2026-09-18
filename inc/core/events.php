@@ -49,8 +49,7 @@ class mindEventCalendar {
         if ($calendarDate) {
             $this->setDate($calendarDate);
         } else {
-            // An event's own calendar opens on its first date.
-            $this->setDate($id ? mindevents_from_utc(get_post_meta($id, 'mindevents_first_start_utc', true)) : null);
+            $this->setDate($id ? $this->opening_date($id) : null);
         }
 
         $options = get_option(MINDEVENTS_PREPEND . 'support_settings', array());
@@ -58,6 +57,41 @@ class mindEventCalendar {
         $this->calendar_start_day = $options[MINDEVENTS_PREPEND . 'start_day'] ?? 'Monday';
         $this->date_format        = get_option('date_format') ?: 'F j, Y';
         $this->time_format        = get_option('time_format') ?: 'g:i a';
+    }
+
+    /**
+     * Where an event's own calendar opens: its next upcoming occurrence,
+     * or its most recent one once they are all past. Opening on the first
+     * date instead often showed a month of past dates, which are hidden
+     * when an event shows upcoming dates only.
+     */
+    private function opening_date($event_id) {
+        $next = get_posts(array(
+            'post_type'        => 'mind_sub_event',
+            'post_parent'      => $event_id,
+            'posts_per_page'   => 1,
+            'fields'           => 'ids',
+            'orderby'          => 'meta_value',
+            'meta_key'         => 'mindevents_start_utc',
+            'meta_type'        => 'DATETIME',
+            'order'            => 'ASC',
+            'suppress_filters' => true,
+            'meta_query'       => array(
+                array(
+                    'key'     => 'mindevents_end_utc',
+                    'value'   => mindevents_now_utc(),
+                    'compare' => '>',
+                    'type'    => 'DATETIME',
+                ),
+            ),
+        ));
+
+        $times = $next ? mindevents_get_occurrence_times($next[0]) : null;
+        if ($times) {
+            return $times['start'];
+        }
+
+        return mindevents_from_utc(get_post_meta($event_id, 'mindevents_last_end_utc', true));
     }
 
     public function setDate($date = null) {
