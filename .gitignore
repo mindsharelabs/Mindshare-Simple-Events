@@ -289,3 +289,6 @@ sftp-config.json
 
 # Release archives
 /dist/
+
+# This repository's own scripts (the Eclipse rules above ignore bin/)
+!/bin/
