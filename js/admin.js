@@ -4,6 +4,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     'use strict';
 
     const settings = window.mindeventsSettings || {};
+    let isDraggingOccurrence = false;
+    let suppressDayClick = false;
 
     function getCurrentCalendarState() {
         const $calendar = $('#mindEventCalendar');
@@ -154,8 +156,18 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         $occurrences.draggable({
             helper: 'clone',
             appendTo: 'body',
+            cancel: '.mindevents-admin-occurrence__delete',
+            distance: 6,
             revert: 'invalid',
-            zIndex: 99999
+            zIndex: 99999,
+            start: function () {
+                isDraggingOccurrence = true;
+            },
+            stop: function () {
+                window.setTimeout(function () {
+                    isDraggingOccurrence = false;
+                }, 0);
+            }
         });
 
         $days.droppable({
@@ -173,6 +185,11 @@ const MINDEVENTS_PREPEND = 'mindevents_';
                 if (!targetDate || !eventId || !startDate || !endDate) {
                     return;
                 }
+
+                suppressDayClick = true;
+                window.setTimeout(function () {
+                    suppressDayClick = false;
+                }, 150);
 
                 $.ajax({
                     url: settings.ajax_url,
@@ -210,10 +227,22 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         requestCalendar($(this).data('dir'));
     });
 
-    $(document).on('click', '#eventsCalendar .mindevents-calendar-day-number', function (event) {
+    $(document).on('click', '#eventsCalendar .mindevents-calendar-day', function (event) {
+        if (isDraggingOccurrence || suppressDayClick) {
+            return;
+        }
+
+        if ($(this).hasClass('mindevents-calendar-day--empty')) {
+            return;
+        }
+
+        if ($(event.target).closest('.mindevents-admin-occurrence').length) {
+            return;
+        }
+
         event.preventDefault();
 
-        const $day = $(this).closest('.mindevents-calendar-day');
+        const $day = $(this);
         const date = $day.data('date');
 
         if (!date) {

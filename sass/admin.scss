@@ -186,17 +186,18 @@ body.mindevents-admin-modal-open {
 }
 
 #eventsCalendar .mindevents-calendar-day {
-    background: var(--mindevents-admin-surface);
+    background: transparent;
     border: 1px solid var(--mindevents-admin-border);
-    border-radius: 18px;
     min-height: 130px;
     padding: 10px;
     transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+    cursor: pointer;
 }
 
 #eventsCalendar .mindevents-calendar-day--empty {
-    background: var(--mindevents-admin-soft);
+    background: transparent;
     border-style: dashed;
+    cursor: default;
 }
 
 #eventsCalendar .mindevents-calendar-day.is-today {
@@ -258,6 +259,10 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-occurrence__edit:focus {
     background: #fff4ed;
     outline: none;
+}
+
+.mindevents-admin-occurrence__edit {
+    cursor: move;
 }
 
 .mindevents-admin-occurrence__delete {
