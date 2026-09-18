@@ -1046,14 +1046,16 @@ class mindEventCalendar {
     }
 
     /**
-     * Weekday names, Monday first, in the site's language.
+     * Weekday names, Sunday first, in the site's language. Sunday first
+     * because rotate() shifts them by the week's start offset, where
+     * Sunday is 0.
      */
     private function weekdays() {
         global $wp_locale;
 
         $days = array();
-        for ($index = 1; $index <= 7; $index++) {
-            $days[] = $wp_locale->get_weekday($index % 7);
+        for ($index = 0; $index < 7; $index++) {
+            $days[] = $wp_locale->get_weekday($index);
         }
 
         return $days;
