@@ -1009,7 +1009,9 @@ class mindEventCalendar {
             }
         }
 
-        return wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // JSON_HEX_TAG escapes < and >, so no value can close the <script>
+        // block this is printed into.
+        return wp_json_encode($schema, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
 
     private function parseDate($date = null) {
