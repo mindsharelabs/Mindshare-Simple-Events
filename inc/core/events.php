@@ -22,6 +22,7 @@ class mindEventCalendar {
     private $date_format = 'F j, Y';
     private $time_format = 'g:i a';
     private $dailyHtml = array();
+    private $abbreviate_weekdays = false;
     private $offset = 0;
     private $last_front_list_query = null;
     private $classes = array(
@@ -712,6 +713,9 @@ class mindEventCalendar {
 
     public function get_calendar($calDate = '') {
         $this->clearDailyHtml();
+
+        // The admin calendar sits in a narrow meta box.
+        $this->abbreviate_weekdays = true;
         $this->setStartOfWeek($this->calendar_start_day);
 
         $eventDates = $this->get_sub_events(array(
@@ -1091,7 +1095,8 @@ class mindEventCalendar {
 
         $days = array();
         for ($index = 0; $index < 7; $index++) {
-            $days[] = $wp_locale->get_weekday($index);
+            $name   = $wp_locale->get_weekday($index);
+            $days[] = $this->abbreviate_weekdays ? $wp_locale->get_weekday_abbrev($name) : $name;
         }
 
         return $days;

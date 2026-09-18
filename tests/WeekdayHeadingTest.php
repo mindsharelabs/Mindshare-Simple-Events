@@ -30,12 +30,16 @@ class WeekdayHeadingTest extends Mindshare_Events_TestCase {
     private function assertHeadingsMatchDates(string $start_day): void {
         update_option('mindevents_support_settings', array('mindevents_start_day' => $start_day));
 
+        // The admin calendar abbreviates its headings to fit narrow columns.
+        $abbrev  = function ($date) {
+            return $GLOBALS['wp_locale']->get_weekday_abbrev(wp_date('l', strtotime($date)));
+        };
         $columns = $this->firstWeek((new mindEventCalendar($this->createEvent(), '2026-09-01'))->get_calendar());
 
         $this->assertCount(7, $columns);
-        $this->assertSame(wp_date('l', strtotime("next $start_day")), $columns[0]['label'], "Week should start on $start_day");
+        $this->assertSame($abbrev("next $start_day"), $columns[0]['label'], "Week should start on $start_day");
         foreach ($columns as $column) {
-            $this->assertSame(wp_date('l', strtotime($column['date'])), $column['label'], "{$column['date']} is under the wrong heading");
+            $this->assertSame($abbrev($column['date']), $column['label'], "{$column['date']} is under the wrong heading");
         }
     }
 
@@ -45,5 +49,13 @@ class WeekdayHeadingTest extends Mindshare_Events_TestCase {
 
     public function test_headings_match_dates_when_weeks_start_on_sunday(): void {
         $this->assertHeadingsMatchDates('Sunday');
+    }
+
+    public function test_the_public_calendar_uses_full_weekday_names(): void {
+        $columns = $this->firstWeek((new mindEventCalendar($this->createEvent(), '2026-09-01'))->render());
+
+        foreach ($columns as $column) {
+            $this->assertSame(wp_date('l', strtotime($column['date'])), $column['label']);
+        }
     }
 }
