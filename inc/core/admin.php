@@ -130,21 +130,23 @@ class mindeventsAdmin {
         $event_meta = $this->sanitize_event_meta($event_meta);
         $defaults   = $this->sanitize_occurrence_defaults($defaults);
 
+        // Already unslashed above; update_post_meta() would unslash again.
         foreach ($event_meta as $key => $value) {
-            update_post_meta($post_id, $key, $value);
+            update_post_meta($post_id, $key, wp_slash($value));
         }
 
-        update_post_meta($post_id, 'event_defaults', $defaults);
+        update_post_meta($post_id, 'event_defaults', wp_slash($defaults));
 
         mindevents_apply_visibility_meta($post_id, $event_meta['mindevents_visibility'] ?? 'public');
         mindevents_sync_event_visibility_to_children($post_id);
     }
 
     private function sanitize_event_meta($event_meta) {
-        $event_meta = is_array($event_meta) ? $event_meta : array();
+        $event_meta  = is_array($event_meta) ? $event_meta : array();
+        $cal_display = $event_meta['cal_display'] ?? 'calendar';
 
         return array(
-            'cal_display'                  => in_array(($event_meta['cal_display'] ?? 'calendar'), array('calendar', 'list'), true) ? $event_meta['cal_display'] : 'calendar',
+            'cal_display'                  => in_array($cal_display, array('calendar', 'list'), true) ? $cal_display : 'calendar',
             'show_past_events'             => (($event_meta['show_past_events'] ?? '0') === '1') ? '1' : '0',
             'mindevents_visibility'        => mindevents_sanitize_visibility($event_meta['mindevents_visibility'] ?? 'public'),
             'mindevents_location'          => sanitize_text_field((string) ($event_meta['mindevents_location'] ?? '')),

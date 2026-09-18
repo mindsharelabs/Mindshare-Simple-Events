@@ -753,14 +753,15 @@ class mindEventCalendar {
             return new WP_Error('mindevents_duplicate', __('An occurrence at that time already exists.', 'simple-events'));
         }
 
+        // update_post_meta() and wp_update_post() unslash their input.
         foreach ($meta as $key => $value) {
-            update_post_meta($occurrence_id, $key, $value);
+            update_post_meta($occurrence_id, $key, wp_slash($value));
         }
 
-        wp_update_post(array(
+        wp_update_post(wp_slash(array(
             'ID'         => $occurrence_id,
             'post_title' => $this->build_title($event_id, $meta),
-        ));
+        )));
 
         mindevents_sync_event_date_range($event_id);
 
@@ -783,14 +784,15 @@ class mindEventCalendar {
             return false;
         }
 
-        $post_id = wp_insert_post(wp_parse_args($args, array(
+        // wp_insert_post() and the meta it writes unslash their input.
+        $post_id = wp_insert_post(wp_slash(wp_parse_args($args, array(
             'post_author' => (int) get_post_field('post_author', $eventID),
             'post_title'  => $this->build_title($eventID, $meta),
             'post_status' => mindevents_occurrence_status(get_post_status($eventID)),
             'post_type'   => 'sub_event',
             'post_parent' => $eventID,
             'meta_input'  => $meta,
-        )), true);
+        ))), true);
 
         if (is_wp_error($post_id)) {
             return $post_id;
