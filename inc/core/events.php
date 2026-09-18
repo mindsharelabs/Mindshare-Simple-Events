@@ -187,6 +187,9 @@ class mindEventCalendar {
     }
 
     public function render() {
+        // Month and list views only. The week view renders from positioned
+        // occurrence data, not HTML buckets; it exposes
+        // 'mindevents_calendar_week_events' instead.
         $this->dailyHtml = apply_filters('mindevents_calendar_daily_html', $this->dailyHtml, $this);
 
         $this->setStartOfWeek($this->calendar_start_day);
@@ -1319,7 +1322,7 @@ class mindEventCalendar {
             $eventsByDay[$dayKey] = $dayEvents;
         }
 
-        return $eventsByDay;
+        return apply_filters('mindevents_calendar_week_events', $eventsByDay, $this);
     }
 
     private function format_date_range($start, $end) {
