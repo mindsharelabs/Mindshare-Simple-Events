@@ -70,6 +70,19 @@ Category color is stored in:
 3. Visit `Settings > Simple Events` to set the week start day and default occurrence times.
 4. Create events under `Events > Add New`.
 
+## Uninstalling
+
+Deleting the plugin from the Plugins screen removes its settings, the
+Event Manager role and the event capabilities it added to other roles.
+
+Events, occurrences and event categories are kept, since they are the
+site's content. To delete those too, add this to `wp-config.php` before
+deleting the plugin:
+
+```php
+define('MINDEVENTS_REMOVE_ALL_DATA', true);
+```
+
 ## Usage
 
 Create an event post, then use the `Occurrences` metabox to add one or more dates. Each occurrence can store its own date, time, short description, color override, organizer details, location, and visibility.
