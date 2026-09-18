@@ -80,9 +80,9 @@ function mindevents_rest_event_payload($occurrence_id) {
     return array(
         'id'         => $occurrence_id,
         'parent_id'  => $parent_id,
-        'title'      => get_the_title($parent_id ?: $occurrence_id),
+        'title'      => mindevents_get_plain_title($parent_id ?: $occurrence_id),
         'permalink'  => get_permalink($parent_id ?: $occurrence_id),
-        'excerpt'    => wp_strip_all_tags(mindevents_get_occurrence_excerpt($occurrence_id)),
+        'excerpt'    => mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id)),
         'image'      => get_the_post_thumbnail_url($parent_id ?: $occurrence_id, 'large') ?: '',
         'start'      => get_post_meta($occurrence_id, 'event_start_time_stamp', true),
         'end'        => get_post_meta($occurrence_id, 'event_end_time_stamp', true),

@@ -92,6 +92,25 @@ if (!function_exists('mindevents_is_internal_post')) {
     }
 }
 
+if (!function_exists('mindevents_plain_text')) {
+    /**
+     * Display HTML as plain text, for output that is data rather than
+     * markup: JSON-LD, ICS, calendar links and API responses.
+     *
+     * WordPress display functions return entities such as &#038;, which
+     * those formats would show literally.
+     */
+    function mindevents_plain_text($html) {
+        return trim(html_entity_decode(wp_strip_all_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+}
+
+if (!function_exists('mindevents_get_plain_title')) {
+    function mindevents_get_plain_title($post_id) {
+        return mindevents_plain_text(get_the_title($post_id));
+    }
+}
+
 if (!function_exists('mindevents_is_public_occurrence')) {
     /**
      * Whether an occurrence may be shown to someone who cannot edit it.

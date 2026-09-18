@@ -963,10 +963,10 @@ class mindEventCalendar {
         $schema = array(
             '@context'    => 'https://schema.org',
             '@type'       => 'Event',
-            'name'        => get_the_title($this->eventID),
+            'name'        => mindevents_get_plain_title($this->eventID),
             'startDate'   => get_post_meta($this->eventID, 'first_event_date', true),
             'endDate'     => get_post_meta($this->eventID, 'last_event_date', true),
-            'description' => wp_strip_all_tags(get_the_excerpt($this->eventID)),
+            'description' => mindevents_plain_text(get_the_excerpt($this->eventID)),
             'url'         => get_permalink($this->eventID),
             'image'       => array_filter(array(get_the_post_thumbnail_url($this->eventID, 'large'))),
         );
@@ -990,10 +990,10 @@ class mindEventCalendar {
             foreach ($sub_events as $event) {
                 $sub_schema = array(
                     '@type'       => 'Event',
-                    'name'        => $this->get_occurrence_title($event->ID),
+                    'name'        => mindevents_get_plain_title($this->eventID),
                     'startDate'   => get_post_meta($event->ID, 'event_start_time_stamp', true),
                     'endDate'     => get_post_meta($event->ID, 'event_end_time_stamp', true),
-                    'description' => wp_strip_all_tags(mindevents_get_occurrence_excerpt($event->ID)),
+                    'description' => mindevents_plain_text(mindevents_get_occurrence_excerpt($event->ID)),
                     'url'         => get_permalink($this->eventID),
                 );
 
@@ -1507,7 +1507,7 @@ class mindEventCalendar {
     }
 
     private function build_title($parentID, $date = '', $times = array()) {
-        $title = get_the_title($parentID) . ' | ' . $date . ' | ' . ($times['starttime'] ?? '') . '-' . ($times['endtime'] ?? '');
+        $title = mindevents_get_plain_title($parentID) . ' | ' . $date . ' | ' . ($times['starttime'] ?? '') . '-' . ($times['endtime'] ?? '');
 
         return apply_filters('mind_events_title', $title, $date, $times, $this);
     }

@@ -176,7 +176,7 @@ class mindEventsAjax {
 
         wp_update_post(array(
             'ID'         => $event_id,
-            'post_title' => get_the_title($parent_id) . ' | ' . $new_date . ' | ' . $new_start->format('H:i') . '-' . $new_end->format('H:i'),
+            'post_title' => mindevents_get_plain_title($parent_id) . ' | ' . $new_date . ' | ' . $new_start->format('H:i') . '-' . $new_end->format('H:i'),
         ));
 
         mindevents_sync_event_date_range($parent_id);

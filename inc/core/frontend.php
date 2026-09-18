@@ -645,8 +645,8 @@ function mindevents_build_ics_event_block($occurrence_id) {
     $timezone = mindevents_wp_timezone();
     $start_dt = new DateTimeImmutable($start, $timezone);
     $end_dt   = new DateTimeImmutable($end, $timezone);
-    $title    = get_the_title(wp_get_post_parent_id($occurrence_id) ?: $occurrence_id);
-    $summary  = wp_strip_all_tags(mindevents_get_occurrence_excerpt($occurrence_id));
+    $title    = mindevents_get_plain_title(wp_get_post_parent_id($occurrence_id));
+    $summary  = mindevents_plain_text(mindevents_get_occurrence_excerpt($occurrence_id));
     $location = mindevents_get_occurrence_location($occurrence_id);
     $domain   = mindevents_get_ics_uid_domain();
 
@@ -721,24 +721,26 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
         return '';
     }
 
-    $title       = get_the_title(wp_get_post_parent_id($event_id) ?: $event_id);
-    $description = wp_strip_all_tags(mindevents_get_occurrence_excerpt($event_id));
+    $title       = mindevents_get_plain_title(wp_get_post_parent_id($event_id));
+    $description = mindevents_plain_text(mindevents_get_occurrence_excerpt($event_id));
     $location    = mindevents_get_occurrence_location($event_id);
     $timezone    = mindevents_wp_timezone();
     $start_dt    = new DateTimeImmutable($start, $timezone);
     $end_dt      = new DateTimeImmutable($end, $timezone);
     $ics_url     = home_url('/event-ics/' . $event_id . '/');
 
-    $gcal_url = add_query_arg(array(
+    // add_query_arg() does not encode values; an & or # in a title would
+    // otherwise cut the URL short.
+    $gcal_url = add_query_arg(array_map('rawurlencode', array(
         'action'   => 'TEMPLATE',
         'text'     => $title,
         'dates'    => $start_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z') . '/' . $end_dt->setTimezone(new DateTimeZone('UTC'))->format('Ymd\THis\Z'),
         'details'  => $description,
         'location' => $location,
         'output'   => 'xml',
-    ), 'https://calendar.google.com/calendar/render');
+    )), 'https://calendar.google.com/calendar/render');
 
-    $yahoo_url = add_query_arg(array(
+    $yahoo_url = add_query_arg(array_map('rawurlencode', array(
         'v'      => 60,
         'view'   => 'd',
         'type'   => '20',
@@ -747,7 +749,7 @@ function mindevents_get_event_add_to_calendar_links($event_id) {
         'et'     => gmdate('Ymd\THi\Z', strtotime($end)),
         'desc'   => $description,
         'in_loc' => $location,
-    ), 'https://calendar.yahoo.com/');
+    )), 'https://calendar.yahoo.com/');
 
     ob_start();
     ?>
