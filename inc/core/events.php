@@ -5,6 +5,15 @@ if (!defined('ABSPATH')) {
 }
 
 class mindEventCalendar {
+    const MINUTES_PER_DAY = 1440;
+
+    /** Shortest occurrence that still renders as a clickable block. */
+    const MIN_EVENT_MINUTES = 30;
+
+    /** Breathing room on each side of a week view occurrence. */
+    const WEEK_EVENT_GUTTER = '0.15rem';
+    const WEEK_EVENT_GUTTER_TOTAL = '0.3rem';
+
     private $eventID = '';
     private $wp_post = null;
     private $calendar_start_day = 'Monday';
@@ -337,10 +346,16 @@ class mindEventCalendar {
 
             if (!empty($eventsByDay[$dateKey])) {
                 foreach ($eventsByDay[$dateKey] as $eventData) {
+                    // Lane geometry arrives as percentages; the gutter keeps
+                    // neighbouring occurrences from touching.
                     $style = sprintf(
-                        'top:%1$s%%;height:%2$s%%;--mindevents-event-accent:%3$s;',
+                        'top:%1$s%%;height:%2$s%%;left:calc(%3$s%% + %5$s);width:calc(%4$s%% - %6$s);--mindevents-event-accent:%7$s;',
                         number_format((float) $eventData['top'], 4, '.', ''),
                         number_format((float) $eventData['height'], 4, '.', ''),
+                        number_format((float) $eventData['left'], 4, '.', ''),
+                        number_format((float) $eventData['width'], 4, '.', ''),
+                        self::WEEK_EVENT_GUTTER,
+                        self::WEEK_EVENT_GUTTER_TOTAL,
                         esc_attr($eventData['color'])
                     );
 
@@ -1297,12 +1312,12 @@ class mindEventCalendar {
                     }
 
                     $eventsByDay[$dayKey][] = array(
-                        'id'     => $event_id,
-                        'title'  => $this->get_occurrence_title($event_id),
-                        'time'   => $this->format_time_range($daySegmentStart->format('Y-m-d H:i:s'), $daySegmentEnd->format('Y-m-d H:i:s')),
-                        'color'  => $this->get_primary_event_color($event_id),
-                        'top'    => ($startMinutes / 1440) * 100,
-                        'height' => max((($endMinutes - $startMinutes) / 1440) * 100, (30 / 1440) * 100),
+                        'id'            => $event_id,
+                        'title'         => $this->get_occurrence_title($event_id),
+                        'time'          => $this->format_time_range($daySegmentStart->format('Y-m-d H:i:s'), $daySegmentEnd->format('Y-m-d H:i:s')),
+                        'color'         => $this->get_primary_event_color($event_id),
+                        'start_minutes' => $startMinutes,
+                        'end_minutes'   => $endMinutes,
                     );
                 }
 
@@ -1311,18 +1326,94 @@ class mindEventCalendar {
         }
 
         foreach ($eventsByDay as $dayKey => $dayEvents) {
-            usort($dayEvents, function($left, $right) {
-                if ($left['top'] === $right['top']) {
-                    return $right['height'] <=> $left['height'];
-                }
-
-                return $left['top'] <=> $right['top'];
-            });
-
-            $eventsByDay[$dayKey] = $dayEvents;
+            $eventsByDay[$dayKey] = $this->position_day_occurrences($dayEvents);
         }
 
         return apply_filters('mindevents_calendar_week_events', $eventsByDay, $this);
+    }
+
+    /**
+     * Work out where each occurrence sits within a single day column.
+     *
+     * Occurrences that share time are grouped into a cluster and placed
+     * side by side, so two occurrences at the same hour take half the
+     * width each rather than covering one another. Clusters are
+     * independent: a busy morning does not narrow a quiet afternoon.
+     */
+    private function position_day_occurrences(array $dayEvents) {
+        usort($dayEvents, function($left, $right) {
+            if ($left['start_minutes'] === $right['start_minutes']) {
+                return $right['end_minutes'] <=> $left['end_minutes'];
+            }
+
+            return $left['start_minutes'] <=> $right['start_minutes'];
+        });
+
+        $positioned  = array();
+        $cluster     = array();
+        $cluster_end = null;
+
+        foreach ($dayEvents as $event) {
+            // A gap with nothing running closes the cluster.
+            if ($cluster_end !== null && $event['start_minutes'] >= $cluster_end) {
+                $positioned  = array_merge($positioned, $this->spread_cluster($cluster));
+                $cluster     = array();
+                $cluster_end = null;
+            }
+
+            $cluster[]   = $event;
+            $cluster_end = ($cluster_end === null)
+                ? $event['end_minutes']
+                : max($cluster_end, $event['end_minutes']);
+        }
+
+        if (!empty($cluster)) {
+            $positioned = array_merge($positioned, $this->spread_cluster($cluster));
+        }
+
+        return $positioned;
+    }
+
+    /**
+     * Give every occurrence in one overlapping cluster a lane, then convert
+     * lane and time into the percentages the template positions with.
+     */
+    private function spread_cluster(array $cluster) {
+        $lane_ends = array();
+
+        foreach ($cluster as $index => $event) {
+            $lane = null;
+
+            foreach ($lane_ends as $candidate => $ends_at) {
+                if ($event['start_minutes'] >= $ends_at) {
+                    $lane = $candidate;
+                    break;
+                }
+            }
+
+            if ($lane === null) {
+                $lane_ends[] = $event['end_minutes'];
+                $lane        = count($lane_ends) - 1;
+            } else {
+                $lane_ends[$lane] = $event['end_minutes'];
+            }
+
+            $cluster[$index]['lane'] = $lane;
+        }
+
+        $lane_count = max(1, count($lane_ends));
+
+        foreach ($cluster as $index => $event) {
+            $minutes = max($event['end_minutes'] - $event['start_minutes'], self::MIN_EVENT_MINUTES);
+
+            $cluster[$index]['top']    = ($event['start_minutes'] / self::MINUTES_PER_DAY) * 100;
+            $cluster[$index]['height'] = ($minutes / self::MINUTES_PER_DAY) * 100;
+            $cluster[$index]['width']  = 100 / $lane_count;
+            $cluster[$index]['left']   = ($event['lane'] / $lane_count) * 100;
+            $cluster[$index]['lanes']  = $lane_count;
+        }
+
+        return $cluster;
     }
 
     private function format_date_range($start, $end) {
