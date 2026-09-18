@@ -155,6 +155,7 @@ class mindEventsCPTS {
     public function render_add_category_fields() {
         ?>
         <div class="form-field term-mindevents-category-color-wrap">
+            <?php wp_nonce_field('mindevents_category_color', 'mindevents_category_color_nonce'); ?>
             <label for="mindevents_category_color"><?php esc_html_e('Category Color', 'simple-events'); ?></label>
             <input type="color" name="mindevents_category_color" id="mindevents_category_color" value="#2d7ff9">
             <p><?php esc_html_e('Used for calendar and list color accents.', 'simple-events'); ?></p>
@@ -173,6 +174,7 @@ class mindEventsCPTS {
                 <label for="mindevents_category_color"><?php esc_html_e('Category Color', 'simple-events'); ?></label>
             </th>
             <td>
+                <?php wp_nonce_field('mindevents_category_color', 'mindevents_category_color_nonce'); ?>
                 <input type="color" name="mindevents_category_color" id="mindevents_category_color" value="<?php echo esc_attr($color); ?>">
                 <p class="description"><?php esc_html_e('Used for calendar and list color accents.', 'simple-events'); ?></p>
             </td>
@@ -180,12 +182,23 @@ class mindEventsCPTS {
         <?php
     }
 
+    /**
+     * Save the color from the category forms, and only from them. The
+     * created/edited hooks also fire for Quick Edit, the REST API and code,
+     * none of which send the field; those leave the color alone.
+     */
     public function save_category_fields($term_id) {
+        $nonce = sanitize_text_field(wp_unslash($_POST['mindevents_category_color_nonce'] ?? ''));
+
+        if (!$nonce || !wp_verify_nonce($nonce, 'mindevents_category_color')) {
+            return;
+        }
+
         if (!current_user_can(get_taxonomy('mind_event_category')->cap->edit_terms)) {
             return;
         }
 
-        $color = isset($_POST['mindevents_category_color']) ? sanitize_hex_color(wp_unslash($_POST['mindevents_category_color'])) : '';
+        $color = mindevents_sanitize_color(wp_unslash($_POST['mindevents_category_color'] ?? ''));
 
         if ($color) {
             update_term_meta($term_id, 'mindevents_category_color', $color);
@@ -193,4 +206,5 @@ class mindEventsCPTS {
             delete_term_meta($term_id, 'mindevents_category_color');
         }
     }
+
 }
