@@ -14,6 +14,31 @@ next begins. Each finished item is its own commit.
 Bug fixes, UI improvements and testing, so the plugin is ready to run on a
 real site.
 
+**Quality gates**
+
+- [ ] WordPress coding-standards security checks and a PHP 7.4
+      compatibility check, with their findings fixed
+- [ ] Continuous integration: tests and checks on every push
+
+**Front end**
+
+- [ ] A single event's calendar opens on its next upcoming occurrence
+- [ ] Accessible event detail dialog and dropdowns: keyboard, focus,
+      screen-reader labels
+- [ ] No plugin branding in the archive header
+- [ ] Views and dialog work at phone width
+
+**Admin**
+
+- [ ] Hide the empty occurrence screens
+- [ ] Media-library picker for the organizer image
+- [ ] Accessible occurrence edit dialog
+- [ ] Visual pass over the admin screens
+
+**Packaging**
+
+- [ ] Build script for a clean distributable zip
+
 ## Phase 2: Mini monthly calendar
 
 A compact month grid that marks the days that have events. Clicking a day
