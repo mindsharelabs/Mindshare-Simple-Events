@@ -148,6 +148,14 @@ Available scripts:
 - `npm run build`
 - `npm run watch`
 
+## Releases
+
+`composer build-zip` builds `dist/Mindshare-Simple-Events.zip` from the
+committed HEAD, ready to upload through Plugins > Add New. Development
+files (tests, Sass, build tooling, docs) are left out by the
+`export-ignore` rules in `.gitattributes`, which also apply to GitHub's
+own downloads. Every CI run also builds the zip and attaches it to the run.
+
 ## Continuous integration
 
 Every push runs `.github/workflows/ci.yml`: the test suite against a fresh

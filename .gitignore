@@ -286,3 +286,6 @@ sftp-config.json
 /vendor/
 /phpunit.xml
 /.phpunit.cache/
+
+# Release archives
+/dist/

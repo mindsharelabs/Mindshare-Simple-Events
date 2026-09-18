@@ -1,0 +1,19 @@
+# Files left out of release archives: `composer build-zip`, `git archive`,
+# and GitHub's own "Download ZIP" and release downloads. Everything else is
+# what a site needs to run the plugin.
+
+/.github            export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/.phpcs.xml.dist    export-ignore
+/@docs              export-ignore
+/bin                export-ignore
+/composer.json      export-ignore
+/composer.lock      export-ignore
+/gulpfile.js        export-ignore
+/package.json       export-ignore
+/package-lock.json  export-ignore
+/phpunit.xml.dist   export-ignore
+/sass               export-ignore
+/tests              export-ignore
+/css/*.map          export-ignore

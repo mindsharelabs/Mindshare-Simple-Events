@@ -91,3 +91,24 @@ jobs:
       - run: npm run build
       - name: Fail if the build changed anything
         run: git diff --exit-code -- css/
+
+  package:
+    name: Release zip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bin/build-zip.sh
+      - name: Check the zip holds the plugin and nothing else
+        run: |
+          zip=dist/Mindshare-Simple-Events.zip
+          listing=$(unzip -Z1 "$zip")
+          for required in mindshare-events.php uninstall.php LICENSE.txt inc/core/events.php templates/single-events.php js/mindevents.js css/style.css languages/simple-events.pot; do
+            echo "$listing" | grep -qx "Mindshare-Simple-Events/$required" || { echo "Missing: $required"; exit 1; }
+          done
+          if echo "$listing" | grep -E '/(tests|sass|\.github|@docs|bin|vendor|node_modules)/|composer\.|package(-lock)?\.json|phpunit|\.phpcs|gulpfile|\.map$'; then
+            echo "Development files in the release zip"; exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mindshare-Simple-Events
+          path: dist/Mindshare-Simple-Events.zip
