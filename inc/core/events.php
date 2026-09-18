@@ -786,7 +786,7 @@ class mindEventCalendar {
         $post_id = wp_insert_post(wp_parse_args($args, array(
             'post_author' => (int) get_post_field('post_author', $eventID),
             'post_title'  => $this->build_title($eventID, $meta),
-            'post_status' => 'publish',
+            'post_status' => mindevents_occurrence_status(get_post_status($eventID)),
             'post_type'   => 'sub_event',
             'post_parent' => $eventID,
             'meta_input'  => $meta,

@@ -338,6 +338,21 @@ if (!function_exists('mindevents_sync_event_taxonomies_to_children')) {
     }
 }
 
+if (!function_exists('mindevents_occurrence_status')) {
+    /**
+     * The status an occurrence takes from its event's status.
+     *
+     * Occurrences are public only once their event is. A scheduled event's
+     * occurrences stay drafts until it publishes, because an occurrence
+     * given 'future' with a past date would be published by WordPress
+     * immediately. Drafts, rather than auto-drafts, so occurrences added
+     * before an event's first save still show in the admin calendar.
+     */
+    function mindevents_occurrence_status($event_status) {
+        return in_array($event_status, array('publish', 'private', 'pending', 'trash'), true) ? $event_status : 'draft';
+    }
+}
+
 if (!function_exists('mindevents_transition_child_statuses')) {
     function mindevents_transition_child_statuses($new_status, $old_status, $parent_post) {
         if (!($parent_post instanceof WP_Post) || $parent_post->post_type !== 'events') {
@@ -355,7 +370,7 @@ if (!function_exists('mindevents_transition_child_statuses')) {
         foreach ($children as $child_id) {
             wp_update_post(array(
                 'ID'          => $child_id,
-                'post_status' => $new_status,
+                'post_status' => mindevents_occurrence_status($new_status),
             ));
         }
     }
