@@ -261,10 +261,14 @@ body.mindevents-admin-modal-open {
     overflow: hidden;
 }
 
+/*
+ * The edit button fills the chip and delete has its own small row beneath
+ * it, so they cannot overlap at any column width. Side by side, a narrow
+ * column put delete over the time, and clicking a date asked to delete it.
+ */
 .mindevents-admin-occurrence__actions {
-    display: grid;
-    gap: 0;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .mindevents-admin-occurrence__edit,
@@ -283,25 +287,37 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-occurrence__edit:hover,
 .mindevents-admin-occurrence__edit:focus {
     background: #fff4ed;
-    outline: none;
 }
 
 .mindevents-admin-occurrence__edit {
     cursor: move;
+    display: block;
+    font-size: 12px;
+    line-height: 1.3;
+    padding: 8px 8px 2px;
+    width: 100%;
 }
 
 .mindevents-admin-occurrence__delete {
     color: var(--mindevents-admin-danger);
-    font-size: 18px;
+    font-size: 16px;
+    align-self: flex-end;
+    height: 22px;
     line-height: 1;
-    min-width: 44px;
+    padding: 0;
     text-align: center;
+    width: 24px;
 }
 
 .mindevents-admin-occurrence__delete:hover,
 .mindevents-admin-occurrence__delete:focus {
     background: rgba(185, 54, 54, 0.08);
-    outline: none;
+}
+
+.mindevents-admin-occurrence__edit:focus-visible,
+.mindevents-admin-occurrence__delete:focus-visible {
+    outline: 2px solid var(--mindevents-admin-accent);
+    outline-offset: -2px;
 }
 
 #errorBox {
