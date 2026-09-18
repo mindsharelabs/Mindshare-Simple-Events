@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Mindshare Simple Events\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 10:53-0600\n"
+"POT-Creation-Date: 2026-09-18 10:56-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -121,7 +121,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:793
+#: inc/core/ajax.php:85 inc/core/events.php:803
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -165,56 +165,70 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: inc/core/events.php:359
+#. translators: %s: a date, e.g. "Thursday, July 4, 2030"
+#: inc/core/events.php:233
+#, php-format
+msgid "Add a date on %s"
+msgstr ""
+
+#: inc/core/events.php:366
 msgid "Previous Week"
 msgstr ""
 
-#: inc/core/events.php:360
+#: inc/core/events.php:367
 msgid "Next Week"
 msgstr ""
 
-#: inc/core/events.php:473
+#: inc/core/events.php:480
 msgid "No events matched the current filters."
 msgstr ""
 
-#: inc/core/events.php:546
+#: inc/core/events.php:553
 msgid "No events matched the current view."
 msgstr ""
 
-#: inc/core/events.php:549
+#: inc/core/events.php:556
 msgid "There are no upcoming events."
 msgstr ""
 
-#: inc/core/events.php:635 inc/core/post-types.php:28
+#: inc/core/events.php:642 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:691
+#: inc/core/events.php:698
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:702
+#: inc/core/events.php:709
 msgid "Open Event Page"
 msgstr ""
 
-#: inc/core/events.php:739
-msgid "Remove occurrence"
+#. translators: %s: the date and time of an occurrence
+#: inc/core/events.php:747
+#, php-format
+msgid "Edit %s"
 msgstr ""
 
-#: inc/core/events.php:756
+#. translators: %s: the date and time of an occurrence
+#: inc/core/events.php:749
+#, php-format
+msgid "Remove %s"
+msgstr ""
+
+#: inc/core/events.php:766
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:775
+#: inc/core/events.php:785
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1177
+#: inc/core/events.php:1187
 msgid "Organizer"
 msgstr ""
 
 #: inc/core/frontend.php:367 inc/core/frontend.php:378
-#: inc/core/frontend.php:450 mindshare-events.php:119
+#: inc/core/frontend.php:450 mindshare-events.php:120
 msgid "Categories"
 msgstr ""
 
@@ -465,51 +479,55 @@ msgid "Loading occurrence editor..."
 msgstr ""
 
 #: mindshare-events.php:100
-msgid "Unable to add an occurrence for that day."
+msgid "Edit occurrence"
 msgstr ""
 
 #: mindshare-events.php:101
-msgid "Unable to load that occurrence."
+msgid "Unable to add an occurrence for that day."
 msgstr ""
 
 #: mindshare-events.php:102
-msgid "Unable to move that occurrence."
+msgid "Unable to load that occurrence."
 msgstr ""
 
 #: mindshare-events.php:103
-msgid "Unable to update that occurrence."
+msgid "Unable to move that occurrence."
 msgstr ""
 
 #: mindshare-events.php:104
-msgid "Unable to delete that occurrence."
+msgid "Unable to update that occurrence."
 msgstr ""
 
 #: mindshare-events.php:105
-msgid "Unable to clear those occurrences."
+msgid "Unable to delete that occurrence."
 msgstr ""
 
 #: mindshare-events.php:106
-msgid "Delete this occurrence?"
+msgid "Unable to clear those occurrences."
 msgstr ""
 
 #: mindshare-events.php:107
+msgid "Delete this occurrence?"
+msgstr ""
+
+#: mindshare-events.php:108
 msgid "Clear every occurrence for this event?"
 msgstr ""
 
-#: mindshare-events.php:116
+#: mindshare-events.php:117
 msgid "Loading event details..."
 msgstr ""
 
-#: mindshare-events.php:117
+#: mindshare-events.php:118
 msgid "Event details"
 msgstr ""
 
-#: mindshare-events.php:118
+#: mindshare-events.php:119
 msgid "Unable to load event details right now."
 msgstr ""
 
 #. translators: %d: number of selected categories, always more than one
-#: mindshare-events.php:121
+#: mindshare-events.php:122
 #, php-format
 msgid "%d Categories"
 msgstr ""

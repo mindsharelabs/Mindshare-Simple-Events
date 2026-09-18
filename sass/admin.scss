@@ -448,3 +448,39 @@ body.mindevents-admin-modal-open {
 .mindevents-admin-form-grid {
     align-items: start;
 }
+
+/*
+ * A keyboard way to add a date. Mouse users can click anywhere in the day;
+ * the button stays quiet until hovered or focused.
+ */
+#eventsCalendar .mindevents-calendar-day {
+    position: relative;
+}
+
+.mindevents-admin-add-date {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--mindevents-admin-muted);
+    cursor: pointer;
+    font-size: 16px;
+    height: 24px;
+    line-height: 1;
+    opacity: 0.35;
+    padding: 0;
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    width: 24px;
+}
+
+.mindevents-calendar-day:hover .mindevents-admin-add-date,
+.mindevents-admin-add-date:focus-visible {
+    border-color: var(--mindevents-admin-border);
+    color: var(--mindevents-admin-accent);
+    opacity: 1;
+}
+
+.mindevents-admin-add-date:focus-visible {
+    outline: 2px solid var(--mindevents-admin-accent);
+}

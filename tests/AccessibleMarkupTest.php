@@ -50,4 +50,35 @@ class AccessibleMarkupTest extends Mindshare_Events_TestCase {
         $this->assertStringNotContainsString('has-events', $fifth->getAttribute('class'));
         $this->assertSame(wp_date('l', strtotime('2030-07-04')), trim($xpath->query(".//*[contains(@class,'mindevents-calendar-day-name')]", $fourth)->item(0)->textContent));
     }
+
+    public function test_admin_days_have_a_labelled_button_to_add_a_date(): void {
+        update_option('date_format', 'F j, Y');
+        $xpath = $this->dom((new mindEventCalendar($this->createEvent(), '2030-07-01'))->get_calendar());
+
+        $buttons = $xpath->query("//button[contains(@class,'mindevents-admin-add-date')]");
+        $fourth  = $xpath->query("//*[@data-date='2030-07-04']//button[contains(@class,'mindevents-admin-add-date')]")->item(0);
+
+        $this->assertSame(31, $buttons->length);
+        $this->assertSame('Add a date on Thursday, July 4, 2030', $fourth->getAttribute('aria-label'));
+    }
+
+    public function test_public_days_have_no_add_buttons(): void {
+        $xpath = $this->dom((new mindEventCalendar($this->createEvent(), '2030-07-01'))->render());
+
+        $this->assertSame(0, $xpath->query("//button[contains(@class,'mindevents-admin-add-date')]")->length);
+    }
+
+    public function test_admin_date_buttons_say_which_date_they_act_on(): void {
+        update_option('date_format', 'F j, Y');
+        update_option('time_format', 'g:i a');
+        $event_id = $this->createEvent();
+        $this->createOccurrence($event_id, '2030-07-04', '19:00', '21:00');
+        $xpath = $this->dom((new mindEventCalendar($event_id, '2030-07-01'))->get_calendar());
+
+        $edit   = $xpath->query("//button[contains(@class,'mindevents-admin-occurrence__edit')]")->item(0);
+        $remove = $xpath->query("//button[contains(@class,'mindevents-admin-occurrence__delete')]")->item(0);
+
+        $this->assertSame('Edit July 4, 2030 · 7:00 pm - 9:00 pm', $edit->getAttribute('aria-label'));
+        $this->assertSame('Remove July 4, 2030 · 7:00 pm - 9:00 pm', $remove->getAttribute('aria-label'));
+    }
 }

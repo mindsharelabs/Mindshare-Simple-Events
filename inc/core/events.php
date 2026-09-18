@@ -22,7 +22,8 @@ class mindEventCalendar {
     private $date_format = 'F j, Y';
     private $time_format = 'g:i a';
     private $dailyHtml = array();
-    private $abbreviate_weekdays = false;
+    /** The admin calendar: abbreviated headings, and buttons to add dates. */
+    private $admin_view = false;
     private $offset = 0;
     private $last_front_list_query = null;
     private $classes = array(
@@ -226,6 +227,12 @@ class mindEventCalendar {
             $out .= '<time class="mindevents-calendar-day-number" datetime="' . esc_attr($date->format('Y-m-d')) . '">';
             $out .= '<span class="mindevents-calendar-day-name">' . esc_html($GLOBALS['wp_locale']->get_weekday((int) $date->format('w'))) . ' </span>';
             $out .= esc_html((string) $day) . '</time>';
+
+            if ($this->admin_view) {
+                /* translators: %s: a date, e.g. "Thursday, July 4, 2030" */
+                $label = sprintf(__('Add a date on %s', 'simple-events'), wp_date('l, ' . $this->date_format, $date->getTimestamp()));
+                $out  .= '<button type="button" class="mindevents-admin-add-date" aria-label="' . esc_attr($label) . '">+</button>';
+            }
 
             if (isset($this->dailyHtml[$year][$month][$day])) {
                 $out .= '<div class="' . esc_attr($this->classes['events']) . '">';
@@ -714,8 +721,7 @@ class mindEventCalendar {
     public function get_calendar($calDate = '') {
         $this->clearDailyHtml();
 
-        // The admin calendar sits in a narrow meta box.
-        $this->abbreviate_weekdays = true;
+        $this->admin_view = true;
         $this->setStartOfWeek($this->calendar_start_day);
 
         $eventDates = $this->get_sub_events(array(
@@ -735,8 +741,12 @@ class mindEventCalendar {
                 $html  = '<div class="mindevents-admin-occurrence">';
                 $html .= $this->get_event_color_bar($event->ID);
                 $html .= '<div class="mindevents-admin-occurrence__actions">';
-                $html .= '<button type="button" class="mindevents-admin-occurrence__edit" data-subid="' . esc_attr($event->ID) . '">' . esc_html($this->format_time_range($times['start'], $times['end'])) . '</button>';
-                $html .= '<button type="button" class="mindevents-admin-occurrence__delete" data-subid="' . esc_attr($event->ID) . '" aria-label="' . esc_attr__('Remove occurrence', 'simple-events') . '">&times;</button>';
+                // The visible text is only the time; the labels add the date.
+                $when  = $this->format_date_range($times['start'], $times['end']);
+                /* translators: %s: the date and time of an occurrence */
+                $html .= '<button type="button" class="mindevents-admin-occurrence__edit" data-subid="' . esc_attr($event->ID) . '" aria-label="' . esc_attr(sprintf(__('Edit %s', 'simple-events'), $when)) . '">' . esc_html($this->format_time_range($times['start'], $times['end'])) . '</button>';
+                /* translators: %s: the date and time of an occurrence */
+                $html .= '<button type="button" class="mindevents-admin-occurrence__delete" data-subid="' . esc_attr($event->ID) . '" aria-label="' . esc_attr(sprintf(__('Remove %s', 'simple-events'), $when)) . '">&times;</button>';
                 $html .= '</div>';
                 $html .= '</div>';
                 $this->addDailyHtml($html, $times['start'], $times['end']);
@@ -1096,7 +1106,7 @@ class mindEventCalendar {
         $days = array();
         for ($index = 0; $index < 7; $index++) {
             $name   = $wp_locale->get_weekday($index);
-            $days[] = $this->abbreviate_weekdays ? $wp_locale->get_weekday_abbrev($name) : $name;
+            $days[] = $this->admin_view ? $wp_locale->get_weekday_abbrev($name) : $name;
         }
 
         return $days;

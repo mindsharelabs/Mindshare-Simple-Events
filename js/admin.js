@@ -5,6 +5,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
 
     const settings = window.mindeventsSettings || {};
     const i18n = settings.i18n || {};
+
+    // Where focus goes back to when the dialog closes.
+    let returnFocusTo = null;
     let isDraggingOccurrence = false;
     let suppressDayClick = false;
 
@@ -59,7 +62,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         $modal = $(`
             <div class="mindevents-admin-modal" aria-hidden="true">
                 <div class="mindevents-admin-modal__backdrop"></div>
-                <div class="mindevents-admin-modal__dialog" role="dialog" aria-modal="true">
+                <div class="mindevents-admin-modal__dialog" role="dialog" aria-modal="true" tabindex="-1">
                     <div class="mindevents-admin-modal__content"></div>
                 </div>
             </div>
@@ -76,22 +79,105 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         }
     }
 
-    function openModal(html) {
+    /**
+     * Show content in the dialog. The first call moves focus into it and
+     * remembers `trigger`, so focus can go back there on close.
+     */
+    function openModal(content, trigger) {
         const $modal = getModal();
-        $modal.find('.mindevents-admin-modal__content').html(html);
+        const $dialog = $modal.find('.mindevents-admin-modal__dialog');
+        const wasOpen = $modal.hasClass('is-open');
+
+        if (!wasOpen) {
+            returnFocusTo = trigger || document.activeElement;
+        }
+
+        $modal.find('.mindevents-admin-modal__content').html(content);
         initColorPickers($modal);
+
+        const $heading = $dialog.find('.mindevents-admin-heading').first();
+        if ($heading.length) {
+            $heading.attr('id', 'mindevents-admin-modal-title');
+            $dialog.attr('aria-labelledby', 'mindevents-admin-modal-title').removeAttr('aria-label');
+        } else {
+            $dialog.removeAttr('aria-labelledby').attr('aria-label', i18n.editOccurrence);
+        }
+
         $modal.addClass('is-open').attr('aria-hidden', 'false');
         $('body').addClass('mindevents-admin-modal-open');
+
+        if (!wasOpen) {
+            $dialog.trigger('focus');
+        }
     }
 
     function closeModal() {
         const $modal = $('.mindevents-admin-modal');
+
+        if (!$modal.hasClass('is-open')) {
+            return;
+        }
+
         $modal.removeClass('is-open').attr('aria-hidden', 'true');
         $('body').removeClass('mindevents-admin-modal-open');
+        restoreFocus();
     }
 
-    function setModalLoading() {
-        openModal($('<div class="mindevents-admin-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingEditor)));
+    /**
+     * Saving re-renders the calendar, replacing the button that opened the
+     * dialog. Return focus to the same date's new button, or failing that
+     * (it moved to another month) to the calendar's first add button.
+     */
+    function restoreFocus() {
+        let target = returnFocusTo;
+        returnFocusTo = null;
+
+        if (target && !document.body.contains(target)) {
+            const subid = $(target).data('subid');
+            target = $('.mindevents-admin-occurrence__edit').filter(function () {
+                return $(this).data('subid') === subid;
+            }).get(0) || $('.mindevents-admin-add-date').get(0);
+        }
+
+        if (target) {
+            target.focus();
+        }
+    }
+
+    // Keep Tab and Shift+Tab cycling inside the open dialog.
+    function trapFocus(event) {
+        const $dialog = $('.mindevents-admin-modal.is-open .mindevents-admin-modal__dialog');
+        if (!$dialog.length) {
+            return;
+        }
+
+        const dialog = $dialog.get(0);
+        const focusable = $dialog.find('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select, textarea, [tabindex]:not([tabindex="-1"])').filter(':visible').get();
+
+        if (!focusable.length) {
+            event.preventDefault();
+            dialog.focus();
+            return;
+        }
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement;
+
+        if (active !== dialog && !dialog.contains(active)) {
+            event.preventDefault();
+            first.focus();
+        } else if (event.shiftKey && (active === first || active === dialog)) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && active === last) {
+            event.preventDefault();
+            first.focus();
+        }
+    }
+
+    function setModalLoading(trigger) {
+        openModal($('<div class="mindevents-admin-loading" role="status" aria-live="polite">').append($('<span>').text(i18n.loadingEditor)), trigger);
     }
 
     function showErrors(messages) {
@@ -286,7 +372,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             return;
         }
 
-        setModalLoading();
+        setModalLoading(this);
 
         $.ajax({
             url: settings.ajax_url,
@@ -406,7 +492,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     });
 
     $(document).on('keydown', function (event) {
-        if (event.key === 'Escape') {
+        if (event.key === 'Tab') {
+            trapFocus(event);
+        } else if (event.key === 'Escape') {
             closeModal();
         }
     });
