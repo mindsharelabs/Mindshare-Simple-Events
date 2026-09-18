@@ -2,7 +2,7 @@
     "name": "mindsharelabs/mindshare-simple-events",
     "description": "Self-contained WordPress events plugin.",
     "type": "wordpress-plugin",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-or-later",
     "require": {
         "php": ">=7.4"
     },

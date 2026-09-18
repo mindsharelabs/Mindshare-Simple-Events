@@ -182,3 +182,7 @@ from `phpunit.xml.dist`. A MAMP install, for example, needs its MySQL socket:
 ```
 
 Set `WP_LOAD_PATH` to test against a different install.
+
+## License
+
+GPL-3.0-or-later. See [LICENSE.txt](LICENSE.txt).
