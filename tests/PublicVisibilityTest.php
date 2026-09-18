@@ -135,4 +135,25 @@ class PublicVisibilityTest extends Mindshare_Events_TestCase {
         $this->assertSame('future', get_post_status($event_id));
         $this->assertNotSame('publish', get_post_status($occurrence_id));
     }
+
+    /**
+     * Pages are often served from a full-page cache for longer than a nonce
+     * lives, so a read-only public request must not depend on one.
+     */
+    public function test_event_detail_works_without_a_nonce(): void {
+        $occurrence_id = $this->createOccurrence($this->createEvent(array('post_title' => 'Open Studio')), '2030-05-01');
+
+        $response = $this->ajax('mindevents_get_event_meta_html', array('eventid' => $occurrence_id));
+
+        $this->assertTrue($response['success'] ?? false, wp_json_encode($response));
+    }
+
+    public function test_changing_data_still_requires_a_nonce(): void {
+        $this->actAs('administrator');
+        $occurrence_id = $this->createOccurrence($this->createEvent(), '2030-05-01');
+
+        $this->ajax('mindevents_deleteevent', array('eventid' => $occurrence_id));
+
+        $this->assertNotNull(get_post($occurrence_id));
+    }
 }

@@ -99,8 +99,7 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             dataType: 'json',
             data: {
                 action: MINDEVENTS_PREPEND + 'get_event_meta_html',
-                eventid: eventId,
-                nonce: settings.nonce
+                eventid: eventId
             }
         }).done(function (response) {
             if (response && response.success && response.data && response.data.html) {

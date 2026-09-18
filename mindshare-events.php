@@ -100,12 +100,8 @@ final class mindEvents {
             true
         );
 
-        $post_id = is_post_type_archive('events') || is_tax('event_category') ? 0 : get_the_ID();
-
         wp_localize_script('mindevents-frontend', 'mindeventsSettings', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce'    => wp_create_nonce('mindevents_ajax'),
-            'post_id'  => absint($post_id),
         ));
     }
 

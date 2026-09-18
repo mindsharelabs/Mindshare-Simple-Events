@@ -18,9 +18,11 @@ class mindEventsAjax {
         add_action('wp_ajax_' . MINDEVENTS_PREPEND . 'get_event_meta_html', array($this, 'get_event_meta_html'));
     }
 
+    /**
+     * Public and read-only, so it takes no nonce: nonces guard changes, and
+     * one printed into cached pages would expire and break this request.
+     */
     public function get_event_meta_html() {
-        $this->verify_nonce();
-
         $id = absint($_POST['eventid'] ?? 0);
         if (!mindevents_is_public_occurrence($id)) {
             wp_send_json_error(null, 404);
