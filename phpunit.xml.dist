@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copy to phpunit.xml to add machine-specific settings, such as the
+    MySQL socket for a MAMP install:
+
+        <php>
+            <ini name="mysqli.default_socket" value="/Applications/MAMP/tmp/mysql/mysql.sock"/>
+        </php>
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="Simple Events">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

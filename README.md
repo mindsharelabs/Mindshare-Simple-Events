@@ -111,3 +111,25 @@ Available scripts:
 
 - `npm run build`
 - `npm run watch`
+
+## Tests
+
+Tests run against the WordPress install the plugin sits in, with the plugin
+active. Each test runs inside a database transaction that is rolled back
+afterwards, so the site's data is never changed.
+
+```bash
+composer install
+composer test
+```
+
+Machine-specific settings go in a local `phpunit.xml` (gitignored), copied
+from `phpunit.xml.dist`. A MAMP install, for example, needs its MySQL socket:
+
+```xml
+<php>
+    <ini name="mysqli.default_socket" value="/Applications/MAMP/tmp/mysql/mysql.sock"/>
+</php>
+```
+
+Set `WP_LOAD_PATH` to test against a different install.

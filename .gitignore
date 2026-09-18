@@ -281,3 +281,8 @@ sftp-config.json
 *.docx
 *.rtf
 *.odt
+
+# PHP dependencies and local test config
+/vendor/
+/phpunit.xml
+/.phpunit.cache/
