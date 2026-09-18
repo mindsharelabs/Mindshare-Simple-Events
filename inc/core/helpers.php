@@ -355,7 +355,8 @@ if (!function_exists('mindevents_occurrence_status')) {
 
 if (!function_exists('mindevents_transition_child_statuses')) {
     function mindevents_transition_child_statuses($new_status, $old_status, $parent_post) {
-        if (!($parent_post instanceof WP_Post) || $parent_post->post_type !== 'events') {
+        // transition_post_status fires on every save, not only on changes.
+        if ($new_status === $old_status || !($parent_post instanceof WP_Post) || $parent_post->post_type !== 'events') {
             return;
         }
 
