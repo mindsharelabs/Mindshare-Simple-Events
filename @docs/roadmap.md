@@ -71,34 +71,31 @@ item **P1**.
 - [x] **Event** setting: show one event and its dates only
 - [x] Live preview in the editor
 
-## Phase 4: RSVP and accounts
+**The core plugin is complete with Phase 3.** Later phases build on it
+from separate plugins, and add hooks to it only as they need them.
 
-Needs sub-phases:
+## Phase 4: Tickets and RSVP (separate plugin)
 
-1. **Data model.** Where RSVPs live, what they reference (an occurrence
-   or a whole series), capacity, and retention.
-2. **RSVP flow.** Guest or account-required, confirmation, cancellation.
-3. **Account creation and information collection.**
-4. **Notifications.** Confirmations and reminders, which depend on the UTC
-   time model from the foundation review.
+**Mindshare Simple Tickets**, in its own repository, with its own roadmap.
+It adds RSVP with account creation or guest RSVP, paid tickets through
+Stripe, and the screens to manage both.
 
-Guest versus required-account is the first decision, since it shapes
-everything after it.
+Decided:
+
+- An RSVP is a free ticket type, so RSVPs and paid tickets share one
+  model, one attendee list and one set of screens.
+- Tickets are for a single date, and capacity is per date.
+- Accounts are WordPress users; guests RSVP or buy with a name and email.
+- Payment goes through Stripe's hosted checkout page.
+- Emails are sent with `wp_mail()`.
+- Check-in at the door comes later. Each ticket gets a unique code now,
+  so it can be added without changes.
 
 ## Phase 5: CRM integration
 
 A simple integration with the Mindshare CRM. It can't be sized until the
 CRM's API surface has been reviewed.
 
-## Phase 6: Stripe ticketing (separate plugin)
-
-Needs sub-phases:
-
-1. **Payment intents and checkout.** Stripe-hosted fields only, so card
-   data never touches the site and PCI scope stays minimal.
-2. **Webhooks.** Idempotent handling, since Stripe retries.
-3. **Refunds and cancellations.**
-
-## Phase 7: Theater seating charts (separate plugin)
+## Phase 6: Theater seating charts (separate plugin)
 
 Its own phase plan, to be written when the phase begins.
