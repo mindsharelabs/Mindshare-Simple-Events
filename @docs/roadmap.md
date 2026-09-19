@@ -58,9 +58,20 @@ A third display type for an event, beside List and Calendar.
       circles; clicking one opens a dialog listing that day's dates.
 
 It lives on the event's own page, so it does not need review item **P1**
-(a shortcode or block). That is still needed to place calendars elsewhere.
+(a shortcode or block). Phase 3 adds that.
 
-## Phase 3: RSVP and accounts
+## Phase 3: Calendar block
+
+A block that places an events calendar on any page. This resolves review
+item **P1**.
+
+- [ ] Front-end assets that load wherever a calendar is shown
+- [ ] **Display type** setting: list, calendar or mini calendar
+- [ ] **Category** setting: show only events in the chosen categories
+- [ ] **Event** setting: show one event and its dates only
+- [ ] Live preview in the editor
+
+## Phase 4: RSVP and accounts
 
 Needs sub-phases:
 
@@ -74,12 +85,12 @@ Needs sub-phases:
 Guest versus required-account is the first decision, since it shapes
 everything after it.
 
-## Phase 4: CRM integration
+## Phase 5: CRM integration
 
 A simple integration with the Mindshare CRM. It can't be sized until the
 CRM's API surface has been reviewed.
 
-## Phase 5: Stripe ticketing (separate plugin)
+## Phase 6: Stripe ticketing (separate plugin)
 
 Needs sub-phases:
 
@@ -88,6 +99,6 @@ Needs sub-phases:
 2. **Webhooks.** Idempotent handling, since Stripe retries.
 3. **Refunds and cancellations.**
 
-## Phase 6: Theater seating charts (separate plugin)
+## Phase 7: Theater seating charts (separate plugin)
 
 Its own phase plan, to be written when the phase begins.
