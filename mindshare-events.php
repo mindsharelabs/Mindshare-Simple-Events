@@ -64,6 +64,7 @@ final class mindEvents {
         require_once MINDEVENTS_ABSPATH . 'inc/core/api.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/frontend.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/ajax.php';
+        require_once MINDEVENTS_ABSPATH . 'inc/core/block.php';
     }
 
     private function bootstrap() {
@@ -75,7 +76,10 @@ final class mindEvents {
         $this->components['post_types'] = new mindEventsCPTS();
         $this->components['admin'] = new mindeventsAdmin();
         $this->components['ajax'] = new mindEventsAjax();
+        $this->components['block'] = new mindEventsBlock();
 
+        // Before blocks register on init, since the calendar block names these.
+        add_action('init', array($this, 'register_front_assets'), 5);
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_front_assets'));
         add_action('wp_head', array($this, 'output_schema'), 20);
@@ -125,19 +129,20 @@ final class mindEvents {
         );
     }
 
-    public function enqueue_front_assets() {
-        if (!is_post_type_archive('mind_events') && !is_singular('mind_events') && !is_tax('mind_event_category')) {
-            return;
-        }
-
-        wp_enqueue_style(
+    /**
+     * Registered everywhere, loaded only where a calendar is shown: the
+     * event pages below, and any page with the calendar block, which
+     * loads them itself.
+     */
+    public function register_front_assets() {
+        wp_register_style(
             'mindevents-frontend',
             plugins_url('css/style.css', MINDEVENTS_PLUGIN_FILE),
             array(),
             mindevents_asset_version('css/style.css')
         );
 
-        wp_enqueue_script(
+        wp_register_script(
             'mindevents-frontend',
             plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE),
             array('jquery'),
@@ -149,6 +154,15 @@ final class mindEvents {
             'ajax_url' => admin_url('admin-ajax.php'),
             'i18n'     => self::front_script_strings(),
         ));
+    }
+
+    public function enqueue_front_assets() {
+        if (!is_post_type_archive('mind_events') && !is_singular('mind_events') && !is_tax('mind_event_category')) {
+            return;
+        }
+
+        wp_enqueue_style('mindevents-frontend');
+        wp_enqueue_script('mindevents-frontend');
     }
 
     public function enqueue_admin_assets() {

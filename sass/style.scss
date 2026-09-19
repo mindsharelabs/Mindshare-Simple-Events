@@ -55,6 +55,11 @@
     color: inherit;
 }
 
+// In a block the page sets the width, and the block's alignment widens it.
+.mindevents-shell--block {
+    max-width: none;
+}
+
 .mindevents-shell--single {
     padding-bottom: 3rem;
 }

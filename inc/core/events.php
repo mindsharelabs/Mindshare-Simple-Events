@@ -26,6 +26,8 @@ class mindEventCalendar {
     private $admin_view = false;
     private $offset = 0;
     private $last_front_list_query = null;
+    /** Keeps mini calendar template ids unique when a page has several. */
+    private $mini_id_prefix = '';
     private $classes = array(
         'calendar'     => 'mindevents-calendar',
         'leading_day'  => 'mindevents-calendar-day mindevents-calendar-day--empty',
@@ -561,16 +563,19 @@ class mindEventCalendar {
      * events is a button that opens a dialog listing that day's
      * occurrences. Each day's list is printed into the page as a
      * <template>, so opening one needs no request.
+     *
+     * $show_links adds links to each event's page, for use anywhere but
+     * the event's own page.
      */
-    public function get_mini_calendar() {
+    public function get_mini_calendar($args = array(), $show_links = false) {
         $this->clearDailyHtml();
         $this->setStartOfWeek($this->calendar_start_day);
+        $this->mini_id_prefix = wp_unique_id('mindevents-mini-');
 
-        foreach ($this->get_sub_events() as $event) {
+        foreach ($this->get_sub_events($args) as $event) {
             $times = mindevents_get_occurrence_times($event->ID);
             if ($times) {
-                // No links: the mini calendar sits on the event's own page.
-                $this->addDailyHtml($this->get_list_item_html($event->ID, false), $times['start'], $times['end']);
+                $this->addDailyHtml($this->get_list_item_html($event->ID, $show_links), $times['start'], $times['end']);
             }
         }
 
@@ -666,7 +671,7 @@ class mindEventCalendar {
     }
 
     private function mini_template_id(DateTimeInterface $date) {
-        return 'mindevents-mini-' . absint($this->eventID) . '-' . $date->format('Y-m-d');
+        return $this->mini_id_prefix . '-' . $date->format('Y-m-d');
     }
 
     public function get_last_front_list_query() {

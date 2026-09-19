@@ -1,0 +1,34 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 2,
+    "name": "simple-events/calendar",
+    "title": "Events Calendar",
+    "category": "widgets",
+    "icon": "calendar-alt",
+    "description": "A list, calendar or mini calendar of your events: all of them, some categories, or one event.",
+    "keywords": ["events", "calendar", "schedule"],
+    "textdomain": "simple-events",
+    "attributes": {
+        "display": {
+            "type": "string",
+            "enum": ["calendar", "list", "mini"],
+            "default": "calendar"
+        },
+        "categories": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "default": []
+        },
+        "event": {
+            "type": "integer",
+            "default": 0
+        }
+    },
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "editorScript": "file:./editor.js",
+    "style": "mindevents-frontend",
+    "viewScript": "mindevents-frontend"
+}

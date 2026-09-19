@@ -45,6 +45,26 @@ class MiniCalendarTest extends Mindshare_Events_TestCase {
         $this->assertFalse(has_action('mindevents_single_content'));
     }
 
+    public function test_two_calendars_on_one_page_do_not_share_template_ids(): void {
+        $event_id = $this->createEvent();
+        $this->createOccurrence($event_id, '2030-07-20');
+
+        $first  = $this->eventTemplates($this->render($event_id));
+        $second = $this->eventTemplates($this->render($event_id));
+
+        $this->assertCount(1, $first);
+        $this->assertEmpty(array_intersect($first, $second));
+    }
+
+    private function eventTemplates(DOMXPath $xpath): array {
+        $ids = array();
+        foreach ($xpath->query('//template') as $node) {
+            $ids[] = $node->getAttribute('id');
+        }
+
+        return $ids;
+    }
+
     public function test_the_display_type_can_be_saved(): void {
         $method = new ReflectionMethod('mindeventsAdmin', 'sanitize_event_meta');
         $method->setAccessible(true);
@@ -86,12 +106,17 @@ class MiniCalendarTest extends Mindshare_Events_TestCase {
         $this->createOccurrence($event_id, '2030-07-20', '19:00', '21:00');
         $this->createOccurrence($event_id, '2030-07-22');
 
-        $xpath  = $this->render($event_id);
-        $button = $xpath->query("//button[@data-template='mindevents-mini-$event_id-2030-07-20']")->item(0);
+        $xpath = $this->render($event_id);
+        $day   = function (string $date) use ($xpath) {
+            $button = $xpath->query("//button[substring(@data-template, string-length(@data-template) - 9) = '$date']")->item(0);
+            $cards  = $xpath->query("//template[@id='" . $button->getAttribute('data-template') . "']//article")->length;
 
-        $this->assertStringContainsString('2 events', $button->getAttribute('aria-label'));
-        $this->assertSame(2, $xpath->query("//template[@id='mindevents-mini-$event_id-2030-07-20']//article")->length);
-        $this->assertSame(1, $xpath->query("//template[@id='mindevents-mini-$event_id-2030-07-22']//article")->length);
+            return array($button->getAttribute('aria-label'), $cards);
+        };
+
+        $this->assertStringContainsString('2 events', $day('2030-07-20')[0]);
+        $this->assertSame(2, $day('2030-07-20')[1]);
+        $this->assertSame(1, $day('2030-07-22')[1]);
     }
 
     public function test_past_dates_are_left_out_when_the_event_shows_upcoming_only(): void {

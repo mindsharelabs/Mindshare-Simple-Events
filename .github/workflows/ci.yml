@@ -102,7 +102,7 @@ jobs:
         run: |
           zip=dist/Mindshare-Simple-Events.zip
           listing=$(unzip -Z1 "$zip")
-          for required in mindshare-events.php uninstall.php LICENSE.txt inc/core/events.php templates/single-events.php js/mindevents.js css/style.css languages/simple-events.pot; do
+          for required in mindshare-events.php uninstall.php LICENSE.txt inc/core/events.php templates/single-events.php js/mindevents.js css/style.css blocks/calendar/block.json blocks/calendar/editor.js languages/simple-events.pot; do
             echo "$listing" | grep -qx "Mindshare-Simple-Events/$required" || { echo "Missing: $required"; exit 1; }
           done
           if echo "$listing" | grep -E '/(tests|sass|\.github|@docs|bin|vendor|node_modules)/|composer\.|package(-lock)?\.json|phpunit|\.phpcs|gulpfile|\.map$'; then

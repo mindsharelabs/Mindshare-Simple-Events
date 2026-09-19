@@ -65,11 +65,11 @@ It lives on the event's own page, so it does not need review item **P1**
 A block that places an events calendar on any page. This resolves review
 item **P1**.
 
-- [ ] Front-end assets that load wherever a calendar is shown
-- [ ] **Display type** setting: list, calendar or mini calendar
-- [ ] **Category** setting: show only events in the chosen categories
-- [ ] **Event** setting: show one event and its dates only
-- [ ] Live preview in the editor
+- [x] Front-end assets that load wherever a calendar is shown
+- [x] **Display type** setting: list, calendar or mini calendar
+- [x] **Category** setting: show only events in the chosen categories
+- [x] **Event** setting: show one event and its dates only
+- [x] Live preview in the editor
 
 ## Phase 4: RSVP and accounts
 

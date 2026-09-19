@@ -6,7 +6,8 @@ Mindshare Simple Events is a self-contained WordPress events plugin for sites th
 
 - `mind_events` and `mind_sub_event` post types with the `mind_event_category` taxonomy, served under `/events/` and `/event_category/`
 - admin occurrence calendar for adding, editing, moving, and deleting dates
-- month, week, and list views for archives and single events
+- month, week, and list views for archives and single events, and a mini calendar display for single events
+- an **Events Calendar** block for any page
 - category filtering and title search on the public archive
 - ICS feed subscription and single-occurrence downloads
 - read-only REST API at `/wp-json/simple-events/v1/events`
@@ -85,6 +86,18 @@ define('MINDEVENTS_REMOVE_ALL_DATA', true);
 ## Usage
 
 Create an event post, then use the `Occurrences` metabox to add one or more dates. Each occurrence can store its own date, time, short description, color override, organizer details, and location.
+
+### Events Calendar block
+
+Add the **Events Calendar** block to any page or post. Its settings, in
+the block sidebar:
+
+- **Display type**: calendar, list or mini calendar
+- **Event**: all events, or one event and its dates
+- **Categories**: with all events, show only those in the ticked categories
+
+Lists and mini calendars of all events show upcoming dates only. One event
+follows its own Past Events setting.
 
 Theme overrides are supported with these template files:
 
