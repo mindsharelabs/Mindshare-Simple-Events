@@ -58,7 +58,8 @@ function mindevents_current_view_url() {
         return is_wp_error($link) ? '' : $link;
     }
 
-    if (is_singular('mind_events')) {
+    // An event, or any page with a calendar block on it.
+    if (is_singular()) {
         return get_permalink(get_queried_object_id());
     }
 

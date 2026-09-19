@@ -45,4 +45,17 @@ class NavLinkTest extends Mindshare_Events_TestCase {
         $this->assertStringStartsWith(get_permalink($event_id), html_entity_decode($link[1]));
         $this->assertStringNotContainsString('/site/site/', $link[1]);
     }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_nav_links_on_any_other_page_stay_on_that_page(): void {
+        $page_id = wp_insert_post(array('post_type' => 'page', 'post_title' => 'Workshops', 'post_status' => 'publish'));
+        $GLOBALS['wp_query']     = new WP_Query(array('page_id' => $page_id));
+        $GLOBALS['wp_the_query'] = $GLOBALS['wp_query'];
+
+        $html = (new mindEventCalendar('', '2030-07-01'))->get_calendar_nav_links('month');
+
+        preg_match('/href="([^"]+)"/', $html, $link);
+        $this->assertStringStartsWith(get_permalink($page_id), html_entity_decode($link[1]));
+    }
 }
