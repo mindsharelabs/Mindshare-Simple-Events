@@ -105,6 +105,19 @@ Theme overrides are supported with these template files:
 - `single-events.php`
 - `taxonomy-event-category.php`
 
+## Hooks for add-ons
+
+`mindevents_occurrence_actions` runs where a date's buttons are: on its
+card in a list, and in the dialog a calendar opens. An add-on echoes its
+own buttons there.
+
+```php
+add_action('mindevents_occurrence_actions', function ($occurrence_id, $context) {
+    // $context is 'list' or 'detail'.
+    echo '<a class="mindevents-button" href="...">Book</a>';
+}, 10, 2);
+```
+
 ## REST API
 
 Endpoint:

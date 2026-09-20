@@ -732,6 +732,20 @@ function mindevents_generate_single_event_ics($event_id) {
     return mindevents_ics_calendar(mindevents_build_ics_event_block($event_id));
 }
 
+/**
+ * The buttons another plugin adds to one date: on its card in a list, and
+ * in the dialog that opens from a calendar.
+ *
+ * Add-ons such as ticketing hook 'mindevents_occurrence_actions' and echo
+ * their own buttons. $context is 'list' or 'detail'.
+ */
+function mindevents_occurrence_actions($occurrence_id, $context) {
+    ob_start();
+    do_action('mindevents_occurrence_actions', absint($occurrence_id), $context);
+
+    return ob_get_clean();
+}
+
 function mindevents_get_event_add_to_calendar_links($event_id) {
     $event_id = absint($event_id);
     if (!mindevents_is_public_occurrence($event_id)) {

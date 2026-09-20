@@ -756,6 +756,7 @@ class mindEventCalendar {
         $html .= $organizer;
 
         $html .= '<div class="mindevents-list-card__actions">';
+        $html .= mindevents_occurrence_actions($event, 'list');
         if ($display_link && $permalink) {
             $html .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url($permalink) . '">' . esc_html__('View Event', 'simple-events') . '</a>';
         }
@@ -823,6 +824,7 @@ class mindEventCalendar {
         $html .= $organizer;
 
         $html .= '<div class="mindevents-event-meta__actions">';
+        $html .= mindevents_occurrence_actions($event, 'detail');
         if ($parent_link) {
             $html .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url($parent_link) . '">' . esc_html__('Open Event Page', 'simple-events') . '</a>';
         }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-18 18:12-0600\n"
+"POT-Creation-Date: 2026-09-20 13:17-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -159,7 +159,7 @@ msgstr ""
 msgid "That occurrence date or time is not valid."
 msgstr ""
 
-#: inc/core/ajax.php:85 inc/core/events.php:921
+#: inc/core/ajax.php:85 inc/core/events.php:923
 msgid "An occurrence at that time already exists."
 msgstr ""
 
@@ -241,39 +241,39 @@ msgstr[1] ""
 msgid "Close"
 msgstr ""
 
-#: inc/core/events.php:760 inc/core/post-types.php:28
+#: inc/core/events.php:761 inc/core/post-types.php:28
 msgid "View Event"
 msgstr ""
 
-#: inc/core/events.php:816
+#: inc/core/events.php:817
 msgid "Close event details"
 msgstr ""
 
-#: inc/core/events.php:827
+#: inc/core/events.php:829
 msgid "Open Event Page"
-msgstr ""
-
-#. translators: %s: the date and time of an occurrence
-#: inc/core/events.php:865
-#, php-format
-msgid "Edit %s"
 msgstr ""
 
 #. translators: %s: the date and time of an occurrence
 #: inc/core/events.php:867
 #, php-format
+msgid "Edit %s"
+msgstr ""
+
+#. translators: %s: the date and time of an occurrence
+#: inc/core/events.php:869
+#, php-format
 msgid "Remove %s"
 msgstr ""
 
-#: inc/core/events.php:884
+#: inc/core/events.php:886
 msgid "That occurrence does not exist."
 msgstr ""
 
-#: inc/core/events.php:903
+#: inc/core/events.php:905
 msgid "The new occurrence date is invalid."
 msgstr ""
 
-#: inc/core/events.php:1305
+#: inc/core/events.php:1307
 msgid "Organizer"
 msgstr ""
 
@@ -339,19 +339,19 @@ msgstr ""
 msgid "Subscribe to Calendar Feed"
 msgstr ""
 
-#: inc/core/frontend.php:782
+#: inc/core/frontend.php:796
 msgid "Add to Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:786
+#: inc/core/frontend.php:800
 msgid "Google Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:787
+#: inc/core/frontend.php:801
 msgid "Apple / Outlook (.ics)"
 msgstr ""
 
-#: inc/core/frontend.php:788
+#: inc/core/frontend.php:802
 msgid "Yahoo Calendar"
 msgstr ""
 
