@@ -71,7 +71,16 @@ item **P1**.
 - [x] **Event** setting: show one event and its dates only
 - [x] Live preview in the editor
 
-**The core plugin is complete with Phase 3.** Later phases build on it
+**The core plugin is complete with Phase 3.**
+
+Carried forward, found while planning tickets:
+
+- **Dates that span several days cannot be entered.** A date stores a
+  start and an end instant, and the calendars already spread one across
+  every day it covers, but the admin form only takes a start and end
+  *time* on one day. A Friday-to-Sunday retreat therefore cannot be set
+  up. The form needs an end date beside the end time.
+ Later phases build on it
 from separate plugins, and add hooks to it only as they need them.
 
 ## Phase 4: Tickets and RSVP (separate plugin)
