@@ -100,10 +100,20 @@ Decided:
 - Check-in at the door comes later. Each ticket gets a unique code now,
   so it can be added without changes.
 
-## Phase 5: CRM integration
+## Phase 5: CRM integration — done elsewhere
 
-A simple integration with the Mindshare CRM. It can't be sized until the
-CRM's API surface has been reviewed.
+Built in 2026-09, and none of it landed here. Bookings reach the Mindshare
+CRM through **Mindshare Simple Tickets**, which the CRM's own connector
+plugin listens to; see `@docs/crm-integration.md` in that repository. This
+plugin supplies the event and the date, read through
+`mindevents_get_occurrence_times()` and the event's title and location
+meta — so the CRM's idea of an event is one **date**, keyed on the
+occurrence post id.
+
+What that means for work here: renaming an event, moving a date, or
+changing where it is held will flow to the CRM the next time a booking on
+that date is sent. Occurrence post ids are identity — deleting and
+recreating a date makes a second event in the CRM.
 
 ## Phase 6: Theater seating charts (separate plugin)
 
