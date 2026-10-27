@@ -3,7 +3,7 @@
  * Plugin Name: Mindshare Simple Events
  * Plugin URI: https://mind.sh/are
  * Description: A self-contained WordPress events plugin with occurrence management, archive views, ICS feeds, and a read-only events API.
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: Mindshare Labs, Inc.
  * Author URI: https://mind.sh/are
  * Text Domain: simple-events
@@ -46,7 +46,7 @@ final class mindEvents {
         }
 
         if (!defined('MINDEVENTS_PLUGIN_VERSION')) {
-            define('MINDEVENTS_PLUGIN_VERSION', '2.0.0');
+            define('MINDEVENTS_PLUGIN_VERSION', '2.1.0');
         }
 
         if (!defined('MINDEVENTS_PREPEND')) {
