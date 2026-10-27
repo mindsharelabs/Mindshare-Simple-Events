@@ -65,6 +65,7 @@ final class mindEvents {
         require_once MINDEVENTS_ABSPATH . 'inc/core/frontend.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/ajax.php';
         require_once MINDEVENTS_ABSPATH . 'inc/core/block.php';
+        require_once MINDEVENTS_ABSPATH . 'inc/core/migration.php';
     }
 
     private function bootstrap() {
@@ -77,6 +78,7 @@ final class mindEvents {
         $this->components['admin'] = new mindeventsAdmin();
         $this->components['ajax'] = new mindEventsAjax();
         $this->components['block'] = new mindEventsBlock();
+        $this->components['migration'] = new mindEventsMigration();
 
         // Before blocks register on init, since the calendar block names these.
         add_action('init', array($this, 'register_front_assets'), 5);

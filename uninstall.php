@@ -17,6 +17,7 @@ require_once __DIR__ . '/inc/core/installer.php';
 
 mindEventsInstaller::uninstall();
 delete_option('mindevents_support_settings');
+delete_option('mindevents_migration_completed');
 
 if (!defined('MINDEVENTS_REMOVE_ALL_DATA') || !MINDEVENTS_REMOVE_ALL_DATA) {
     return;

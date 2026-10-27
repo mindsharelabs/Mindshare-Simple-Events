@@ -70,6 +70,33 @@ Category color is stored in:
 3. Visit `Settings > Simple Events` to set the week start day and default occurrence times.
 4. Create events under `Events > Add New`.
 
+## Upgrading from 1.x
+
+1.x stored events as `events`, their dates as `sub_event` and categories
+as `event_category`. While posts of those types are found, a notice links
+to **Tools > Events Migration**, which shows what will be migrated and
+runs it. On the command line:
+
+```bash
+wp mindevents migrate --dry-run
+wp mindevents migrate
+```
+
+Back up the database first. The migration:
+
+- renames the post types and taxonomy in place, so IDs, slugs, URLs and
+  other plugins' meta carry over
+- converts each date's local `event_start_time_stamp` and
+  `event_end_time_stamp` to `mindevents_start_utc` and `mindevents_end_utc`.
+  A date with no end time, or one before its start, ends when it starts
+- points Advanced Custom Fields location rules and taxonomy fields, and
+  Yoast SEO primary categories, at the new names
+
+The 1.x meta is kept. Trashed dates are left in the trash. It refuses to
+run while anything still registers the old names, so another plugin's
+`events` are never moved. Theme code that queries the old names, or
+`first_event_date` and `last_event_date`, needs updating by hand.
+
 ## Uninstalling
 
 Deleting the plugin from the Plugins screen removes its settings, the

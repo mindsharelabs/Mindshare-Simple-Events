@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-20 13:17-0600\n"
+"POT-Creation-Date: 2026-10-27 11:39-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgid "Show every event, or one event and its dates."
 msgstr ""
 
 #: blocks/calendar/editor.js:60 inc/core/frontend.php:368
-#: inc/core/frontend.php:379 inc/core/frontend.php:451 mindshare-events.php:126
+#: inc/core/frontend.php:379 inc/core/frontend.php:451 mindshare-events.php:128
 msgid "Categories"
 msgstr ""
 
@@ -359,6 +359,138 @@ msgstr ""
 msgid "Event Manager"
 msgstr ""
 
+#. translators: %s: post type name
+#: inc/core/migration.php:59
+#, php-format
+msgid ""
+"Something on this site still registers the \"%s\" post type. Deactivate the "
+"old events plugin, or whatever else registers it, before migrating."
+msgstr ""
+
+#. translators: %s: taxonomy name
+#: inc/core/migration.php:65
+#, php-format
+msgid ""
+"Something on this site still registers the \"%s\" taxonomy. Deactivate the "
+"old events plugin, or whatever else registers it, before migrating."
+msgstr ""
+
+#: inc/core/migration.php:195
+msgid "Its event no longer exists."
+msgstr ""
+
+#: inc/core/migration.php:202
+msgid "It has no valid start time."
+msgstr ""
+
+#: inc/core/migration.php:322 inc/core/migration.php:323
+#: inc/core/migration.php:367
+msgid "Events Migration"
+msgstr ""
+
+#: inc/core/migration.php:342
+msgid ""
+"Events from an earlier version of Mindshare Simple Events were found. They "
+"will not show until they are migrated."
+msgstr ""
+
+#: inc/core/migration.php:344
+msgid "Review and migrate them"
+msgstr ""
+
+#: inc/core/migration.php:350
+msgid "You are not allowed to do this."
+msgstr ""
+
+#: inc/core/migration.php:370
+msgid "Migration finished."
+msgstr ""
+
+#: inc/core/migration.php:376
+msgid "Nothing is left to migrate."
+msgstr ""
+
+#: inc/core/migration.php:386
+msgid ""
+"These events, dates and categories are from an earlier version of Mindshare "
+"Simple Events. Migrating them makes them show on the site again, at the same "
+"URLs."
+msgstr ""
+
+#: inc/core/migration.php:387
+msgid "To migrate"
+msgstr ""
+
+#: inc/core/migration.php:390
+msgid "Back up the database first."
+msgstr ""
+
+#: inc/core/migration.php:391
+msgid ""
+"The post types and the category taxonomy are renamed in place. Theme or "
+"plugin code that queries the old names (events, sub_event, event_category, "
+"first_event_date, last_event_date) will need updating."
+msgstr ""
+
+#: inc/core/migration.php:396
+msgid "Migrate Events"
+msgstr ""
+
+#. translators: %d: number of events
+#: inc/core/migration.php:405
+#, php-format
+msgid "%d event"
+msgid_plural "%d events"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of occurrences
+#: inc/core/migration.php:407
+#, php-format
+msgid "%d occurrence"
+msgid_plural "%d occurrences"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of categories
+#: inc/core/migration.php:409
+#, php-format
+msgid "%d event category"
+msgid_plural "%d event categories"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of Advanced Custom Fields field groups and fields
+#: inc/core/migration.php:411
+#, php-format
+msgid "%d ACF field group or field that uses the old names"
+msgid_plural "%d ACF field groups or fields that use the old names"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of occurrences
+#: inc/core/migration.php:416
+#, php-format
+msgid "%d trashed occurrence, left in the trash"
+msgid_plural "%d trashed occurrences, left in the trash"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/core/migration.php:429
+#, php-format
+msgid ""
+"%1$d occurrence has no end time, or one before its start, so it ends when it "
+"starts: %2$s"
+msgid_plural ""
+"%1$d occurrences have no end time, or one before their start, so they end "
+"when they start: %2$s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/core/migration.php:440
+msgid "These occurrences cannot be migrated and are left as they are:"
+msgstr ""
+
 #: inc/core/options.php:20 inc/core/options.php:99
 msgid "Simple Events Settings"
 msgstr ""
@@ -519,68 +651,68 @@ msgstr ""
 msgid "Used for calendar and list color accents."
 msgstr ""
 
-#: mindshare-events.php:103
+#: mindshare-events.php:105
 msgid "Loading occurrence editor..."
 msgstr ""
 
-#: mindshare-events.php:104
+#: mindshare-events.php:106
 msgid "Edit occurrence"
 msgstr ""
 
-#: mindshare-events.php:105
+#: mindshare-events.php:107
 msgid "Choose organizer image"
 msgstr ""
 
-#: mindshare-events.php:106
+#: mindshare-events.php:108
 msgid "Use this image"
 msgstr ""
 
-#: mindshare-events.php:107
+#: mindshare-events.php:109
 msgid "Unable to add an occurrence for that day."
 msgstr ""
 
-#: mindshare-events.php:108
+#: mindshare-events.php:110
 msgid "Unable to load that occurrence."
 msgstr ""
 
-#: mindshare-events.php:109
+#: mindshare-events.php:111
 msgid "Unable to move that occurrence."
 msgstr ""
 
-#: mindshare-events.php:110
+#: mindshare-events.php:112
 msgid "Unable to update that occurrence."
 msgstr ""
 
-#: mindshare-events.php:111
+#: mindshare-events.php:113
 msgid "Unable to delete that occurrence."
 msgstr ""
 
-#: mindshare-events.php:112
+#: mindshare-events.php:114
 msgid "Unable to clear those occurrences."
 msgstr ""
 
-#: mindshare-events.php:113
+#: mindshare-events.php:115
 msgid "Delete this occurrence?"
 msgstr ""
 
-#: mindshare-events.php:114
+#: mindshare-events.php:116
 msgid "Clear every occurrence for this event?"
 msgstr ""
 
-#: mindshare-events.php:123
+#: mindshare-events.php:125
 msgid "Loading event details..."
 msgstr ""
 
-#: mindshare-events.php:124
+#: mindshare-events.php:126
 msgid "Event details"
 msgstr ""
 
-#: mindshare-events.php:125
+#: mindshare-events.php:127
 msgid "Unable to load event details right now."
 msgstr ""
 
 #. translators: %d: number of selected categories, always more than one
-#: mindshare-events.php:128
+#: mindshare-events.php:130
 #, php-format
 msgid "%d Categories"
 msgstr ""
