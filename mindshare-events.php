@@ -85,6 +85,7 @@ final class mindEvents {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
         add_action('wp_enqueue_scripts', array($this, 'enqueue_front_assets'));
         add_action('wp_head', array($this, 'output_schema'), 20);
+        add_action('wp', array($this, 'add_current_event_setting'));
 
         add_action('save_post_mind_events', array($this, 'sync_event_children'), 40, 2);
         add_action('save_post_mind_sub_event', array($this, 'sync_sub_event_parent_dates'), 20, 3);
@@ -156,6 +157,18 @@ final class mindEvents {
             'ajax_url' => admin_url('admin-ajax.php'),
             'i18n'     => self::front_script_strings(),
         ));
+    }
+
+    /**
+     * Tell the calendar script which event's page it is on, so the details
+     * dialog, loaded over AJAX, leaves out links to that page. Added once
+     * the query is known; the script itself is registered on init.
+     */
+    public function add_current_event_setting() {
+        $event_id = mindevents_current_event_id();
+        if ($event_id) {
+            wp_add_inline_script('mindevents-frontend', 'mindeventsSettings.current_event = ' . $event_id . ';', 'before');
+        }
     }
 
     public function enqueue_front_assets() {

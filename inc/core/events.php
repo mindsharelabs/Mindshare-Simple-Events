@@ -715,6 +715,8 @@ class mindEventCalendar {
     public function get_list_item_html($event = '', $display_link = true) {
         $event      = absint($event);
         $parent_id  = (int) wp_get_post_parent_id($event);
+        // A link to the page being viewed goes nowhere.
+        $display_link = $display_link && !($parent_id && $parent_id === mindevents_current_event_id());
         $title      = $this->get_occurrence_title($event);
         $permalink  = $parent_id ? get_permalink($parent_id) : get_permalink($event);
         $times      = mindevents_get_occurrence_times($event);
@@ -757,6 +759,7 @@ class mindEventCalendar {
 
         $html .= '<div class="mindevents-list-card__actions">';
         $html .= mindevents_occurrence_actions($event, 'list');
+        $html .= mindevents_ticket_button($event);
         if ($display_link && $permalink) {
             $html .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url($permalink) . '">' . esc_html__('View Event', 'simple-events') . '</a>';
         }
@@ -770,11 +773,23 @@ class mindEventCalendar {
         return $html;
     }
 
-    public function get_cal_meta_html($event = '') {
-        $event       = absint($event);
-        $parent_id   = (int) wp_get_post_parent_id($event);
-        $parent_link = $parent_id ? get_permalink($parent_id) : '';
-        $image       = get_the_post_thumbnail($parent_id ?: $event, 'large', array('class' => 'mindevents-event-meta__image'));
+    /**
+     * The details dialog for one date. $current_event is the event whose
+     * page the dialog opened on, if any: the dialog is loaded over AJAX, so
+     * the page says. Links to that event are left out, as they would go
+     * nowhere.
+     */
+    public function get_cal_meta_html($event = '', $current_event = null) {
+        $event         = absint($event);
+        $parent_id     = (int) wp_get_post_parent_id($event);
+        $current_event = ($current_event === null) ? mindevents_current_event_id() : absint($current_event);
+        $parent_link   = ($parent_id && $parent_id !== $current_event) ? get_permalink($parent_id) : '';
+        /**
+         * The image at the top of the dialog: the event's featured image
+         * unless filtered. Return an attachment ID, or 0 for none.
+         */
+        $image_id    = (int) apply_filters('mindevents_dialog_image_id', (int) get_post_thumbnail_id($parent_id ?: $event), $event, $parent_id);
+        $image       = $image_id ? wp_get_attachment_image($image_id, 'large', false, array('class' => 'mindevents-event-meta__image')) : '';
         $title       = $this->get_occurrence_title($event);
         $times       = mindevents_get_occurrence_times($event);
         $date_label  = $times ? $this->format_date_range($times['start'], $times['end']) : '';
@@ -782,7 +797,9 @@ class mindEventCalendar {
         $location  = mindevents_get_occurrence_location($event);
         $organizer = $this->get_organizer_block($event);
 
-        $html  = '<article class="mindevents-event-meta">';
+        $html  = '<article class="mindevents-event-meta' . ($image ? ' has-image' : '') . '">';
+        // First, so it is first in the tab order; it floats at the top right.
+        $html .= '<button type="button" class="event-meta-close" aria-label="' . esc_attr__('Close event details', 'simple-events') . '">&times;</button>';
         $html .= $this->get_event_color_bar($event);
 
         if ($image) {
@@ -814,7 +831,6 @@ class mindEventCalendar {
         }
 
         $html .= '</div>';
-        $html .= '<button type="button" class="event-meta-close" aria-label="' . esc_attr__('Close event details', 'simple-events') . '">&times;</button>';
         $html .= '</div>';
 
         if ($excerpt !== '') {
@@ -825,6 +841,7 @@ class mindEventCalendar {
 
         $html .= '<div class="mindevents-event-meta__actions">';
         $html .= mindevents_occurrence_actions($event, 'detail');
+        $html .= mindevents_ticket_button($event);
         if ($parent_link) {
             $html .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url($parent_link) . '">' . esc_html__('Open Event Page', 'simple-events') . '</a>';
         }
@@ -1522,6 +1539,7 @@ class mindEventCalendar {
             'mindevents_organizer_name'     => sanitize_text_field((string) ($meta['mindevents_organizer_name'] ?? '')),
             'mindevents_organizer_title'    => sanitize_text_field((string) ($meta['mindevents_organizer_title'] ?? '')),
             'mindevents_organizer_image_id' => absint($meta['mindevents_organizer_image_id'] ?? 0),
+            'mindevents_ticket_url'         => esc_url_raw((string) ($meta['mindevents_ticket_url'] ?? '')),
         );
     }
 

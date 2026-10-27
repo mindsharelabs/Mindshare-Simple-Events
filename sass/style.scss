@@ -137,6 +137,18 @@
     position: relative;
 }
 
+/* While another month loads in place. */
+.mindevents-calendar-region.is-loading {
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+}
+
+.mindevents-calendar-title:focus,
+.mindevents-list-month:focus {
+    outline: none;
+}
+
 .mindevents-button {
     align-items: center;
     appearance: none;
@@ -648,17 +660,35 @@
 }
 
 .event-meta-close {
+    align-items: center;
     appearance: none;
-    background: transparent;
-    border: 1px solid var(--mindevents-border);
+    background: rgba(255, 255, 255, 0.92);
+    border: 0;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(24, 31, 43, 0.3);
     color: var(--mindevents-ink);
     cursor: pointer;
-    flex: 0 0 auto;
-    font-size: 1.4rem;
-    height: 2.4rem;
+    display: flex;
+    font-size: 1.5rem;
+    height: 2.5rem;
+    justify-content: center;
     line-height: 1;
-    margin: 0 0 0 auto;
-    width: 2.4rem;
+    padding: 0;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.75rem;
+    width: 2.5rem;
+    z-index: 2;
+}
+
+.event-meta-close:hover,
+.event-meta-close:focus-visible {
+    background: #fff;
+}
+
+/* Without an image the button floats over the title, so leave it room. */
+.mindevents-event-meta:not(.has-image) .mindevents-event-meta__header {
+    padding-right: 3rem;
 }
 
 .mindevents-subscribe-link {

@@ -746,6 +746,19 @@ function mindevents_occurrence_actions($occurrence_id, $context) {
     return ob_get_clean();
 }
 
+/**
+ * A Buy Tickets button for a date, linking to its ticket link (or its
+ * event's). '' when there is no ticket link.
+ */
+function mindevents_ticket_button($occurrence_id) {
+    $url = mindevents_get_occurrence_ticket_url($occurrence_id);
+    if ($url === '') {
+        return '';
+    }
+
+    return '<a class="mindevents-button mindevents-ticket-button" href="' . esc_url($url) . '">' . esc_html__('Buy Tickets', 'simple-events') . '</a>';
+}
+
 function mindevents_get_event_add_to_calendar_links($event_id) {
     $event_id = absint($event_id);
     if (!mindevents_is_public_occurrence($event_id)) {

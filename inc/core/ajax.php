@@ -28,10 +28,11 @@ class mindEventsAjax {
             wp_send_json_error(null, 404);
         }
 
-        $event = new mindEventCalendar();
+        $event         = new mindEventCalendar();
+        $current_event = absint($_POST['current_event'] ?? 0); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- public and read-only, see above.
 
         wp_send_json_success(array(
-            'html' => $event->get_cal_meta_html($id),
+            'html' => $event->get_cal_meta_html($id, $current_event),
         ));
     }
 
@@ -223,6 +224,7 @@ class mindEventsAjax {
         $html .= $this->render_modal_field('endtime', __('Occurrence End', 'simple-events'), $end_date->format('H:i'), 'time');
         $html .= $this->render_modal_field('eventColor', __('Occurrence Color', 'simple-events'), $values['eventColor'][0] ?? '', 'color');
         $html .= $this->render_modal_textarea('eventDescription', __('Short Description', 'simple-events'), $values['eventDescription'][0] ?? '');
+        $html .= $this->render_modal_field('mindevents_ticket_url', __('Ticket Link', 'simple-events'), $values['mindevents_ticket_url'][0] ?? '', 'url', __("Leave blank to use the event's ticket link.", 'simple-events'));
         $html .= $this->render_modal_field('mindevents_location', __('Location', 'simple-events'), $values['mindevents_location'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_name', __('Organizer Name', 'simple-events'), $values['mindevents_organizer_name'][0] ?? '');
         $html .= $this->render_modal_field('mindevents_organizer_title', __('Organizer Title', 'simple-events'), $values['mindevents_organizer_title'][0] ?? '');
@@ -236,14 +238,17 @@ class mindEventsAjax {
         return $html;
     }
 
-    private function render_modal_field($name, $label, $value, $type = 'text') {
+    private function render_modal_field($name, $label, $value, $type = 'text', $description = '') {
         // A text field for wp-color-picker: a native color input cannot be left empty.
         $class = ($type === 'color') ? ' class="mindevents-color-field"' : '';
         $type  = ($type === 'color') ? 'text' : $type;
 
         $html  = '<div class="mindevents-admin-field">';
         $html .= '<label for="' . esc_attr($name) . '">' . esc_html($label) . '</label>';
-        $html .= '<input type="' . esc_attr($type) . '"' . $class . ' name="' . esc_attr($name) . '" id="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '">';
+        $html .= '<input type="' . esc_attr($type) . '"' . $class . ' name="' . esc_attr($name) . '" id="' . esc_attr($name) . '" value="' . esc_attr((string) $value) . '"' . ($description ? ' aria-describedby="' . esc_attr($name) . '-description"' : '') . '>';
+        if ($description) {
+            $html .= '<p class="description" id="' . esc_attr($name) . '-description">' . esc_html($description) . '</p>';
+        }
         $html .= '</div>';
 
         return $html;

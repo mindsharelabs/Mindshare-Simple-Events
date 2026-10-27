@@ -411,6 +411,35 @@ if (!function_exists('mindevents_get_occurrence_location')) {
     }
 }
 
+if (!function_exists('mindevents_get_occurrence_ticket_url')) {
+    /**
+     * Where to buy tickets for a date: its own ticket link, or its event's
+     * when it has none. '' when neither has one.
+     *
+     * Filtered by 'mindevents_ticket_url', with the occurrence and event IDs.
+     */
+    function mindevents_get_occurrence_ticket_url($occurrence_id) {
+        $occurrence_id = absint($occurrence_id);
+        $event_id      = (int) wp_get_post_parent_id($occurrence_id);
+
+        $url = (string) get_post_meta($occurrence_id, 'mindevents_ticket_url', true);
+        if ($url === '' && $event_id) {
+            $url = (string) get_post_meta($event_id, 'mindevents_ticket_url', true);
+        }
+
+        return esc_url_raw((string) apply_filters('mindevents_ticket_url', $url, $occurrence_id, $event_id));
+    }
+}
+
+if (!function_exists('mindevents_current_event_id')) {
+    /**
+     * The event whose page is being viewed, or 0 on any other page.
+     */
+    function mindevents_current_event_id() {
+        return is_singular('mind_events') ? (int) get_queried_object_id() : 0;
+    }
+}
+
 if (!function_exists('mindevents_get_organizer_data')) {
     /**
      * The occurrence's organizer, or its event's when it has none.

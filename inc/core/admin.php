@@ -46,6 +46,7 @@ class mindeventsAdmin {
         $organizer_name   = get_post_meta($post_id, 'mindevents_organizer_name', true);
         $organizer_title  = get_post_meta($post_id, 'mindevents_organizer_title', true);
         $organizer_image  = get_post_meta($post_id, 'mindevents_organizer_image_id', true);
+        $ticket_url       = get_post_meta($post_id, 'mindevents_ticket_url', true);
 
         wp_nonce_field('mindevents_event_meta', MINDEVENTS_PREPEND . 'event_meta_nonce');
 
@@ -71,6 +72,7 @@ class mindeventsAdmin {
             ),
             ($show_past_events === '1') ? '1' : '0'
         );
+        $this->render_text_control('event_meta[mindevents_ticket_url]', 'event_meta_mindevents_ticket_url', __('Ticket Link', 'simple-events'), $ticket_url, __('Where to buy tickets. Shown as a Buy Tickets button on each date; a date can have its own link.', 'simple-events'), 'url');
         $this->render_text_control('event_meta[mindevents_location]', 'event_meta_mindevents_location', __('Location', 'simple-events'), $location, __('Optional venue or room name.', 'simple-events'));
         $this->render_text_control('event_meta[mindevents_organizer_name]', 'event_meta_mindevents_organizer_name', __('Organizer Name', 'simple-events'), $organizer_name);
         $this->render_text_control('event_meta[mindevents_organizer_title]', 'event_meta_mindevents_organizer_title', __('Organizer Title', 'simple-events'), $organizer_title);
@@ -140,6 +142,7 @@ class mindeventsAdmin {
             'mindevents_organizer_name'    => sanitize_text_field((string) ($event_meta['mindevents_organizer_name'] ?? '')),
             'mindevents_organizer_title'   => sanitize_text_field((string) ($event_meta['mindevents_organizer_title'] ?? '')),
             'mindevents_organizer_image_id'=> absint($event_meta['mindevents_organizer_image_id'] ?? 0),
+            'mindevents_ticket_url'        => esc_url_raw((string) ($event_meta['mindevents_ticket_url'] ?? '')),
         );
     }
 

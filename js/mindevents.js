@@ -173,7 +173,8 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             dataType: 'json',
             data: {
                 action: MINDEVENTS_PREPEND + 'get_event_meta_html',
-                eventid: eventId
+                eventid: eventId,
+                current_event: settings.current_event || 0
             }
         }).done(function (response) {
             if (response && response.success && response.data && response.data.html) {
@@ -186,6 +187,115 @@ const MINDEVENTS_PREPEND = 'mindevents_';
             openModal($('<div class="mindevents-notice">').text(i18n.cannotLoad));
         });
     }
+
+    /*
+     * Month and week navigation without a page load, so the page stays
+     * where it is. The page the link points to is fetched and its version
+     * of the calendar swapped in. Every calendar is in a
+     * .mindevents-calendar-region, in the same order on every load, so a
+     * region's position finds it in the fetched page. Anything unexpected
+     * falls back to following the link.
+     */
+    let calendarRequest = null;
+
+    function swapCalendars(url, indexes) {
+        const $regions = $('.mindevents-calendar-region');
+        const $busy = $regions.filter(function (index) {
+            return indexes.indexOf(index) !== -1;
+        });
+
+        if (calendarRequest) {
+            calendarRequest.abort();
+        }
+
+        $busy.addClass('is-loading').attr('aria-busy', 'true');
+        calendarRequest = $.ajax({ url: url, dataType: 'html' });
+
+        return calendarRequest.then(function (html) {
+            const $page = $(new DOMParser().parseFromString(html, 'text/html'));
+            const $fresh = $page.find('.mindevents-calendar-region');
+
+            if ($fresh.length !== $regions.length) {
+                return $.Deferred().reject(null, 'mismatch');
+            }
+
+            indexes.forEach(function (index) {
+                const $region = $regions.eq(index);
+                $region.html($fresh.eq(index).html());
+
+                // A list's pagination sits beside its region.
+                $region.nextAll('.mindevents-pagination').first().remove();
+                const $pagination = $fresh.eq(index).nextAll('.mindevents-pagination').first();
+                if ($pagination.length) {
+                    $region.after($(document.importNode($pagination.get(0), true)));
+                }
+            });
+
+            // The filter form remembers the date shown, so applying a filter
+            // stays on it.
+            const $freshForms = $page.find('form.mindevents-event-filters');
+            $('form.mindevents-event-filters').each(function (index) {
+                $(this).find('input[name="calendar_date"]').remove();
+                $freshForms.eq(index).find('input[name="calendar_date"]').each(function () {
+                    $(this).clone().appendTo($('form.mindevents-event-filters').eq(index));
+                });
+            });
+        }).always(function () {
+            $busy.removeClass('is-loading').removeAttr('aria-busy');
+        });
+    }
+
+    $(document).on('click', '.mindevents-calendar-nav a', function (event) {
+        // New tabs and windows open as usual.
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        const $region = $(this).closest('.mindevents-calendar-region');
+        if (!$region.length || !window.history || !window.history.pushState || !window.DOMParser) {
+            return;
+        }
+
+        event.preventDefault();
+
+        const url = this.href;
+        const index = $('.mindevents-calendar-region').index($region);
+
+        swapCalendars(url, [index]).done(function () {
+            if (!window.history.state || !window.history.state.mindeventsCalendar) {
+                window.history.replaceState({ mindeventsCalendar: true }, '', window.location.href);
+            }
+            window.history.pushState({ mindeventsCalendar: true }, '', url);
+
+            // Tell keyboard and screen reader users where they are, without
+            // moving the page.
+            const $updated = $('.mindevents-calendar-region').eq(index);
+            const heading = $updated.find('.mindevents-calendar-title, .mindevents-list-month').get(0) || $updated.get(0);
+            heading.setAttribute('tabindex', '-1');
+            heading.focus({ preventScroll: true });
+        }).fail(function (xhr, status) {
+            if (status !== 'abort') {
+                window.location.href = url;
+            }
+        });
+    });
+
+    // Back and forward: show the calendars for that address.
+    window.addEventListener('popstate', function (event) {
+        if (!event.state || !event.state.mindeventsCalendar) {
+            return;
+        }
+
+        const indexes = $('.mindevents-calendar-region').map(function (index) {
+            return index;
+        }).get();
+
+        swapCalendars(window.location.href, indexes).fail(function (xhr, status) {
+            if (status !== 'abort') {
+                window.location.reload();
+            }
+        });
+    });
 
     $(function () {
         initializeFilters();

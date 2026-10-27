@@ -111,6 +111,7 @@ class mindEventsCPTS {
             'mindevents_organizer_name'     => array('string', 'sanitize_text_field'),
             'mindevents_organizer_title'    => array('string', 'sanitize_text_field'),
             'mindevents_organizer_image_id' => array('integer', 'absint'),
+            'mindevents_ticket_url'         => array('string', 'esc_url_raw'),
         );
 
         foreach (array('mind_events', 'mind_sub_event') as $post_type) {

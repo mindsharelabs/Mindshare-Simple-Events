@@ -58,6 +58,7 @@ Event and occurrence details are stored in these plugin-owned meta keys:
 - `mindevents_organizer_title`
 - `mindevents_organizer_image_id`
 - `mindevents_location`
+- `mindevents_ticket_url`
 
 Category color is stored in:
 
@@ -113,6 +114,41 @@ define('MINDEVENTS_REMOVE_ALL_DATA', true);
 ## Usage
 
 Create an event post, then use the `Occurrences` metabox to add one or more dates. Each occurrence can store its own date, time, short description, color override, organizer details, and location.
+
+### Calendar navigation
+
+The previous and next links on month and week calendars load the new
+month in place, without reloading the page, and update the address so
+Back, Forward and refresh still work. They are ordinary links underneath:
+opened in a new tab, or with JavaScript off, they load the page as usual.
+
+### Ticket links
+
+An event's **Ticket Link** (Event Settings) puts a **Buy Tickets** button
+on each of its dates, in the calendar dialog and on list cards. A date can
+have its own Ticket Link, which it uses instead. With neither, there is no
+button. Read it with `mindevents_get_occurrence_ticket_url()`, and change
+it with the `mindevents_ticket_url` filter:
+
+```php
+add_filter('mindevents_ticket_url', function ($url, $occurrence_id, $event_id) {
+    return $url;
+}, 10, 3);
+```
+
+On an event's own page, the dialog and list cards leave out links to that
+page.
+
+### Dialog image
+
+A date's dialog shows its event's featured image. To show another image,
+return its attachment ID, or 0 for none:
+
+```php
+add_filter('mindevents_dialog_image_id', function ($image_id, $occurrence_id, $event_id) {
+    return $image_id;
+}, 10, 3);
+```
 
 ### Events Calendar block
 
