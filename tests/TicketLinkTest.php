@@ -6,6 +6,7 @@
 class TicketLinkTest extends Mindshare_Events_TestCase {
     protected function tearDown(): void {
         remove_all_filters('mindevents_ticket_url');
+        remove_all_filters('mindevents_ticket_text');
         $GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
         parent::tearDown();
     }
@@ -115,5 +116,40 @@ class TicketLinkTest extends Mindshare_Events_TestCase {
 
         $this->assertStringContainsString('Buy Tickets', $card);
         $this->assertStringNotContainsString(get_permalink($event_id), $card);
+    }
+
+    public function test_the_button_uses_the_events_ticket_link_text(): void {
+        $event_id = $this->createEvent();
+        update_post_meta($event_id, 'mindevents_ticket_url', 'https://tickets.example.com/show');
+        update_post_meta($event_id, 'mindevents_ticket_text', 'RSVP');
+        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01');
+
+        $this->assertSame('RSVP', mindevents_get_ticket_text($event_id));
+        $this->assertStringContainsString('>RSVP</a>', mindevents_ticket_button($occurrence_id));
+        $this->assertStringNotContainsString('Buy Tickets', mindevents_ticket_button($occurrence_id));
+    }
+
+    public function test_the_button_says_buy_tickets_without_ticket_link_text(): void {
+        $event_id = $this->createEvent();
+        update_post_meta($event_id, 'mindevents_ticket_url', 'https://tickets.example.com/show');
+        update_post_meta($event_id, 'mindevents_ticket_text', '  ');
+        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01');
+
+        $this->assertStringContainsString('>Buy Tickets</a>', mindevents_ticket_button($occurrence_id));
+    }
+
+    public function test_the_text_is_escaped_and_can_be_filtered(): void {
+        $event_id = $this->createEvent();
+        update_post_meta($event_id, 'mindevents_ticket_url', 'https://tickets.example.com/show');
+        $occurrence_id = $this->createOccurrence($event_id, '2030-05-01');
+        add_filter('mindevents_ticket_text', function ($text, $id) use ($event_id) {
+            return $id === $event_id ? 'Seats <b>&</b> more' : $text;
+        }, 10, 2);
+
+        $this->assertStringContainsString('>Seats &lt;b&gt;&amp;&lt;/b&gt; more</a>', mindevents_ticket_button($occurrence_id));
+    }
+
+    public function test_saving_the_event_stores_its_ticket_link_text_as_plain_text(): void {
+        $this->assertSame('RSVP now', sanitize_meta('mindevents_ticket_text', '<em>RSVP</em> now', 'post', 'mind_events'));
     }
 }

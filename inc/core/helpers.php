@@ -431,6 +431,23 @@ if (!function_exists('mindevents_get_occurrence_ticket_url')) {
     }
 }
 
+if (!function_exists('mindevents_get_ticket_text')) {
+    /**
+     * The text of an event's ticket button: its Ticket Link Text, or
+     * Buy Tickets when it has none.
+     *
+     * Filtered by 'mindevents_ticket_text', with the event ID.
+     */
+    function mindevents_get_ticket_text($event_id) {
+        $text = trim((string) get_post_meta(absint($event_id), 'mindevents_ticket_text', true));
+        if ($text === '') {
+            $text = __('Buy Tickets', 'simple-events');
+        }
+
+        return (string) apply_filters('mindevents_ticket_text', $text, absint($event_id));
+    }
+}
+
 if (!function_exists('mindevents_current_event_id')) {
     /**
      * The event whose page is being viewed, or 0 on any other page.

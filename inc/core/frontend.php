@@ -748,7 +748,8 @@ function mindevents_occurrence_actions($occurrence_id, $context) {
 
 /**
  * A Buy Tickets button for a date, linking to its ticket link (or its
- * event's). '' when there is no ticket link.
+ * event's), with its event's Ticket Link Text. '' when there is no ticket
+ * link.
  */
 function mindevents_ticket_button($occurrence_id) {
     $url = mindevents_get_occurrence_ticket_url($occurrence_id);
@@ -756,7 +757,7 @@ function mindevents_ticket_button($occurrence_id) {
         return '';
     }
 
-    return '<a class="mindevents-button mindevents-ticket-button" href="' . esc_url($url) . '">' . esc_html__('Buy Tickets', 'simple-events') . '</a>';
+    return '<a class="mindevents-button mindevents-ticket-button" href="' . esc_url($url) . '">' . esc_html(mindevents_get_ticket_text(wp_get_post_parent_id($occurrence_id))) . '</a>';
 }
 
 function mindevents_get_event_add_to_calendar_links($event_id) {

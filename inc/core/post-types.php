@@ -125,6 +125,14 @@ class mindEventsCPTS {
             }
         }
 
+        // An event's ticket button text, which its dates share.
+        register_post_meta('mind_events', 'mindevents_ticket_text', array(
+            'show_in_rest'      => true,
+            'single'            => true,
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+
         register_term_meta('mind_event_category', 'mindevents_category_color', array(
             'show_in_rest'      => true,
             'single'            => true,

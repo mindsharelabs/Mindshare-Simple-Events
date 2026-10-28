@@ -59,6 +59,7 @@ Event and occurrence details are stored in these plugin-owned meta keys:
 - `mindevents_organizer_image_id`
 - `mindevents_location`
 - `mindevents_ticket_url`
+- `mindevents_ticket_text` (events only)
 
 Category color is stored in:
 
@@ -134,6 +135,17 @@ it with the `mindevents_ticket_url` filter:
 add_filter('mindevents_ticket_url', function ($url, $occurrence_id, $event_id) {
     return $url;
 }, 10, 3);
+```
+
+The button reads **Buy Tickets** unless the event has **Ticket Link
+Text** (Event Settings), such as RSVP, which all its dates use. Read it
+with `mindevents_get_ticket_text()`, and change it with the
+`mindevents_ticket_text` filter:
+
+```php
+add_filter('mindevents_ticket_text', function ($text, $event_id) {
+    return $text;
+}, 10, 2);
 ```
 
 On an event's own page, the dialog and list cards leave out links to that
