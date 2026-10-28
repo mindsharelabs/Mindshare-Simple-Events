@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-27 13:18-0600\n"
+"POT-Creation-Date: 2026-10-27 19:00-0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,15 +30,15 @@ msgstr ""
 msgid "Display type"
 msgstr ""
 
-#: blocks/calendar/editor.js:31 inc/core/admin.php:60
+#: blocks/calendar/editor.js:31 inc/core/admin.php:61
 msgid "Calendar"
 msgstr ""
 
-#: blocks/calendar/editor.js:32 inc/core/admin.php:59 inc/core/frontend.php:428
+#: blocks/calendar/editor.js:32 inc/core/admin.php:60 inc/core/frontend.php:428
 msgid "List"
 msgstr ""
 
-#: blocks/calendar/editor.js:33 inc/core/admin.php:61
+#: blocks/calendar/editor.js:33 inc/core/admin.php:62
 msgid "Mini calendar"
 msgstr ""
 
@@ -69,87 +69,95 @@ msgstr ""
 msgid "Event Settings"
 msgstr ""
 
-#: inc/core/admin.php:57
+#: inc/core/admin.php:58
 msgid "Display Type"
 msgstr ""
 
-#: inc/core/admin.php:68
+#: inc/core/admin.php:69
 msgid "Past Events"
 msgstr ""
 
-#: inc/core/admin.php:70
+#: inc/core/admin.php:71
 msgid "Show upcoming only"
 msgstr ""
 
-#: inc/core/admin.php:71
+#: inc/core/admin.php:72
 msgid "Show past and upcoming"
 msgstr ""
 
-#: inc/core/admin.php:75 inc/core/ajax.php:227
+#: inc/core/admin.php:76 inc/core/ajax.php:227
 msgid "Ticket Link"
 msgstr ""
 
-#: inc/core/admin.php:75
+#: inc/core/admin.php:76
 msgid ""
 "Where to buy tickets. Shown as a Buy Tickets button on each date; a date can "
 "have its own link."
 msgstr ""
 
-#: inc/core/admin.php:76 inc/core/ajax.php:228
+#: inc/core/admin.php:77
+msgid "The button's text, such as RSVP. Leave blank for Buy Tickets."
+msgstr ""
+
+#: inc/core/admin.php:77
+msgid "Ticket Link Text"
+msgstr ""
+
+#: inc/core/admin.php:78 inc/core/ajax.php:228
 msgid "Location"
 msgstr ""
 
-#: inc/core/admin.php:76
+#: inc/core/admin.php:78
 msgid "Optional venue or room name."
 msgstr ""
 
-#: inc/core/admin.php:77 inc/core/ajax.php:229
+#: inc/core/admin.php:79 inc/core/ajax.php:229
 msgid "Organizer Name"
 msgstr ""
 
-#: inc/core/admin.php:78 inc/core/ajax.php:230
+#: inc/core/admin.php:80 inc/core/ajax.php:230
 msgid "Organizer Title"
 msgstr ""
 
-#: inc/core/admin.php:79 inc/core/ajax.php:231
+#: inc/core/admin.php:81 inc/core/ajax.php:231
 msgid "Organizer Image"
 msgstr ""
 
-#: inc/core/admin.php:88
+#: inc/core/admin.php:90
 msgid ""
 "Click a day to add a date. Click a date to edit it, or drag it to another "
 "day."
 msgstr ""
 
-#: inc/core/admin.php:90
+#: inc/core/admin.php:92
 msgid "Previous Month"
 msgstr ""
 
-#: inc/core/admin.php:91
+#: inc/core/admin.php:93
 msgid "Next Month"
 msgstr ""
 
-#: inc/core/admin.php:97
+#: inc/core/admin.php:99
 msgid "Clear All Occurrences"
 msgstr ""
 
-#: inc/core/admin.php:169
+#: inc/core/admin.php:172
 msgid "New dates"
 msgstr ""
 
-#: inc/core/admin.php:170
+#: inc/core/admin.php:173
 msgid "Start"
 msgstr ""
 
-#: inc/core/admin.php:171
+#: inc/core/admin.php:174
 msgid "End"
 msgstr ""
 
-#: inc/core/admin.php:215
+#: inc/core/admin.php:218
 msgid "Choose image"
 msgstr ""
 
-#: inc/core/admin.php:216
+#: inc/core/admin.php:219
 msgid "Remove"
 msgstr ""
 
@@ -353,24 +361,24 @@ msgstr ""
 msgid "Subscribe to Calendar Feed"
 msgstr ""
 
-#: inc/core/frontend.php:759
-msgid "Buy Tickets"
-msgstr ""
-
-#: inc/core/frontend.php:809
+#: inc/core/frontend.php:810
 msgid "Add to Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:813
+#: inc/core/frontend.php:814
 msgid "Google Calendar"
 msgstr ""
 
-#: inc/core/frontend.php:814
+#: inc/core/frontend.php:815
 msgid "Apple / Outlook (.ics)"
 msgstr ""
 
-#: inc/core/frontend.php:815
+#: inc/core/frontend.php:816
 msgid "Yahoo Calendar"
+msgstr ""
+
+#: inc/core/helpers.php:444
+msgid "Buy Tickets"
 msgstr ""
 
 #: inc/core/installer.php:36
@@ -661,11 +669,11 @@ msgstr ""
 msgid "View Category"
 msgstr ""
 
-#: inc/core/post-types.php:161 inc/core/post-types.php:176
+#: inc/core/post-types.php:169 inc/core/post-types.php:184
 msgid "Category Color"
 msgstr ""
 
-#: inc/core/post-types.php:163 inc/core/post-types.php:181
+#: inc/core/post-types.php:171 inc/core/post-types.php:189
 msgid "Used for calendar and list color accents."
 msgstr ""
 
