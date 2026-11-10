@@ -504,6 +504,20 @@ class mindEventCalendar {
             'meta_query'       => array(),
         );
 
+        // On an event's own page, only that event's dates.
+        if (is_numeric($this->eventID) && (int) $this->eventID > 0) {
+            $default['post_parent'] = (int) $this->eventID;
+
+            if ($this->show_past_events === false) {
+                $default['meta_query'][] = array(
+                    'key'     => 'mindevents_end_utc',
+                    'value'   => $now,
+                    'compare' => '>',
+                    'type'    => 'DATETIME',
+                );
+            }
+        }
+
         if (!$use_frontend_period && $calDate === 'archive') {
             // Whatever is on now or starts in the next 30 days.
             $default['meta_query'][] = mindevents_overlapping_meta_query(new DateTimeImmutable('now'), new DateTimeImmutable('+30 days'));
