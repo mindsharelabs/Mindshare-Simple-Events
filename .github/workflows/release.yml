@@ -1,0 +1,37 @@
+name: Release
+
+# Pushing a version tag, e.g. v2.2.1, publishes a GitHub release with the
+# plugin zip attached. The tag must match the plugin's Version header.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the plugin version
+        run: |
+          version=$(sed -n 's/^ \* Version: *//p' mindshare-events.php | tr -d '[:space:]')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match the plugin's Version: $version"
+            exit 1
+          fi
+
+      - run: bin/build-zip.sh
+
+      - name: Publish the release with the zip attached
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/Mindshare-Simple-Events.zip \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
