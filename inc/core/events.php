@@ -383,12 +383,38 @@ class mindEventCalendar {
             $nextArgs = mindevents_get_frontend_filter_query_args(null, array('calendar_date' => $nextDate->format('Y-m-d')), array('paged'));
         }
 
+        // On one event's calendar, each month button says how many of its
+        // dates are in that month, so dates past the end of this month
+        // aren't missed.
+        $prevCount = '';
+        $nextCount = '';
+        if ($view !== 'week' && is_numeric($this->eventID) && (int) $this->eventID > 0) {
+            $prevTotal = $this->count_month_occurrences($prevDate);
+            $nextTotal = $this->count_month_occurrences($nextDate);
+            $prevCount = $prevTotal ? ' <span class="mindevents-calendar-nav__count">&middot; ' . esc_html($this->occurrence_count_label($prevTotal, 'previous')) . '</span>' : '';
+            $nextCount = $nextTotal ? ' <span class="mindevents-calendar-nav__count">&middot; ' . esc_html($this->occurrence_count_label($nextTotal, 'next')) . '</span>' : '';
+        }
+
         $out  = '<div class="mindevents-calendar-nav">';
-        $out .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url(add_query_arg($prevArgs, $currentUrl)) . '">&larr; ' . esc_html($prevLabel) . '</a>';
-        $out .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url(add_query_arg($nextArgs, $currentUrl)) . '">' . esc_html($nextLabel) . ' &rarr;</a>';
+        $out .= '<a class="mindevents-button mindevents-button--secondary" href="' . esc_url(add_query_arg($prevArgs, $currentUrl)) . '">&larr; ' . esc_html($prevLabel) . $prevCount . '</a>';
+        $out .= '<a class="mindevents-button mindevents-button--secondary' . ($nextCount ? ' has-count' : '') . '" href="' . esc_url(add_query_arg($nextArgs, $currentUrl)) . '">' . esc_html($nextLabel) . $nextCount . ' &rarr;</a>';
         $out .= '</div>';
 
         return $out;
+    }
+
+    /**
+     * How many of this event's dates fall in the month of $date, leaving
+     * out past ones when the event hides them.
+     */
+    private function count_month_occurrences(DateTimeImmutable $date) {
+        $start = $date->modify('first day of this month')->setTime(0, 0, 0);
+        $end   = $start->modify('last day of this month')->setTime(23, 59, 59);
+
+        return count($this->get_sub_events(array(
+            'fields'     => 'ids',
+            'meta_query' => array(mindevents_overlapping_meta_query($start, $end)),
+        )));
     }
 
     public function get_sub_events($args = array()) {
@@ -461,18 +487,7 @@ class mindEventCalendar {
                     continue;
                 }
 
-                $title      = $this->get_occurrence_title($event->ID);
-                $time_label = $this->format_time_range($times['start'], $times['end']);
-
-                $html  = '<div class="mindevents-calendar-event-card">';
-                $html .= $this->get_event_color_bar($event->ID);
-                $html .= '<button type="button" class="mindevents-calendar-event-toggle" data-eventid="' . esc_attr($event->ID) . '">';
-                $html .= '<span class="mindevents-calendar-event-title">' . esc_html($title) . '</span>';
-                $html .= '<span class="mindevents-calendar-event-time">' . esc_html($time_label) . '</span>';
-                $html .= '</button>';
-                $html .= '</div>';
-
-                $this->addDailyHtml($html, $times['start'], $times['end']);
+                $this->addDailyHtml($this->get_event_card_html($event->ID, $times), $times['start'], $times['end']);
             }
         }
 
@@ -483,6 +498,256 @@ class mindEventCalendar {
         }
 
         return $html;
+    }
+
+    /**
+     * A date as a card in a calendar day: its title and time, opening its
+     * details dialog.
+     */
+    private function get_event_card_html($event_id, array $times) {
+        $html  = '<div class="mindevents-calendar-event-card">';
+        $html .= $this->get_event_color_bar($event_id);
+        $html .= '<button type="button" class="mindevents-calendar-event-toggle" data-eventid="' . esc_attr($event_id) . '">';
+        $html .= '<span class="mindevents-calendar-event-title">' . esc_html($this->get_occurrence_title($event_id)) . '</span>';
+        $html .= '<span class="mindevents-calendar-event-time">' . esc_html($this->format_time_range($times['start'], $times['end'])) . '</span>';
+        $html .= '</button>';
+        $html .= '</div>';
+
+        return $html;
+    }
+
+    /**
+     * Every date as one calendar, from the week of the first through the
+     * week of the last, with no month pages: where one month ends and the
+     * next begins is marked in the grid instead. Weeks in a row with no
+     * dates fold into one line.
+     *
+     * Every screen gets the same markup, so a cached page works on all of
+     * them. Where the calendar is wide, each day lists its dates; where it
+     * is narrow (a container query in style.scss), each day with dates is a
+     * button that opens them, kept in a <template> as the mini calendar
+     * does.
+     */
+    public function get_run_calendar($args = array(), $show_links = false) {
+        global $wp_locale;
+
+        $this->setStartOfWeek($this->calendar_start_day);
+        $this->mini_id_prefix = wp_unique_id('mindevents-run-');
+
+        $days  = array(); // 'Y-m-d' => occurrence IDs, in order.
+        $times = array(); // occurrence ID => its times.
+        foreach ($this->get_sub_events($args) as $event) {
+            $event_times = mindevents_get_occurrence_times($event->ID);
+            if (!$event_times) {
+                continue;
+            }
+            $times[$event->ID] = $event_times;
+            foreach ($this->occurrence_days($event_times['start'], $event_times['end']) as $day) {
+                $days[$day->format('Y-m-d')][] = $event->ID;
+            }
+        }
+
+        if (!$days) {
+            return '<p class="mindevents-notice">' . esc_html__('There are no upcoming events.', 'simple-events') . '</p>';
+        }
+
+        ksort($days);
+        $keys  = array_keys($days);
+        $first = $this->day_from_key(reset($keys));
+        $last  = $this->day_from_key(end($keys));
+        $start = $first->modify('-' . ((((int) $first->format('w')) - $this->offset + 7) % 7) . ' days');
+
+        // Each week of the run, and whether it has any dates.
+        $weeks = array();
+        for ($week = $start; $week <= $last; $week = $week->modify('+7 days')) {
+            $has_dates = false;
+            for ($i = 0; $i < 7; $i++) {
+                if (isset($days[$week->modify('+' . $i . ' days')->format('Y-m-d')])) {
+                    $has_dates = true;
+                    break;
+                }
+            }
+            $weeks[] = array('start' => $week, 'has_dates' => $has_dates);
+        }
+
+        $first_month = ((int) $first->format('Y')) * 12 + (int) $first->format('n');
+
+        $out  = '<div class="mindevents-run' . ($this->eventID ? ' mindevents-run--event' : '') . '">';
+        $out .= '<p class="mindevents-run__summary">';
+        $out .= '<strong class="mindevents-run__range">' . esc_html($this->format_run_range($first, $last)) . '</strong> ';
+        $out .= '<span class="mindevents-run__count">' . esc_html($this->occurrence_count_label(count($times))) . '</span>';
+        $out .= '</p>';
+        $out .= '<p class="mindevents-run__hint">' . esc_html__('Tap a highlighted day to see its times.', 'simple-events') . '</p>';
+
+        $weekdays = $this->weekdays();
+        $this->rotate($weekdays, $this->offset);
+        $out .= '<div class="mindevents-run__weekdays" aria-hidden="true">';
+        foreach ($weekdays as $name) {
+            $out .= '<span class="mindevents-run__weekday"><span class="mindevents-run__weekday-full">' . esc_html($name) . '</span><span class="mindevents-run__weekday-short">' . esc_html($wp_locale->get_weekday_initial($name)) . '</span></span>';
+        }
+        $out .= '</div>';
+
+        $out        .= '<div class="mindevents-run__body">';
+        $templates   = '';
+        $after_week  = false; // Whether the row above is a week, rather than the top or a gap.
+        $count_weeks = count($weeks);
+
+        for ($w = 0; $w < $count_weeks; $w++) {
+            if (!$weeks[$w]['has_dates']) {
+                // This week and the empty ones after it, as one line.
+                $gap_start = $weeks[$w]['start'];
+                while ($w + 1 < $count_weeks && !$weeks[$w + 1]['has_dates']) {
+                    $w++;
+                }
+                $gap_end    = $weeks[$w]['start']->modify('+6 days');
+                $out       .= '<div class="mindevents-run__gap">' . esc_html($this->run_gap_label($gap_start, $gap_end)) . '</div>';
+                $after_week = false;
+                continue;
+            }
+
+            $out .= '<div class="mindevents-run__week">';
+            for ($i = 0; $i < 7; $i++) {
+                $date  = $weeks[$w]['start']->modify('+' . $i . ' days');
+                $key   = $date->format('Y-m-d');
+                $ids   = $days[$key] ?? array();
+                $month = ((int) $date->format('Y')) * 12 + (int) $date->format('n');
+
+                $classes = array('mindevents-run-day');
+                if ($ids) {
+                    $classes[] = 'has-events';
+                }
+                if (($month - $first_month) % 2 === 1) {
+                    $classes[] = 'is-alt-month';
+                }
+                if ($date < $first || $date > $last) {
+                    $classes[] = 'is-outside';
+                }
+                if ($after_week && $date->modify('-7 days')->format('n') !== $date->format('n')) {
+                    $classes[] = 'is-month-top';
+                }
+                if ($i > 0 && $date->modify('-1 day')->format('n') !== $date->format('n')) {
+                    $classes[] = 'is-month-left';
+                }
+                if ($this->is_today($date)) {
+                    $classes[] = $this->classes['today'];
+                }
+                if ($this->is_past_day($date)) {
+                    $classes[] = $this->classes['past'];
+                }
+
+                // The month is named on the 1st, and wherever the grid starts again.
+                $show_month = ($date->format('j') === '1') || ($i === 0 && !$after_week);
+
+                $out .= '<div class="' . esc_attr(implode(' ', $classes)) . '" data-date="' . esc_attr($key) . '">';
+                $out .= '<time class="mindevents-run-day__number" datetime="' . esc_attr($key) . '">';
+                $out .= '<span class="mindevents-run-day__name">' . esc_html($wp_locale->get_weekday((int) $date->format('w'))) . ' </span>';
+                if ($show_month) {
+                    $out .= '<span class="mindevents-run-day__month">' . esc_html(wp_date('M', $date->getTimestamp())) . '</span> ';
+                }
+                $out .= esc_html($date->format('j')) . '</time>';
+
+                if ($ids) {
+                    $items = array();
+                    $dots  = '';
+                    $out  .= '<div class="mindevents-run-day__events">';
+                    foreach ($ids as $id) {
+                        $out    .= $this->get_event_card_html($id, $times[$id]);
+                        $items[] = $this->get_list_item_html($id, $show_links);
+                        $dots   .= '<span class="mindevents-run-dot" style="background-color:' . esc_attr($this->get_primary_event_color($id)) . '"></span>';
+                    }
+                    $out .= '</div>';
+
+                    /* translators: 1: a date, e.g. "Thursday, July 4, 2030", 2: number of events that day */
+                    $label = sprintf(_n('%1$s: %2$d event', '%1$s: %2$d events', count($ids), 'simple-events'), wp_date('l, ' . $this->date_format, $date->getTimestamp()), count($ids));
+                    $out  .= '<button type="button" class="mindevents-run-day__open" data-template="' . esc_attr($this->mini_template_id($date)) . '" aria-haspopup="dialog" aria-label="' . esc_attr($label) . '">';
+                    $out  .= '<span class="mindevents-run-day__dots" aria-hidden="true">' . $dots . '</span>';
+                    $out  .= '</button>';
+
+                    $templates .= $this->render_mini_day_template($date, $items);
+                }
+
+                $out .= '</div>';
+            }
+            $out       .= '</div>';
+            $after_week = true;
+        }
+
+        $out .= '</div></div>';
+
+        return $out . $templates;
+    }
+
+    /**
+     * The days an occurrence covers, at noon in the site timezone. One
+     * that ends exactly at midnight does not spill onto the next day.
+     *
+     * @return DateTimeImmutable[]
+     */
+    private function occurrence_days(DateTimeImmutable $start, DateTimeImmutable $end) {
+        $end      = ($end > $start) ? $end : $start;
+        $last_day = $end->setTime(0, 0, 0);
+
+        if ($end > $start && $end == $last_day) {
+            $last_day = $last_day->modify('-1 day');
+        }
+
+        $days = array();
+        for ($day = $start->setTime(0, 0, 0); $day <= $last_day; $day = $day->modify('+1 day')) {
+            $days[] = $this->local_day($day->format('Y'), $day->format('n'), $day->format('j'));
+        }
+
+        return $days;
+    }
+
+    private function day_from_key($key) {
+        list($year, $month, $day) = array_map('intval', explode('-', $key));
+
+        return $this->local_day($year, $month, $day);
+    }
+
+    /**
+     * "Nov 19 – Dec 20, 2026", with both years when they differ.
+     */
+    private function format_run_range(DateTimeImmutable $first, DateTimeImmutable $last) {
+        if ($first->format('Y-m-d') === $last->format('Y-m-d')) {
+            return wp_date('M j, Y', $first->getTimestamp());
+        }
+
+        $same_year = ($first->format('Y') === $last->format('Y'));
+
+        /* translators: 1: the first date, 2: the last date */
+        return sprintf(_x('%1$s – %2$s', 'date range', 'simple-events'), wp_date($same_year ? 'M j' : 'M j, Y', $first->getTimestamp()), wp_date('M j, Y', $last->getTimestamp()));
+    }
+
+    /**
+     * "20 dates", or "12 more dates" on a next-month button. Filter
+     * 'mindevents_occurrence_count_label' to name them, e.g. "20
+     * performances".
+     *
+     * @param string $context 'run' for the run calendar's total, or
+     *                        'previous' or 'next' for a month button.
+     */
+    private function occurrence_count_label($count, $context = 'run') {
+        if ($context === 'next') {
+            /* translators: %s: number of dates in the next month */
+            $label = sprintf(_n('%s more date', '%s more dates', $count, 'simple-events'), number_format_i18n($count));
+        } else {
+            /* translators: %s: number of dates */
+            $label = sprintf(_n('%s date', '%s dates', $count, 'simple-events'), number_format_i18n($count));
+        }
+
+        return (string) apply_filters('mindevents_occurrence_count_label', $label, $count, $context);
+    }
+
+    /**
+     * "No dates Dec 21 – Jan 3". Filter 'mindevents_run_gap_label' to word
+     * it differently.
+     */
+    private function run_gap_label(DateTimeImmutable $start, DateTimeImmutable $end) {
+        /* translators: 1: first day of the gap, 2: last day of the gap */
+        $label = sprintf(__('No dates %1$s – %2$s', 'simple-events'), wp_date('M j', $start->getTimestamp()), wp_date('M j', $end->getTimestamp()));
+
+        return (string) apply_filters('mindevents_run_gap_label', $label, $start, $end);
     }
 
     public function get_front_list($calDate = '', $args = array()) {

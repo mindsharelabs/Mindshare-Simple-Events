@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * The Events Calendar block: a list, calendar or mini calendar on any
+ * The Events Calendar block: a list, calendar, mini calendar or run on any
  * page, of every event, the events in chosen categories, or one event.
  *
  * It is rendered on the server by the same code as the event pages. The
@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
  * preview.
  */
 class mindEventsBlock {
-    const DISPLAYS = array('calendar', 'list', 'mini');
+    const DISPLAYS = array('calendar', 'list', 'mini', 'run');
 
     public function __construct() {
         add_action('init', array($this, 'register'));
@@ -55,6 +55,8 @@ class mindEventsBlock {
             $html = '<p class="mindevents-notice">' . esc_html__('There are no upcoming events.', 'simple-events') . '</p>';
         } elseif ($display === 'mini') {
             $html = $calendar->get_mini_calendar($args, true);
+        } elseif ($display === 'run') {
+            $html = $calendar->get_run_calendar($args, true);
         } elseif ($display === 'list') {
             if (!$show_past) {
                 $args['meta_query'] = array(

@@ -351,8 +351,9 @@ const MINDEVENTS_PREPEND = 'mindevents_';
         requestEventMeta($(this).data('eventid'), this);
     });
 
-    // A mini calendar day: its list is already in the page, in a <template>.
-    $(document).on('click', '.mindevents-mini-day[data-template]', function (event) {
+    // A mini calendar day, or a run calendar day on a narrow screen: its
+    // list is already in the page, in a <template>.
+    $(document).on('click', '.mindevents-mini-day[data-template], .mindevents-run-day__open[data-template]', function (event) {
         event.preventDefault();
 
         const template = document.getElementById($(this).attr('data-template'));
@@ -364,6 +365,31 @@ const MINDEVENTS_PREPEND = 'mindevents_';
     $(document).on('click', '.mindevents-modal__backdrop, .event-meta-close', function (event) {
         event.preventDefault();
         closeModal();
+    });
+
+    // A click in the empty space around the dialog closes it. The layer
+    // that centers the dialog covers the backdrop, so the click lands on
+    // that layer, not on the backdrop. A press that starts inside the
+    // dialog, such as selecting text, doesn't close it where it ends.
+    let pressedOutside = false;
+
+    function isOutsideDialog(target) {
+        return !$(target).closest('.mindevents-modal__content > *').length;
+    }
+
+    $(document).on('mousedown', '.mindevents-modal__dialog', function (event) {
+        pressedOutside = isOutsideDialog(event.target);
+    });
+
+    $(document).on('click', '.mindevents-modal__dialog', function (event) {
+        // Taps send a mousedown first too.
+        const outside = pressedOutside && isOutsideDialog(event.target);
+        pressedOutside = false;
+
+        if (outside) {
+            event.preventDefault();
+            closeModal();
+        }
     });
 
     $(document).on('click', function (event) {

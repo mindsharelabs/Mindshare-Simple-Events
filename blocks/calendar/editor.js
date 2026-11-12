@@ -30,7 +30,8 @@
                 options: [
                     { value: 'calendar', label: __('Calendar', 'simple-events') },
                     { value: 'list', label: __('List', 'simple-events') },
-                    { value: 'mini', label: __('Mini calendar', 'simple-events') }
+                    { value: 'mini', label: __('Mini calendar', 'simple-events') },
+                    { value: 'run', label: __('Run (every date in one calendar)', 'simple-events') }
                 ],
                 onChange: function (display) {
                     setAttributes({ display: display });

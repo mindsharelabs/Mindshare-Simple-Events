@@ -11,7 +11,7 @@
     "attributes": {
         "display": {
             "type": "string",
-            "enum": ["calendar", "list", "mini"],
+            "enum": ["calendar", "list", "mini", "run"],
             "default": "calendar"
         },
         "categories": {

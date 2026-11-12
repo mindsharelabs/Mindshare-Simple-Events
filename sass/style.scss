@@ -1091,6 +1091,241 @@ body.mindevents-has-modal {
     overflow: hidden;
 }
 
+// Run calendar: every date in one grid, from the week of the first to the
+// week of the last. A heavy stepped line and a tint mark where one month
+// gives way to the next. The narrow layout below follows the calendar's
+// own width, not the device, so the one cached page suits every screen.
+.mindevents-run {
+    container-name: mindevents-run;
+    container-type: inline-size;
+    min-width: 0;
+    --mindevents-run-tint: rgba(31, 41, 55, 0.035);
+    --mindevents-run-line: var(--mindevents-ink);
+}
+
+.mindevents-run__summary {
+    align-items: baseline;
+    color: var(--mindevents-muted);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin: 0 0 1rem;
+}
+
+.mindevents-run__range {
+    color: var(--mindevents-ink);
+    font-size: 1.1rem;
+}
+
+.mindevents-run__hint {
+    display: none;
+}
+
+.mindevents-run__weekdays,
+.mindevents-run__week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.mindevents-run__weekday {
+    color: var(--mindevents-muted);
+    font-size: 0.84rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding-bottom: 0.5rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.mindevents-run__weekday-short {
+    display: none;
+}
+
+.mindevents-run__body {
+    border-left: 1px solid var(--mindevents-border);
+    border-top: 1px solid var(--mindevents-border);
+}
+
+.mindevents-run-day {
+    border-bottom: 1px solid var(--mindevents-border);
+    border-right: 1px solid var(--mindevents-border);
+    min-height: 7rem;
+    min-width: 0;
+    padding: 0.6rem;
+    position: relative;
+}
+
+.mindevents-run-day.is-alt-month {
+    background: var(--mindevents-run-tint);
+}
+
+.mindevents-run-day.is-month-top {
+    box-shadow: inset 0 3px 0 var(--mindevents-run-line);
+}
+
+.mindevents-run-day.is-month-left {
+    box-shadow: inset 3px 0 0 var(--mindevents-run-line);
+}
+
+.mindevents-run-day.is-month-top.is-month-left {
+    box-shadow: inset 0 3px 0 var(--mindevents-run-line), inset 3px 0 0 var(--mindevents-run-line);
+}
+
+.mindevents-run-day.is-today {
+    outline: 2px solid var(--mindevents-highlight);
+    outline-offset: -2px;
+}
+
+.mindevents-run-day.is-outside .mindevents-run-day__number {
+    opacity: 0.45;
+}
+
+.mindevents-run-day.is-past.has-events {
+    opacity: 0.6;
+}
+
+.mindevents-run-day__number {
+    color: var(--mindevents-ink);
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 0.5rem;
+}
+
+.mindevents-run-day__month {
+    color: var(--mindevents-accent);
+    font-size: 0.72em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.mindevents-run-day__events {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.mindevents-run .mindevents-calendar-event-toggle {
+    padding: 0.4rem 0.55rem 0.45rem;
+}
+
+.mindevents-run .mindevents-calendar-event-time {
+    color: var(--mindevents-ink);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+// Read aloud, never shown: the column heading names the day.
+.mindevents-run-day__name,
+// On an event's own page its title is already at the top.
+.mindevents-run--event .mindevents-calendar-event-title {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+}
+
+.mindevents-run-day__open {
+    display: none;
+}
+
+.mindevents-run__gap {
+    background: var(--mindevents-run-tint);
+    border-bottom: 1px solid var(--mindevents-border);
+    border-right: 1px solid var(--mindevents-border);
+    color: var(--mindevents-muted);
+    font-size: 0.85rem;
+    padding: 0.6rem;
+    text-align: center;
+}
+
+.mindevents-calendar-nav__count {
+    font-weight: 700;
+}
+
+// Narrow: each day with dates is a button with a dot per date, opening a
+// panel that lists them.
+@container mindevents-run (max-width: 600px) {
+    .mindevents-run__hint {
+        color: var(--mindevents-muted);
+        display: block;
+        font-size: 0.85rem;
+        margin: -0.5rem 0 0.75rem;
+    }
+
+    .mindevents-run__weekday {
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+    }
+
+    .mindevents-run__weekday-full {
+        display: none;
+    }
+
+    .mindevents-run__weekday-short {
+        display: inline;
+    }
+
+    .mindevents-run-day {
+        min-height: 3.6rem;
+        padding: 0.35rem 0.15rem;
+    }
+
+    .mindevents-run-day__number {
+        font-size: 0.85rem;
+        margin: 0;
+        text-align: center;
+    }
+
+    .mindevents-run-day__month {
+        display: block;
+        font-size: 0.6rem;
+    }
+
+    .mindevents-run-day__events {
+        display: none;
+    }
+
+    .mindevents-run-day__open {
+        align-items: flex-end;
+        appearance: none;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        display: flex;
+        inset: 0;
+        justify-content: center;
+        padding: 0 0 0.45rem;
+        position: absolute;
+        width: 100%;
+    }
+
+    .mindevents-run-day__open:hover {
+        background: rgba(0, 0, 0, 0.04);
+    }
+
+    .mindevents-run-day__open:focus-visible {
+        outline: 2px solid var(--mindevents-ink);
+        outline-offset: -2px;
+    }
+
+    .mindevents-run-day__dots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        justify-content: center;
+    }
+
+    .mindevents-run-dot {
+        border-radius: 50%;
+        display: block;
+        height: 7px;
+        width: 7px;
+    }
+}
+
 @media (max-width: 960px) {
     .mindevents-mini-calendar--columns-3 {
         grid-template-columns: repeat(2, minmax(0, 1fr));
