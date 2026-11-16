@@ -172,7 +172,16 @@ function mindevents_get_frontend_filters($source = null, $context = null) {
     }
 
     $filters['event_search'] = sanitize_text_field(wp_unslash((string) ($source['event_search'] ?? '')));
-    $filters['event_view']   = mindevents_normalize_frontend_event_view($source['event_view'] ?? 'month');
+    /**
+     * The view an archive opens in when the visitor hasn't picked one:
+     * 'month', 'week' or 'list'. A theme can, for example, open an event
+     * category in its list.
+     *
+     * @param string $view    The view. Default 'month'.
+     * @param string $context 'events_archive' or 'event_category_archive'.
+     */
+    $default_view            = apply_filters(MINDEVENTS_PREPEND . 'default_event_view', 'month', $context);
+    $filters['event_view']   = mindevents_normalize_frontend_event_view($source['event_view'] ?? $default_view);
     $filters['paged']        = max(1, absint($source['paged'] ?? 1));
 
     if ($context === 'events_archive') {
