@@ -557,3 +557,76 @@ if (!function_exists('mindevents_get_site_prod_id')) {
         return '-//' . $name . '//Simple Events//EN';
     }
 }
+
+if (!function_exists('mindevents_color_settings')) {
+    /**
+     * The calendar colours that can be set on the settings page: each
+     * one's CSS variable, label, help and default.
+     */
+    function mindevents_color_settings() {
+        return array(
+            'accent'      => array(
+                'var'     => '--mindevents-accent',
+                'label'   => __('Buttons and Links', 'simple-events'),
+                'help'    => __('Buttons, links, the chosen view and each date\'s mark on the calendar.', 'simple-events'),
+                'default' => '#2271b1',
+            ),
+            'accent_dark' => array(
+                'var'     => '--mindevents-accent-dark',
+                'label'   => __('Buttons and Links, Pointed At', 'simple-events'),
+                'help'    => __('The same, while pointed at or pressed. A darker shade of the one above works well.', 'simple-events'),
+                'default' => '#135e96',
+            ),
+            'highlight'   => array(
+                'var'     => '--mindevents-highlight',
+                'label'   => __('Highlight', 'simple-events'),
+                'help'    => __('Today on the calendar, and the Apply button in the filters.', 'simple-events'),
+                'default' => '#2271b1',
+            ),
+            'ink'         => array(
+                'var'     => '--mindevents-ink',
+                'label'   => __('Text', 'simple-events'),
+                'help'    => __('Event titles, dates and headings.', 'simple-events'),
+                'default' => '#1f2937',
+            ),
+            'muted'       => array(
+                'var'     => '--mindevents-muted',
+                'label'   => __('Secondary Text', 'simple-events'),
+                'help'    => __('Times, weekday names and other smaller text.', 'simple-events'),
+                'default' => '#556070',
+            ),
+            'border'      => array(
+                'var'     => '--mindevents-border',
+                'label'   => __('Borders', 'simple-events'),
+                'help'    => __('Lines around calendar days, cards and buttons.', 'simple-events'),
+                'default' => '#c3c4c7',
+            ),
+        );
+    }
+}
+
+if (!function_exists('mindevents_color_css')) {
+    /**
+     * CSS for the colours set on the settings page, or '' when none are.
+     * It uses the same selectors as the stylesheet's defaults, and loads
+     * after it, so it replaces them.
+     */
+    function mindevents_color_css() {
+        $options = get_option(MINDEVENTS_PREPEND . 'support_settings', array());
+        $options = is_array($options) ? $options : array();
+
+        $declarations = array();
+        foreach (mindevents_color_settings() as $key => $color) {
+            $value = sanitize_hex_color($options[MINDEVENTS_PREPEND . 'color_' . $key] ?? '');
+            if ($value) {
+                $declarations[] = $color['var'] . ': ' . $value . ';';
+            }
+        }
+
+        if (!$declarations) {
+            return '';
+        }
+
+        return '.mindevents-shell, .mindevents-modal, .mindevents-event-filters, .mindevents-calendar-wrap, .mindevents-list, .mindevents-event-meta { ' . implode(' ', $declarations) . ' }';
+    }
+}

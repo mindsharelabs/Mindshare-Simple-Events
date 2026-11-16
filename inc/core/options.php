@@ -81,16 +81,51 @@ class mindEventsOptions {
                 'help'    => __('Used when creating new occurrences in the admin calendar.', 'simple-events'),
             )
         );
+
+        add_settings_section(
+            MINDEVENTS_PREPEND . 'color_settings',
+            __('Colors', 'simple-events'),
+            function() {
+                echo '<p>' . esc_html__('The colors of the calendars, lists and buttons on event pages and in the calendar block. Leave one empty to use its default.', 'simple-events') . '</p>';
+            },
+            'mindeventsPlugin'
+        );
+
+        foreach (mindevents_color_settings() as $key => $color) {
+            add_settings_field(
+                MINDEVENTS_PREPEND . 'color_' . $key,
+                $color['label'],
+                array($this, 'render_color_field'),
+                'mindeventsPlugin',
+                MINDEVENTS_PREPEND . 'color_settings',
+                array(
+                    'field'     => MINDEVENTS_PREPEND . 'color_' . $key,
+                    'default'   => $color['default'],
+                    'help'      => $color['help'],
+                    'label_for' => MINDEVENTS_PREPEND . 'color_' . $key,
+                )
+            );
+        }
     }
 
     public function sanitize_settings($settings) {
         $settings = is_array($settings) ? $settings : array();
 
-        return array(
-            MINDEVENTS_PREPEND . 'start_day'  => in_array(($settings[MINDEVENTS_PREPEND . 'start_day'] ?? 'Monday'), array('Sunday', 'Monday'), true) ? $settings[MINDEVENTS_PREPEND . 'start_day'] : 'Monday',
+        $start_day = $settings[MINDEVENTS_PREPEND . 'start_day'] ?? 'Monday';
+
+        $clean = array(
+            MINDEVENTS_PREPEND . 'start_day'  => in_array($start_day, array('Sunday', 'Monday'), true) ? $start_day : 'Monday',
             MINDEVENTS_PREPEND . 'start_time' => mindevents_normalize_time_value($settings[MINDEVENTS_PREPEND . 'start_time'] ?? '', '19:00'),
             MINDEVENTS_PREPEND . 'end_time'   => mindevents_normalize_time_value($settings[MINDEVENTS_PREPEND . 'end_time'] ?? '', '21:00'),
         );
+
+        // A color left empty, or that isn't one, falls back to its default.
+        foreach (array_keys(mindevents_color_settings()) as $key) {
+            $field         = MINDEVENTS_PREPEND . 'color_' . $key;
+            $clean[$field] = (string) sanitize_hex_color(trim((string) ($settings[$field] ?? '')));
+        }
+
+        return $clean;
     }
 
     public function render_settings_page() {
@@ -134,6 +169,18 @@ class mindEventsOptions {
             echo '<option value="' . esc_attr($option_value) . '" ' . selected($value, $option_value, false) . '>' . esc_html($label) . '</option>';
         }
         echo '</select>';
+
+        if (!empty($args['help'])) {
+            echo '<p class="description">' . esc_html($args['help']) . '</p>';
+        }
+    }
+
+    public function render_color_field($args) {
+        $options = get_option(MINDEVENTS_PREPEND . 'support_settings', array());
+        $field   = $args['field'];
+        $value   = $options[$field] ?? '';
+
+        echo '<input type="text" class="mindevents-color-field" name="mindevents_support_settings[' . esc_attr($field) . ']" id="' . esc_attr($field) . '" value="' . esc_attr($value) . '" data-default-color="' . esc_attr($args['default']) . '" placeholder="' . esc_attr($args['default']) . '">';
 
         if (!empty($args['help'])) {
             echo '<p class="description">' . esc_html($args['help']) . '</p>';

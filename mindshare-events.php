@@ -145,6 +145,12 @@ final class mindEvents {
             mindevents_asset_version('css/style.css')
         );
 
+        // The colors set on the settings page, over the stylesheet's own.
+        $color_css = mindevents_color_css();
+        if ($color_css !== '') {
+            wp_add_inline_style('mindevents-frontend', $color_css);
+        }
+
         wp_register_script(
             'mindevents-frontend',
             plugins_url('js/mindevents.js', MINDEVENTS_PLUGIN_FILE),
@@ -204,6 +210,13 @@ final class mindEvents {
             array(),
             mindevents_asset_version('css/admin.css')
         );
+
+        // The settings page's color fields.
+        if ($is_settings) {
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_script('wp-color-picker');
+            wp_add_inline_script('wp-color-picker', 'jQuery(function($){ $(".mindevents-color-field").wpColorPicker(); });');
+        }
 
         if ($is_event_editor) {
             wp_enqueue_media();
