@@ -417,6 +417,17 @@ class mindEventCalendar {
         )));
     }
 
+    /**
+     * Whether the event has any dates to show: any at all, or only those
+     * still to come when past dates are hidden.
+     */
+    public function has_occurrences() {
+        return (bool) $this->get_sub_events(array(
+            'fields'         => 'ids',
+            'posts_per_page' => 1,
+        ));
+    }
+
     public function get_sub_events($args = array()) {
         $passed_meta_query = array();
         if (!empty($args['meta_query']) && is_array($args['meta_query'])) {
